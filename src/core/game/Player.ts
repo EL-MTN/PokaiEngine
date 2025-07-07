@@ -1,5 +1,5 @@
+import { Action, PlayerInfo, Position } from '../../types';
 import { Card } from '../cards/Card';
-import { PlayerInfo, Position, Action, ActionType } from '../../types';
 
 export class Player implements PlayerInfo {
 	public id: string;

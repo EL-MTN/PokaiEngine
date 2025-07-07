@@ -1,13 +1,13 @@
-import { GameEngine } from './GameEngine';
 import {
+	Action,
+	BotGameState,
 	GameConfig,
+	GameEvent,
 	GameId,
 	PlayerId,
-	Action,
-	GameEvent,
-	BotGameState,
 	PossibleAction,
 } from '../types';
+import { GameEngine } from './GameEngine';
 
 export interface GameInfo {
 	id: GameId;

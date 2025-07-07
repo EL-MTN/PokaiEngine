@@ -1,5 +1,5 @@
 import { Card } from '../../core/cards/Card';
-import { Suit, Rank } from '../../types';
+import { Rank, Suit } from '../../types';
 
 describe('Card', () => {
 	describe('Constructor', () => {

@@ -1,6 +1,6 @@
-import { Deck } from '../../core/cards/Deck';
 import { Card } from '../../core/cards/Card';
-import { Suit, Rank } from '../../types';
+import { Deck } from '../../core/cards/Deck';
+import { Rank, Suit } from '../../types';
 
 describe('Deck', () => {
 	describe('Constructor', () => {

@@ -1,8 +1,8 @@
 import { ActionValidator } from '../../core/betting/ActionValidator';
+import { Card } from '../../core/cards/Card';
 import { GameState } from '../../core/game/GameState';
 import { Player } from '../../core/game/Player';
-import { Card } from '../../core/cards/Card';
-import { ActionType, GamePhase, Position, Suit, Rank } from '../../types';
+import { ActionType, GamePhase, Rank, Suit } from '../../types';
 
 describe('ActionValidator', () => {
 	let gameState: GameState;

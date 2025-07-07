@@ -1,14 +1,11 @@
 import { GameController } from '../engine/GameController';
-import { BotInterface } from './BotInterface';
 import {
 	Action,
-	ActionType,
 	GameEvent,
-	BotGameState,
 	GameId,
-	PlayerId,
-	PossibleAction,
+	PlayerId
 } from '../types';
+import { BotInterface } from './BotInterface';
 
 // Socket interface for compatibility
 export interface Socket {

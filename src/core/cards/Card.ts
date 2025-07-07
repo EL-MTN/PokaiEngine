@@ -1,4 +1,4 @@
-import { Card as CardInterface, Suit, Rank } from '../../types';
+import { Card as CardInterface, Rank, Suit } from '../../types';
 
 export class Card implements CardInterface {
 	constructor(public readonly suit: Suit, public readonly rank: Rank) {}

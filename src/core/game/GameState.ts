@@ -1,7 +1,7 @@
+import { GamePhase, GameState as GameStateInterface, Position, Pot } from '../../types';
 import { Card } from '../cards/Card';
 import { Player } from './Player';
 import { PotManager } from './PotManager';
-import { GameState as GameStateInterface, GamePhase, Position, Pot, PlayerInfo } from '../../types';
 
 export class GameState implements GameStateInterface {
 	public id: string;

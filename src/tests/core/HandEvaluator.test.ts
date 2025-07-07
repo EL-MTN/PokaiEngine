@@ -1,6 +1,6 @@
-import { HandEvaluator } from '../../core/cards/HandEvaluator';
 import { Card } from '../../core/cards/Card';
-import { Suit, Rank, HandRank } from '../../types';
+import { HandEvaluator } from '../../core/cards/HandEvaluator';
+import { HandRank, Rank, Suit } from '../../types';
 
 describe('HandEvaluator', () => {
 	// Helper function to get hand name from rank

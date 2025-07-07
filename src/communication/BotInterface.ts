@@ -1,11 +1,11 @@
 import { GameController } from '../engine/GameController';
-import { 
-  Action, 
-  BotGameState, 
-  PossibleAction, 
-  GameId, 
+import {
+  Action,
+  BotGameState,
+  GameEvent,
+  GameId,
   PlayerId,
-  GameEvent
+  PossibleAction
 } from '../types';
 
 export interface BotAPI {

@@ -1,5 +1,5 @@
+import { HandEvaluation, HandRank, Rank } from '../../types';
 import { Card } from './Card';
-import { HandRank, HandEvaluation, Rank, Suit } from '../../types';
 
 export class HandEvaluator {
 	/**

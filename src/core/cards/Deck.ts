@@ -1,5 +1,5 @@
+import { Rank, Suit } from '../../types';
 import { Card } from './Card';
-import { Suit, Rank } from '../../types';
 
 export class Deck {
 	private cards: Card[] = [];

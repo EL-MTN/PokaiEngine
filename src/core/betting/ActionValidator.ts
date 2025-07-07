@@ -1,6 +1,6 @@
+import { Action, ActionType, InvalidActionError, PossibleAction } from '../../types';
 import { GameState } from '../game/GameState';
 import { Player } from '../game/Player';
-import { Action, ActionType, PossibleAction, GamePhase, InvalidActionError } from '../../types';
 
 export class ActionValidator {
 	/**

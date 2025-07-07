@@ -1,5 +1,5 @@
-import { Player } from './Player';
 import { Pot } from '../../types';
+import { Player } from './Player';
 
 export interface PotContribution {
 	playerId: string;

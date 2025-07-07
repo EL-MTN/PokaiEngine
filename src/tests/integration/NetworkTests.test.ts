@@ -1,5 +1,5 @@
 import { GameEngine } from '../../engine/GameEngine';
-import { ActionType, GamePhase, GameConfig } from '../../types';
+import { ActionType, GameConfig, GamePhase } from '../../types';
 
 describe('Network & Communication Integration Tests', () => {
 	let gameEngine: GameEngine;
