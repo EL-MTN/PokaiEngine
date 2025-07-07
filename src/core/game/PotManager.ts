@@ -64,6 +64,9 @@ export class PotManager {
 		const eligiblePlayers = players.filter((p) => p.isEligibleForPot());
 
 		if (eligiblePlayers.length <= 1) {
+			// Even if no side pots are needed, we should still rebuild the main pot
+			// to exclude folded players from eligibility (but keep their money in the pot)
+			this.rebuildMainPotWithCorrectEligibility(players, eligiblePlayers);
 			return;
 		}
 
@@ -78,7 +81,8 @@ export class PotManager {
 		const sortedAmounts = Array.from(betAmounts).sort((a, b) => a - b);
 
 		if (sortedAmounts.length <= 1) {
-			// No side pots needed
+			// No side pots needed, but still rebuild main pot with correct eligibility
+			this.rebuildMainPotWithCorrectEligibility(players, eligiblePlayers);
 			return;
 		}
 
@@ -108,6 +112,21 @@ export class PotManager {
 
 			previousAmount = currentAmount;
 		}
+	}
+
+	/**
+	 * Rebuilds the main pot with correct eligibility (keeps all money, but only eligible players can win)
+	 */
+	private rebuildMainPotWithCorrectEligibility(allPlayers: Player[], eligiblePlayers: Player[]): void {
+		// Keep all the money that was bet (including from folded players)
+		// but only eligible players can win it
+		const totalAmount = this.getTotalPotAmount();
+		
+		this.pots = [{
+			amount: totalAmount,
+			eligiblePlayers: eligiblePlayers.map((p) => p.id),
+			isMainPot: true,
+		}];
 	}
 
 	/**
