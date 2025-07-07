@@ -6,7 +6,7 @@ import {
 	GameId,
 	PlayerId,
 	PossibleAction,
-} from '../types';
+} from '@types';
 import { GameEngine } from './GameEngine';
 
 export interface GameInfo {
@@ -89,7 +89,7 @@ export class GameController {
 		}
 
 		const gameState = game.getGameState();
-		const config = game['config']; // Access private config via bracket notation
+		const config = game.getConfig();
 
 		return {
 			id: gameId,

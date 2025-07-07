@@ -1,5 +1,5 @@
-import { GamePhase, GameState as GameStateInterface, Position, Pot } from '../../types';
-import { Card } from '../cards/Card';
+import { Action, GamePhase, GameState as GameStateInterface, Position, Pot } from '@types';
+import { Card } from '@core/cards/Card';
 import { Player } from './Player';
 import { PotManager } from './PotManager';
 
@@ -18,9 +18,11 @@ export class GameState implements GameStateInterface {
 	public minimumRaise: number;
 	public handNumber: number = 0;
 	public isComplete: boolean = false;
+	public lastAggressor?: string; // Track last player to bet or raise
+	public lastAggressorPerRound: Map<GamePhase, string> = new Map(); // Track per betting round
 
 	private potManager: PotManager;
-	private actionHistory: any[] = [];
+	private actionHistory: Action[] = [];
 	private playerPositions: Position[] = [];
 
 	constructor(id: string, smallBlindAmount: number, bigBlindAmount: number) {
@@ -217,9 +219,10 @@ export class GameState implements GameStateInterface {
 	 * Moves the dealer button to the next player
 	 */
 	moveDealer(): void {
-		const activePlayers = this.getActivePlayers();
-		if (activePlayers.length > 0) {
-			this.dealerPosition = (this.dealerPosition + 1) % activePlayers.length;
+		if (this.players.length > 0) {
+			// Move to next position regardless of whether player is active
+			// This ensures button doesn't skip seats when players sit out
+			this.dealerPosition = (this.dealerPosition + 1) % this.players.length;
 		}
 	}
 
@@ -253,6 +256,9 @@ export class GameState implements GameStateInterface {
 
 		// Reset minimum raise for new betting round
 		this.minimumRaise = this.bigBlindAmount;
+
+		// Reset last aggressor for new betting round
+		this.resetLastAggressorForNewRound();
 
 		// Set first player to act for the new round
 		this.setNextPlayerToAct();
@@ -444,5 +450,65 @@ export class GameState implements GameStateInterface {
 		cloned.playerPositions = [...this.playerPositions];
 
 		return cloned;
+	}
+
+	/**
+	 * Resets last aggressor for new betting round
+	 */
+	resetLastAggressorForNewRound(): void {
+		this.lastAggressor = undefined;
+	}
+
+	/**
+	 * Gets showdown order based on last aggressor and position
+	 */
+	getShowdownOrder(): string[] {
+		const playersInShowdown = this.getPlayersInHand();
+		
+		if (playersInShowdown.length <= 1) {
+			return playersInShowdown.map(p => p.id);
+		}
+
+		// Get last aggressor for the river betting round
+		const riverAggressor = this.lastAggressorPerRound.get(GamePhase.River);
+		
+		if (riverAggressor) {
+			// Last aggressor shows first
+			const orderedPlayers: Player[] = [];
+			const aggressorPlayer = playersInShowdown.find(p => p.id === riverAggressor);
+			
+			if (aggressorPlayer) {
+				orderedPlayers.push(aggressorPlayer);
+			}
+			
+			// Add remaining players in clockwise order from aggressor
+			const aggressorIndex = playersInShowdown.findIndex(p => p.id === riverAggressor);
+			if (aggressorIndex !== -1) {
+				for (let i = 1; i < playersInShowdown.length; i++) {
+					const nextIndex = (aggressorIndex + i) % playersInShowdown.length;
+					if (playersInShowdown[nextIndex].id !== riverAggressor) {
+						orderedPlayers.push(playersInShowdown[nextIndex]);
+					}
+				}
+			}
+			
+			return orderedPlayers.map(p => p.id);
+		} else {
+			// No betting on river, show starting from left of dealer
+			const activePlayers = this.getActivePlayers();
+			const dealerIndex = this.dealerPosition;
+			const orderedPlayers: Player[] = [];
+			
+			// Start from left of dealer (next position clockwise)
+			for (let i = 1; i <= activePlayers.length; i++) {
+				const nextIndex = (dealerIndex + i) % activePlayers.length;
+				const player = activePlayers[nextIndex];
+				if (playersInShowdown.includes(player)) {
+					orderedPlayers.push(player);
+				}
+			}
+			
+			return orderedPlayers.map(p => p.id);
+		}
 	}
 }

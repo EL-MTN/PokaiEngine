@@ -1,10 +1,10 @@
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import { IncomingMessage, ServerResponse } from 'http';
-import { GameController } from './engine/GameController';
-import { SocketHandler } from './communication/SocketHandler';
-import { GameLogger } from './logging/GameLogger';
-import { GameConfig } from './types';
+import { GameController } from '@engine/GameController';
+import { SocketHandler } from '@communication/SocketHandler';
+import { GameLogger } from '@logging/GameLogger';
+import { GameConfig } from '@types';
 
 /**
  * Main entry point for the Pokai Poker Engine
@@ -110,24 +110,24 @@ class PokaiServer {
 }
 
 // Export main classes for use as a library
-export { GameController } from './engine/GameController';
-export { GameEngine } from './engine/GameEngine';
-export { SocketHandler } from './communication/SocketHandler';
-export { BotInterface } from './communication/BotInterface';
-export { GameLogger } from './logging/GameLogger';
-export { ReplaySystem } from './logging/ReplaySystem';
+export { GameController } from '@engine/GameController';
+export { GameEngine } from '@engine/GameEngine';
+export { SocketHandler } from '@communication/SocketHandler';
+export { BotInterface } from '@communication/BotInterface';
+export { GameLogger } from '@logging/GameLogger';
+export { ReplaySystem } from '@logging/ReplaySystem';
 
 // Export core classes
-export { Card } from './core/cards/Card';
-export { Deck } from './core/cards/Deck';
-export { HandEvaluator } from './core/cards/HandEvaluator';
-export { Player } from './core/game/Player';
-export { GameState } from './core/game/GameState';
-export { PotManager } from './core/game/PotManager';
-export { ActionValidator } from './core/betting/ActionValidator';
+export { Card } from '@core/cards/Card';
+export { Deck } from '@core/cards/Deck';
+export { HandEvaluator } from '@core/cards/HandEvaluator';
+export { Player } from '@core/game/Player';
+export { GameState } from '@core/game/GameState';
+export { PotManager } from '@core/game/PotManager';
+export { ActionValidator } from '@core/betting/ActionValidator';
 
 // Export all types
-export * from './types';
+export * from '@types';
 
 // Start server if this file is run directly
 if (require.main === module) {

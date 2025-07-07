@@ -1,6 +1,6 @@
-import { GameController } from '../engine/GameController';
-import { Action, Card, GameConfig, GameEvent, GameId, GameState, PlayerId } from '../types';
-import { GameLog, GameLogger } from './GameLogger';
+import { GameController } from '@engine/GameController';
+import { Action, Card, GameConfig, GameEvent, GameId, GameState, PlayerId } from '@types';
+import { GameLog, GameLogger } from '@logging/GameLogger';
 
 export interface ReplayOptions {
 	speed: 'slow' | 'normal' | 'fast' | 'instant';

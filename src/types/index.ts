@@ -136,7 +136,7 @@ export interface GameState {
 // Socket communication types
 export interface BotGameState {
 	playerId: string;
-	playerCards: [Card, Card];
+	playerCards?: [Card, Card]; // Optional: player may not have cards yet
 	communityCards: Card[];
 	potSize: number;
 	players: Omit<PlayerInfo, 'holeCards'>[];

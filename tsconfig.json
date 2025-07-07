@@ -8,12 +8,15 @@
 		],
 		"outDir": "./dist",
 		"rootDir": "./src",
-		"baseUrl": ".",
+		"baseUrl": "./src",
 		"paths": {
-			"*": [
-				"node_modules/*",
-				"src/*"
-			]
+			"@/*": ["*"],
+			"@core/*": ["core/*"],
+			"@engine/*": ["engine/*"],
+			"@communication/*": ["communication/*"],
+			"@logging/*": ["logging/*"],
+			"@types": ["types/index"],
+			"@tests/*": ["tests/*"]
 		},
 		"strict": true,
 		"esModuleInterop": true,

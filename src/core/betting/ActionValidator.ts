@@ -1,6 +1,6 @@
-import { Action, ActionType, InvalidActionError, PossibleAction } from '../../types';
-import { GameState } from '../game/GameState';
-import { Player } from '../game/Player';
+import { Action, ActionType, InvalidActionError, PossibleAction } from '@types';
+import { GameState } from '@core/game/GameState';
+import { Player } from '@core/game/Player';
 
 export class ActionValidator {
 	/**
@@ -332,6 +332,9 @@ export class ActionValidator {
 					throw new Error('Bet amount is required');
 				}
 				gameState.processBet(action.playerId, action.amount);
+				// Track last aggressor
+				gameState.lastAggressor = action.playerId;
+				gameState.lastAggressorPerRound.set(gameState.currentPhase, action.playerId);
 				break;
 
 			case ActionType.Raise:
@@ -340,10 +343,19 @@ export class ActionValidator {
 				}
 				const raiseAmount = action.amount - player.currentBet;
 				gameState.processBet(action.playerId, raiseAmount);
+				// Track last aggressor
+				gameState.lastAggressor = action.playerId;
+				gameState.lastAggressorPerRound.set(gameState.currentPhase, action.playerId);
 				break;
 
 			case ActionType.AllIn:
+				const currentBetBeforeAllIn = gameState.getCurrentBet();
 				gameState.processBet(action.playerId, player.chipStack);
+				// Track last aggressor (all-in is considered aggressive if it's a raise)
+				if (player.totalBetThisHand > currentBetBeforeAllIn) {
+					gameState.lastAggressor = action.playerId;
+					gameState.lastAggressorPerRound.set(gameState.currentPhase, action.playerId);
+				}
 				break;
 
 			default:

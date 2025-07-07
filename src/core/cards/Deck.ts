@@ -1,4 +1,4 @@
-import { Rank, Suit } from '../../types';
+import { Rank, Suit } from '@types';
 import { Card } from './Card';
 
 export class Deck {

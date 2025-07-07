@@ -1,4 +1,4 @@
-import { GameController } from '../engine/GameController';
+import { GameController } from '@engine/GameController';
 import {
   Action,
   BotGameState,
@@ -6,7 +6,7 @@ import {
   GameId,
   PlayerId,
   PossibleAction
-} from '../types';
+} from '@types';
 
 export interface BotAPI {
   getGameState(gameId: GameId, playerId: PlayerId): BotGameState;

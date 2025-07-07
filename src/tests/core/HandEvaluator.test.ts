@@ -86,9 +86,8 @@ describe('HandEvaluator', () => {
 			];
 
 			const evaluation = HandEvaluator.evaluateHand(holeCards, communityCards);
-			// Note: Current implementation identifies ace-low straight flush as royal flush
-			// This is implementation-specific behavior
-			expect(evaluation.rank).toBe(HandRank.RoyalFlush);
+			// Fixed: Ace-low straight flush should be a straight flush, not royal flush
+			expect(evaluation.rank).toBe(HandRank.StraightFlush);
 		});
 	});
 

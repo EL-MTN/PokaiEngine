@@ -1,8 +1,8 @@
-import { ActionValidator } from '../core/betting/ActionValidator';
-import { Deck } from '../core/cards/Deck';
-import { HandEvaluator } from '../core/cards/HandEvaluator';
-import { GameState } from '../core/game/GameState';
-import { Player } from '../core/game/Player';
+import { ActionValidator } from '@core/betting/ActionValidator';
+import { Deck } from '@core/cards/Deck';
+import { HandEvaluator } from '@core/cards/HandEvaluator';
+import { GameState } from '@core/game/GameState';
+import { Player } from '@core/game/Player';
 import {
 	Action,
 	BotGameState,
@@ -13,7 +13,7 @@ import {
 	GameStateError,
 	HandEvaluation,
 	PossibleAction,
-} from '../types';
+} from '@types';
 
 export interface GameResult {
 	winners: Array<{
@@ -177,13 +177,9 @@ export class GameEngine {
 			throw new GameStateError('Player not found');
 		}
 
-		if (!player.holeCards) {
-			throw new GameStateError('Player has no hole cards');
-		}
-
 		return {
 			playerId: playerId,
-			playerCards: player.holeCards,
+			playerCards: player.holeCards || undefined, // Handle missing cards gracefully
 			communityCards: [...this.gameState.communityCards],
 			potSize: this.gameState.getPotManager().getTotalPotAmount(),
 			players: this.gameState.players.map((p) => p.getPublicInfo()),
@@ -200,6 +196,13 @@ export class GameEngine {
 	 */
 	getGameState(): GameState {
 		return this.gameState;
+	}
+
+	/**
+	 * Gets the game configuration
+	 */
+	getConfig(): GameConfig {
+		return this.config;
 	}
 
 	/**

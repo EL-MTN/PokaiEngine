@@ -1,25 +1,90 @@
-import { Card as CardInterface, Rank, Suit } from '../../types';
+import { Card as CardInterface, Rank, Suit } from '@types';
 
 export class Card implements CardInterface {
+	/**
+	 * Static mapping for rank to short string representation
+	 */
+	private static readonly RANK_TO_SHORT_STRING = {
+		[Rank.Ace]: 'A',
+		[Rank.King]: 'K',
+		[Rank.Queen]: 'Q',
+		[Rank.Jack]: 'J',
+		[Rank.Ten]: 'T',
+		[Rank.Nine]: '9',
+		[Rank.Eight]: '8',
+		[Rank.Seven]: '7',
+		[Rank.Six]: '6',
+		[Rank.Five]: '5',
+		[Rank.Four]: '4',
+		[Rank.Three]: '3',
+		[Rank.Two]: '2',
+	} as const;
+
+	/**
+	 * Static mapping for rank to display string representation
+	 */
+	private static readonly RANK_TO_DISPLAY_STRING = {
+		[Rank.Ace]: 'Ace',
+		[Rank.King]: 'King',
+		[Rank.Queen]: 'Queen',
+		[Rank.Jack]: 'Jack',
+		[Rank.Ten]: '10',
+		[Rank.Nine]: '9',
+		[Rank.Eight]: '8',
+		[Rank.Seven]: '7',
+		[Rank.Six]: '6',
+		[Rank.Five]: '5',
+		[Rank.Four]: '4',
+		[Rank.Three]: '3',
+		[Rank.Two]: '2',
+	} as const;
+
+	/**
+	 * Static mapping for suit to display string representation
+	 */
+	private static readonly SUIT_TO_DISPLAY_STRING = {
+		[Suit.Hearts]: 'Hearts',
+		[Suit.Diamonds]: 'Diamonds',
+		[Suit.Clubs]: 'Clubs',
+		[Suit.Spades]: 'Spades',
+	} as const;
+
+	/**
+	 * Reverse mapping for parsing from string
+	 */
+	private static readonly SHORT_STRING_TO_RANK = {
+		'A': Rank.Ace,
+		'K': Rank.King,
+		'Q': Rank.Queen,
+		'J': Rank.Jack,
+		'T': Rank.Ten,
+		'9': Rank.Nine,
+		'8': Rank.Eight,
+		'7': Rank.Seven,
+		'6': Rank.Six,
+		'5': Rank.Five,
+		'4': Rank.Four,
+		'3': Rank.Three,
+		'2': Rank.Two,
+	} as const;
+
+	/**
+	 * Reverse mapping for parsing suit from string
+	 */
+	private static readonly SHORT_STRING_TO_SUIT = {
+		'H': Suit.Hearts,
+		'D': Suit.Diamonds,
+		'C': Suit.Clubs,
+		'S': Suit.Spades,
+	} as const;
+
 	constructor(public readonly suit: Suit, public readonly rank: Rank) {}
 
 	/**
 	 * Returns a string representation of the card (e.g., "AH", "KS", "2C")
 	 */
 	toString(): string {
-		const rankStr =
-			this.rank === Rank.Ace
-				? 'A'
-				: this.rank === Rank.King
-				? 'K'
-				: this.rank === Rank.Queen
-				? 'Q'
-				: this.rank === Rank.Jack
-				? 'J'
-				: this.rank === Rank.Ten
-				? 'T'
-				: this.rank.toString();
-
+		const rankStr = Card.RANK_TO_SHORT_STRING[this.rank];
 		return `${rankStr}${this.suit}`;
 	}
 
@@ -27,26 +92,8 @@ export class Card implements CardInterface {
 	 * Returns a human-readable string representation
 	 */
 	toDisplayString(): string {
-		const rankStr =
-			this.rank === Rank.Ace
-				? 'Ace'
-				: this.rank === Rank.King
-				? 'King'
-				: this.rank === Rank.Queen
-				? 'Queen'
-				: this.rank === Rank.Jack
-				? 'Jack'
-				: this.rank.toString();
-
-		const suitStr =
-			this.suit === Suit.Hearts
-				? 'Hearts'
-				: this.suit === Suit.Diamonds
-				? 'Diamonds'
-				: this.suit === Suit.Clubs
-				? 'Clubs'
-				: 'Spades';
-
+		const rankStr = Card.RANK_TO_DISPLAY_STRING[this.rank];
+		const suitStr = Card.SUIT_TO_DISPLAY_STRING[this.suit];
 		return `${rankStr} of ${suitStr}`;
 	}
 
@@ -86,56 +133,17 @@ export class Card implements CardInterface {
 			throw new Error(`Invalid card string: ${cardStr}`);
 		}
 
-		const rankChar = cardStr[0];
-		const suitChar = cardStr[1];
+		const rankChar = cardStr[0] as keyof typeof Card.SHORT_STRING_TO_RANK;
+		const suitChar = cardStr[1] as keyof typeof Card.SHORT_STRING_TO_SUIT;
 
-		let rank: Rank;
-		switch (rankChar) {
-			case 'A':
-				rank = Rank.Ace;
-				break;
-			case 'K':
-				rank = Rank.King;
-				break;
-			case 'Q':
-				rank = Rank.Queen;
-				break;
-			case 'J':
-				rank = Rank.Jack;
-				break;
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-				rank = parseInt(rankChar) as Rank;
-				break;
-			case 'T':
-				rank = Rank.Ten;
-				break;
-			default:
-				throw new Error(`Invalid rank character: ${rankChar}`);
+		const rank = Card.SHORT_STRING_TO_RANK[rankChar];
+		if (rank === undefined) {
+			throw new Error(`Invalid rank character: ${rankChar}`);
 		}
 
-		let suit: Suit;
-		switch (suitChar) {
-			case 'H':
-				suit = Suit.Hearts;
-				break;
-			case 'D':
-				suit = Suit.Diamonds;
-				break;
-			case 'C':
-				suit = Suit.Clubs;
-				break;
-			case 'S':
-				suit = Suit.Spades;
-				break;
-			default:
-				throw new Error(`Invalid suit character: ${suitChar}`);
+		const suit = Card.SHORT_STRING_TO_SUIT[suitChar];
+		if (suit === undefined) {
+			throw new Error(`Invalid suit character: ${suitChar}`);
 		}
 
 		return new Card(suit, rank);

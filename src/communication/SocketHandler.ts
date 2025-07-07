@@ -1,10 +1,10 @@
-import { GameController } from '../engine/GameController';
+import { GameController } from '@engine/GameController';
 import {
 	Action,
 	GameEvent,
 	GameId,
 	PlayerId
-} from '../types';
+} from '@types';
 import { BotInterface } from './BotInterface';
 
 // Socket interface for compatibility
@@ -26,6 +26,7 @@ export interface BotConnection {
 	isConnected: boolean;
 	turnTimer?: number;
 	lastAction?: number;
+	eventHandler?: (event: GameEvent) => void;
 }
 
 export interface TurnTimeoutEvent {
@@ -232,7 +233,7 @@ export class SocketHandler {
 		};
 
 		// Store the event handler for cleanup
-		(connection as any).eventHandler = eventHandler;
+		connection.eventHandler = eventHandler;
 
 		// Subscribe to game events when bot joins a game
 		if (connection.gameId) {
@@ -300,7 +301,7 @@ export class SocketHandler {
 			return;
 		}
 
-		const timeLimit = (game as any).config.turnTimeLimit * 1000; // Convert to milliseconds
+		const timeLimit = game.getConfig().turnTimeLimit * 1000; // Convert to milliseconds
 
 		// Send turn start notification
 		connection.socket.emit('turnStart', {
@@ -360,10 +361,10 @@ export class SocketHandler {
 		this.clearTurnTimer(connection.playerId);
 
 		// Unsubscribe from game events
-		if (connection.gameId && (connection as any).eventHandler) {
+		if (connection.gameId && connection.eventHandler) {
 			this.gameController.unsubscribeFromGame(
 				connection.gameId,
-				(connection as any).eventHandler
+				connection.eventHandler
 			);
 		}
 

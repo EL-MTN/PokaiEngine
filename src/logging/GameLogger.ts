@@ -1,4 +1,4 @@
-import { Action, Card, GameEvent, GameId, GameState, HandEvaluation, PlayerId } from '../types';
+import { Action, Card, GameEvent, GameId, GameState, HandEvaluation, PlayerId } from '@types';
 
 export interface GameLog {
 	gameId: GameId;

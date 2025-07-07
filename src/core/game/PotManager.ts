@@ -1,4 +1,4 @@
-import { Pot } from '../../types';
+import { Pot } from '@types';
 import { Player } from './Player';
 
 export interface PotContribution {
@@ -70,9 +70,9 @@ export class PotManager {
 			return;
 		}
 
-		// Create a list of all unique bet amounts
+		// Create a list of all unique bet amounts from ALL players (including folded)
 		const betAmounts = new Set<number>();
-		eligiblePlayers.forEach((player) => {
+		players.forEach((player) => {
 			if (player.totalBetThisHand > 0) {
 				betAmounts.add(player.totalBetThisHand);
 			}
@@ -95,13 +95,19 @@ export class PotManager {
 			const currentAmount = sortedAmounts[i];
 			const betSize = currentAmount - previousAmount;
 
-			// Find players eligible for this pot level
+			// Find players eligible for this pot level (only non-folded players)
 			const eligibleForThisPot = eligiblePlayers.filter(
 				(player) => player.totalBetThisHand >= currentAmount
 			);
 
-			if (eligibleForThisPot.length > 0) {
-				const potAmount = betSize * eligibleForThisPot.length;
+			// Count ALL players (including folded) who contributed to this level
+			const contributingPlayers = players.filter(
+				(player) => player.totalBetThisHand >= currentAmount
+			);
+
+			if (contributingPlayers.length > 0) {
+				// Calculate pot amount based on ALL contributing players (including folded)
+				const potAmount = betSize * contributingPlayers.length;
 
 				this.pots.push({
 					amount: potAmount,
@@ -149,6 +155,43 @@ export class PotManager {
 			const remainder = pot.amount % winnerCount;
 
 			eligibleWinners.forEach((winner, index) => {
+				const amount = baseAmount + (index < remainder ? 1 : 0);
+				distributions.push({
+					playerId: winner.playerId,
+					amount: amount,
+					potIndex: i,
+				});
+			});
+		}
+
+		return distributions;
+	}
+
+	/**
+	 * Distributes pots to winners with position-based odd chip distribution
+	 */
+	distributePotsWithPosition(
+		winners: { playerId: string; potIndices: number[]; position: number }[]
+	): PotDistribution[] {
+		const distributions: PotDistribution[] = [];
+
+		for (let i = 0; i < this.pots.length; i++) {
+			const pot = this.pots[i];
+			const eligibleWinners = winners.filter((w) => w.potIndices.includes(i));
+
+			if (eligibleWinners.length === 0) {
+				continue;
+			}
+
+			// Split the pot among eligible winners
+			const winnerCount = eligibleWinners.length;
+			const baseAmount = Math.floor(pot.amount / winnerCount);
+			const remainder = pot.amount % winnerCount;
+
+			// Sort winners by position (worst position first for odd chips)
+			const sortedWinners = [...eligibleWinners].sort((a, b) => b.position - a.position);
+
+			sortedWinners.forEach((winner, index) => {
 				const amount = baseAmount + (index < remainder ? 1 : 0);
 				distributions.push({
 					playerId: winner.playerId,
@@ -265,6 +308,72 @@ export class PotManager {
 						const amount = baseAmount + (index < remainder ? 1 : 0);
 						distributions.push({
 							playerId,
+							amount,
+							potIndex,
+						});
+						totalDistributed += amount;
+					});
+
+					potDistributed = true;
+					break;
+				}
+			}
+
+			if (!potDistributed && pot.amount > 0) {
+				// This shouldn't happen in normal play, but handle it gracefully
+				throw new Error(`Pot ${potIndex} with amount ${pot.amount} was not distributed`);
+			}
+		}
+
+		return { distributions, totalDistributed };
+	}
+
+	/**
+	 * Simulates pot distribution with position-based odd chip distribution
+	 */
+	simulateDistributionWithPosition(winners: { playerId: string; handStrength: number; position: number }[]): {
+		distributions: PotDistribution[];
+		totalDistributed: number;
+	} {
+		// Group winners by hand strength
+		const winnerGroups = new Map<number, { playerId: string; position: number }[]>();
+
+		winners.forEach((winner) => {
+			const group = winnerGroups.get(winner.handStrength) || [];
+			group.push({ playerId: winner.playerId, position: winner.position });
+			winnerGroups.set(winner.handStrength, group);
+		});
+
+		// Sort groups by hand strength (highest first)
+		const sortedGroups = Array.from(winnerGroups.entries()).sort((a, b) => b[0] - a[0]);
+
+		const distributions: PotDistribution[] = [];
+		let totalDistributed = 0;
+
+		// Distribute pots starting from side pots to main pot
+		for (let potIndex = this.pots.length - 1; potIndex >= 0; potIndex--) {
+			const pot = this.pots[potIndex];
+			let potDistributed = false;
+
+			// Find the best hand among eligible players for this pot
+			for (const [handStrength, players] of sortedGroups) {
+				const eligibleWinners = players.filter((player) =>
+					pot.eligiblePlayers.includes(player.playerId)
+				);
+
+				if (eligibleWinners.length > 0) {
+					// Distribute this pot to these winners
+					const winnerCount = eligibleWinners.length;
+					const baseAmount = Math.floor(pot.amount / winnerCount);
+					const remainder = pot.amount % winnerCount;
+
+					// Sort winners by position (worst position first for odd chips)
+					const sortedWinners = [...eligibleWinners].sort((a, b) => b.position - a.position);
+
+					sortedWinners.forEach((winner, index) => {
+						const amount = baseAmount + (index < remainder ? 1 : 0);
+						distributions.push({
+							playerId: winner.playerId,
 							amount,
 							potIndex,
 						});
