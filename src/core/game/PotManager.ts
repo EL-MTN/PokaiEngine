@@ -268,7 +268,7 @@ export class PotManager {
 	/**
 	 * Simulates pot distribution for display purposes
 	 */
-	simulateDistribution(winners: { playerId: string; handStrength: number }[]): {
+	simulateDistribution(winners: { playerId: string; handStrength: number }[], remainingPlayers?: string[]): {
 		distributions: PotDistribution[];
 		totalDistributed: number;
 	} {
@@ -320,8 +320,35 @@ export class PotManager {
 			}
 
 			if (!potDistributed && pot.amount > 0) {
-				// This shouldn't happen in normal play, but handle it gracefully
-				throw new Error(`Pot ${potIndex} with amount ${pot.amount} was not distributed`);
+				// Fallback: distribute to any remaining eligible players
+				if (remainingPlayers) {
+					const remainingEligible = pot.eligiblePlayers.filter(playerId => 
+						remainingPlayers.includes(playerId)
+					);
+
+					if (remainingEligible.length > 0) {
+						// Distribute equally among remaining eligible players
+						const winnerCount = remainingEligible.length;
+						const baseAmount = Math.floor(pot.amount / winnerCount);
+						const remainder = pot.amount % winnerCount;
+
+						remainingEligible.forEach((playerId, index) => {
+							const amount = baseAmount + (index < remainder ? 1 : 0);
+							distributions.push({
+								playerId,
+								amount,
+								potIndex,
+							});
+							totalDistributed += amount;
+						});
+						potDistributed = true;
+					}
+				}
+
+				// Only throw if truly no one can receive the pot
+				if (!potDistributed) {
+					throw new Error(`Pot ${potIndex} with amount ${pot.amount} has no eligible recipients`);
+				}
 			}
 		}
 

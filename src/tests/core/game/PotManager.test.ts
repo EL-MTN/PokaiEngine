@@ -510,15 +510,31 @@ describe('PotManager', () => {
 			expect(result.distributions.length).toBeGreaterThan(0);
 		});
 
-		it('should throw error if pot cannot be distributed', () => {
+		it('should throw error if pot cannot be distributed to anyone', () => {
 			potManager.addBet('p1', 100);
 
-			// Simulate with no eligible winners
+			// Simulate with no eligible winners and no remaining players
 			expect(() => {
 				potManager.simulateDistribution([
 					{ playerId: 'p2', handStrength: 1000 }, // Not eligible for pot
-				]);
-			}).toThrow();
+				], []); // No remaining players
+			}).toThrow('has no eligible recipients');
+		});
+
+		it('should distribute to remaining eligible players when no winners match', () => {
+			potManager.addBet('p1', 100);
+			potManager.addBet('p2', 100);
+
+			// Simulate with no eligible winners in the winners array, but remaining players available
+			const result = potManager.simulateDistribution([
+				{ playerId: 'p3', handStrength: 1000 }, // Not eligible for pot
+			], ['p1', 'p2']); // But p1 and p2 are still in the game
+
+			// Should distribute to p1 and p2 (both eligible for main pot)
+			expect(result.distributions).toHaveLength(2);
+			expect(result.distributions[0].amount).toBe(100);
+			expect(result.distributions[1].amount).toBe(100);
+			expect(result.totalDistributed).toBe(200);
 		});
 	});
 

@@ -137,7 +137,8 @@ export class GameEngine {
 
 		// Only attempt to complete the hand once per hand lifecycle
 		if (this.gameRunning && this.gameState.isHandComplete()) {
-			this.completeHand();
+			// If hand is complete, determine winners first (handles single player case)
+			this.determineWinners();
 		}
 	}
 
@@ -371,6 +372,26 @@ export class GameEngine {
 		const playersInShowdown = this.gameState.getPlayersInHand();
 		const potManager = this.gameState.getPotManager();
 
+		// Handle single winner (win by default) - no showdown needed
+		if (playersInShowdown.length === 1) {
+			const winner = playersInShowdown[0];
+			const allPots = potManager.getPots();
+			const totalWinnings = allPots.reduce((sum, pot) => sum + pot.amount, 0);
+			
+			winner.addChips(totalWinnings);
+
+			// Emit showdown event
+			this.emitEvent({
+				type: 'showdown_complete',
+				timestamp: Date.now(),
+				handNumber: this.gameState.handNumber,
+				gameState: this.gameState.getCompleteState(),
+			});
+
+			this.completeHand();
+			return;
+		}
+
 		// Create list of players with their hand evaluations
 		const playerEvaluations = playersInShowdown
 			.map((player) => ({
@@ -379,9 +400,16 @@ export class GameEngine {
 			}))
 			.filter((pe) => pe.handStrength > 0);
 
+		// Fallback for empty evaluations - distribute equally to remaining players
+		if (playerEvaluations.length === 0 && playersInShowdown.length > 0) {
+			this.distributeToRemainingPlayers(playersInShowdown);
+			return;
+		}
+
 		// Simulate pot distribution
+		const remainingPlayerIds = playersInShowdown.map(p => p.id);
 		const { distributions, totalDistributed } =
-			potManager.simulateDistribution(playerEvaluations);
+			potManager.simulateDistribution(playerEvaluations, remainingPlayerIds);
 
 		// Distribute winnings to players
 		const winners: Array<{
@@ -421,6 +449,34 @@ export class GameEngine {
 		});
 
 		// Complete the hand
+		this.completeHand();
+	}
+
+	/**
+	 * Distributes pots equally to remaining players when no hand evaluations exist
+	 */
+	private distributeToRemainingPlayers(players: Player[]): void {
+		const potManager = this.gameState.getPotManager();
+		const allPots = potManager.getPots();
+		const totalWinnings = allPots.reduce((sum, pot) => sum + pot.amount, 0);
+		
+		// Distribute equally among remaining players
+		const baseAmount = Math.floor(totalWinnings / players.length);
+		const remainder = totalWinnings % players.length;
+		
+		players.forEach((player, index) => {
+			const amount = baseAmount + (index < remainder ? 1 : 0);
+			player.addChips(amount);
+		});
+
+		// Emit showdown event
+		this.emitEvent({
+			type: 'showdown_complete',
+			timestamp: Date.now(),
+			handNumber: this.gameState.handNumber,
+			gameState: this.gameState.getCompleteState(),
+		});
+
 		this.completeHand();
 	}
 
