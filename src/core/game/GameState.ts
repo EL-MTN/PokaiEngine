@@ -16,6 +16,7 @@ export class GameState implements GameStateInterface {
 	public smallBlindAmount: number;
 	public bigBlindAmount: number;
 	public minimumRaise: number;
+	public lastRaiseAmount: number;
 	public handNumber: number = 0;
 	public isComplete: boolean = false;
 	public lastAggressor?: string; // Track last player to bet or raise
@@ -30,6 +31,7 @@ export class GameState implements GameStateInterface {
 		this.smallBlindAmount = smallBlindAmount;
 		this.bigBlindAmount = bigBlindAmount;
 		this.minimumRaise = bigBlindAmount;
+		this.lastRaiseAmount = bigBlindAmount;
 		this.potManager = new PotManager();
 		this.pots = this.potManager.getPots();
 	}
@@ -232,6 +234,7 @@ export class GameState implements GameStateInterface {
 	advancePhase(): void {
 		// Reset all players for new betting round
 		this.players.forEach((player) => player.resetForNewRound());
+		this.currentPlayerToAct = undefined;
 
 		switch (this.currentPhase) {
 			case GamePhase.PreFlop:
@@ -256,6 +259,7 @@ export class GameState implements GameStateInterface {
 
 		// Reset minimum raise for new betting round
 		this.minimumRaise = this.bigBlindAmount;
+		this.lastRaiseAmount = this.bigBlindAmount;
 
 		// Reset last aggressor for new betting round
 		this.resetLastAggressorForNewRound();
@@ -275,15 +279,21 @@ export class GameState implements GameStateInterface {
 			return;
 		}
 
-		// Find the next player in order who can act
 		let startPosition = 0;
-
-		if (this.currentPhase === GamePhase.PreFlop) {
+		if (this.currentPlayerToAct) {
+			startPosition =
+				(this.players.findIndex((p) => p.id === this.currentPlayerToAct) + 1) %
+				this.players.length;
+		} else if (this.currentPhase === GamePhase.PreFlop) {
 			// Pre-flop: action starts to the left of big blind
 			startPosition = (this.bigBlindPosition + 1) % this.players.length;
 		} else {
-			// Post-flop: action starts to the left of dealer
-			startPosition = (this.dealerPosition + 1) % this.players.length;
+			// Post-flop: action starts with the SB or the first active player to their left.
+			if (this.players.length === 2) {
+				startPosition = this.dealerPosition;
+			} else {
+				startPosition = (this.dealerPosition + 1) % this.players.length;
+			}
 		}
 
 		for (let i = 0; i < this.players.length; i++) {
@@ -315,14 +325,31 @@ export class GameState implements GameStateInterface {
 			throw new Error('Player not found');
 		}
 
+		const currentBet = this.getCurrentBet();
 		player.bet(amount);
 		this.potManager.addBet(playerId, amount);
 		this.pots = this.potManager.getPots();
 
-		// Update minimum raise
-		if (amount > player.currentBet) {
-			this.minimumRaise = Math.max(this.minimumRaise, amount - player.currentBet);
+		// Update minimum raise if the bet is a raise
+		if (player.totalBetThisHand > currentBet) {
+			const raiseAmount = player.totalBetThisHand - currentBet;
+			this.minimumRaise = Math.max(this.minimumRaise, raiseAmount);
+			this.lastRaiseAmount = raiseAmount;
 		}
+	}
+
+	/**
+	 * Processes a player's blind payment
+	 */
+	processBlind(playerId: string, amount: number): void {
+		const player = this.getPlayer(playerId);
+		if (!player) {
+			throw new Error('Player not found');
+		}
+
+		player.postBlind(amount);
+		this.potManager.addBet(playerId, amount);
+		this.pots = this.potManager.getPots();
 	}
 
 	/**
@@ -464,25 +491,25 @@ export class GameState implements GameStateInterface {
 	 */
 	getShowdownOrder(): string[] {
 		const playersInShowdown = this.getPlayersInHand();
-		
+
 		if (playersInShowdown.length <= 1) {
-			return playersInShowdown.map(p => p.id);
+			return playersInShowdown.map((p) => p.id);
 		}
 
 		// Get last aggressor for the river betting round
 		const riverAggressor = this.lastAggressorPerRound.get(GamePhase.River);
-		
+
 		if (riverAggressor) {
 			// Last aggressor shows first
 			const orderedPlayers: Player[] = [];
-			const aggressorPlayer = playersInShowdown.find(p => p.id === riverAggressor);
-			
+			const aggressorPlayer = playersInShowdown.find((p) => p.id === riverAggressor);
+
 			if (aggressorPlayer) {
 				orderedPlayers.push(aggressorPlayer);
 			}
-			
+
 			// Add remaining players in clockwise order from aggressor
-			const aggressorIndex = playersInShowdown.findIndex(p => p.id === riverAggressor);
+			const aggressorIndex = playersInShowdown.findIndex((p) => p.id === riverAggressor);
 			if (aggressorIndex !== -1) {
 				for (let i = 1; i < playersInShowdown.length; i++) {
 					const nextIndex = (aggressorIndex + i) % playersInShowdown.length;
@@ -491,14 +518,14 @@ export class GameState implements GameStateInterface {
 					}
 				}
 			}
-			
-			return orderedPlayers.map(p => p.id);
+
+			return orderedPlayers.map((p) => p.id);
 		} else {
 			// No betting on river, show starting from left of dealer
 			const activePlayers = this.getActivePlayers();
 			const dealerIndex = this.dealerPosition;
 			const orderedPlayers: Player[] = [];
-			
+
 			// Start from left of dealer (next position clockwise)
 			for (let i = 1; i <= activePlayers.length; i++) {
 				const nextIndex = (dealerIndex + i) % activePlayers.length;
@@ -507,8 +534,8 @@ export class GameState implements GameStateInterface {
 					orderedPlayers.push(player);
 				}
 			}
-			
-			return orderedPlayers.map(p => p.id);
+
+			return orderedPlayers.map((p) => p.id);
 		}
 	}
 }

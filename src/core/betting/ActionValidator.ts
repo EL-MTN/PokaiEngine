@@ -12,12 +12,12 @@ export class ActionValidator {
 			throw new InvalidActionError('Player not found');
 		}
 
-		if (!player.canAct()) {
-			throw new InvalidActionError('Player cannot act');
-		}
-
 		if (gameState.currentPlayerToAct !== action.playerId) {
 			throw new InvalidActionError("Not player's turn to act");
+		}
+
+		if (!player.canAct()) {
+			throw new InvalidActionError('Player cannot act');
 		}
 
 		switch (action.type) {
@@ -90,16 +90,24 @@ export class ActionValidator {
 			}
 		} else if (currentBet > 0) {
 			// Raising
-			const minRaise = currentBet + gameState.minimumRaise;
-			const maxRaise = player.chipStack + player.currentBet;
+			const canRaise =
+				(currentBet > player.currentBet &&
+					gameState.lastRaiseAmount >= gameState.minimumRaise) ||
+				(currentBet === player.currentBet &&
+					player.currentBet === gameState.bigBlindAmount &&
+					!player.hasActed);
+			if (canRaise) {
+				const minRaise = currentBet + gameState.minimumRaise;
+				const maxRaise = player.chipStack + player.currentBet;
 
-			if (maxRaise > currentBet) {
-				actions.push({
-					type: ActionType.Raise,
-					minAmount: Math.min(minRaise, maxRaise),
-					maxAmount: maxRaise,
-					description: `Raise to ${Math.min(minRaise, maxRaise)} - ${maxRaise}`,
-				});
+				if (maxRaise > currentBet) {
+					actions.push({
+						type: ActionType.Raise,
+						minAmount: Math.min(minRaise, maxRaise),
+						maxAmount: maxRaise,
+						description: `Raise to ${Math.min(minRaise, maxRaise)} - ${maxRaise}`,
+					});
+				}
 			}
 		}
 
@@ -291,11 +299,11 @@ export class ActionValidator {
 
 		// Post small blind
 		const smallBlindAmount = Math.min(gameState.smallBlindAmount, smallBlindPlayer.chipStack);
-		gameState.processBet(smallBlindPlayer.id, smallBlindAmount);
+		gameState.processBlind(smallBlindPlayer.id, smallBlindAmount);
 
 		// Post big blind
 		const bigBlindAmount = Math.min(gameState.bigBlindAmount, bigBlindPlayer.chipStack);
-		gameState.processBet(bigBlindPlayer.id, bigBlindAmount);
+		gameState.processBlind(bigBlindPlayer.id, bigBlindAmount);
 
 		// Set next player to act
 		gameState.setNextPlayerToAct();

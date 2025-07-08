@@ -79,6 +79,23 @@ export class Player implements PlayerInfo {
 	}
 
 	/**
+	 * Posts a blind payment (does not count as a voluntary action)
+	 */
+	postBlind(amount: number): void {
+		if (amount > this.chipStack) {
+			amount = this.chipStack;
+		}
+
+		this.chipStack -= amount;
+		this.currentBet += amount;
+		this.totalBetThisHand += amount;
+
+		if (this.chipStack === 0) {
+			this.isAllIn = true;
+		}
+	}
+
+	/**
 	 * Checks (no bet required)
 	 */
 	check(): void {
