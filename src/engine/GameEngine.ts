@@ -135,8 +135,8 @@ export class GameEngine {
 			this.completeBettingRound();
 		}
 
-		// Check if hand is complete
-		if (this.gameState.isHandComplete()) {
+		// Only attempt to complete the hand once per hand lifecycle
+		if (this.gameRunning && this.gameState.isHandComplete()) {
 			this.completeHand();
 		}
 	}
@@ -258,25 +258,35 @@ export class GameEngine {
 	 * Completes the current betting round
 	 */
 	private completeBettingRound(): void {
-		// Create side pots if needed
-		this.gameState.createSidePots();
+		let shouldContinue = true;
 
-		// Advance to next phase
-		switch (this.gameState.currentPhase) {
-			case GamePhase.PreFlop:
-				this.dealFlop();
-				break;
-			case GamePhase.Flop:
-				this.dealTurn();
-				break;
-			case GamePhase.Turn:
-				this.dealRiver();
-				break;
-			case GamePhase.River:
-				this.startShowdown();
-				break;
-			default:
-				throw new GameStateError('Invalid game phase for betting round completion');
+		while (shouldContinue && this.gameRunning) {
+			// 1. Create (or recreate) side pots
+			this.gameState.createSidePots();
+
+			// 2. Advance to the next logical phase
+			switch (this.gameState.currentPhase) {
+				case GamePhase.PreFlop:
+					this.dealFlop();
+					break;
+				case GamePhase.Flop:
+					this.dealTurn();
+					break;
+				case GamePhase.Turn:
+					this.dealRiver();
+					break;
+				case GamePhase.River:
+					this.startShowdown();
+					// startShowdown() will eventually mark the hand complete
+					break;
+				default:
+					throw new GameStateError('Invalid game phase for betting round completion');
+			}
+
+			// 3. If after advancing there are still players able to act, stop auto-advance.
+			//    Otherwise, loop again to burn remaining streets.
+			const playersAbleToAct = this.gameState.getPlayersWhoCanAct();
+			shouldContinue = playersAbleToAct.length === 0 && !this.gameState.isHandComplete();
 		}
 	}
 
