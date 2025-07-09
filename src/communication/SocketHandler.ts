@@ -12,6 +12,8 @@ export interface Socket {
 	id: string;
 	emit(event: string, data: any): void;
 	on(event: string, callback: (...args: any[]) => void): void;
+	/** Optional Socket.io room join – only available when using real Socket.IO */
+	join?(room: string): void;
 }
 
 // SocketIO Server interface for compatibility
@@ -24,7 +26,10 @@ export interface BotConnection {
 	playerId: PlayerId;
 	gameId?: GameId;
 	isConnected: boolean;
-	turnTimer?: number;
+	/** Active timeout for forced action */
+	turnTimer?: NodeJS.Timeout;
+	/** Warning timer before timeout */
+	warningTimer?: NodeJS.Timeout;
 	lastAction?: number;
 	eventHandler?: (event: GameEvent) => void;
 }
@@ -40,7 +45,10 @@ export class SocketHandler {
 	private gameController: GameController;
 	private botInterface: BotInterface;
 	private connections: Map<string, BotConnection> = new Map();
-	private turnTimeouts: Map<string, number> = new Map();
+	/** Map of playerId -> timeout timer */
+	private turnTimers: Map<PlayerId, NodeJS.Timeout> = new Map();
+	/** Map of playerId -> warning timer */
+	private warningTimers: Map<PlayerId, NodeJS.Timeout> = new Map();
 
 	constructor(io: SocketIOServer, gameController: GameController) {
 		this.io = io;
@@ -104,6 +112,21 @@ export class SocketHandler {
 			this.sendGameState(connection);
 		});
 
+		// Possible actions request
+		socket.on('requestPossibleActions', () => {
+			this.sendPossibleActions(connection);
+		});
+
+		// Leave game
+		socket.on('leaveGame', () => {
+			this.handleLeaveGame(connection);
+		});
+
+		// List available games
+		socket.on('listGames', () => {
+			this.sendGamesList(socket);
+		});
+
 		// Ping/pong for connection monitoring
 		socket.on('ping', () => {
 			socket.emit('pong', { timestamp: Date.now() });
@@ -137,6 +160,14 @@ export class SocketHandler {
 			);
 
 			connection.gameId = data.gameId;
+
+			// Now that gameId is known, ensure event subscription is active
+			this.subscribeToGameEvents(connection);
+
+			// Join socket.io room for this game if available
+			if (typeof connection.socket.join === 'function') {
+				connection.socket.join(`game_${data.gameId}`);
+			}
 
 			// Send success confirmation
 			connection.socket.emit('identificationSuccess', {
@@ -193,6 +224,87 @@ export class SocketHandler {
 			connection.socket.emit('actionError', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				action,
+				timestamp: Date.now(),
+			});
+		}
+	}
+
+	/**
+	 * Handles a bot leaving the current game
+	 */
+	private handleLeaveGame(connection: BotConnection): void {
+		if (!connection.gameId) {
+			connection.socket.emit('leaveGameError', {
+				error: 'Bot is not in a game',
+				timestamp: Date.now(),
+			});
+			return;
+		}
+
+		try {
+			this.gameController.removePlayerFromGame(connection.gameId, connection.playerId);
+
+			// Unsubscribe from events and leave room
+			if (connection.eventHandler) {
+				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
+			}
+			if (typeof connection.socket.join === 'function') {
+				// socket.io v4 does not expose leave via same method; use rooms via `leave` if available
+				const sock: any = connection.socket as any;
+				if (typeof sock.leave === 'function') {
+					sock.leave(`game_${connection.gameId}`);
+				}
+			}
+
+			connection.gameId = undefined;
+
+			connection.socket.emit('leftGame', {
+				timestamp: Date.now(),
+			});
+		} catch (error) {
+			connection.socket.emit('leaveGameError', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				timestamp: Date.now(),
+			});
+		}
+	}
+
+	/**
+	 * Sends available games list
+	 */
+	private sendGamesList(socket: Socket): void {
+		const games = this.gameController.listGames();
+		socket.emit('gamesList', {
+			games,
+			timestamp: Date.now(),
+		});
+	}
+
+	/**
+	 * Sends possible actions for the bot in current game state
+	 */
+	private sendPossibleActions(connection: BotConnection): void {
+		if (!connection.gameId) {
+			connection.socket.emit('possibleActionsError', {
+				error: 'Not in a game',
+				timestamp: Date.now(),
+			});
+			return;
+		}
+
+		try {
+			const possibleActions = this.gameController.getPossibleActions(
+				connection.gameId,
+				connection.playerId
+			);
+
+			connection.socket.emit('possibleActions', {
+				possibleActions,
+				timestamp: Date.now(),
+			});
+		} catch (error) {
+			connection.socket.emit('possibleActionsError', {
+				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
 		}
@@ -259,6 +371,10 @@ export class SocketHandler {
 		switch (event.type) {
 			case 'hand_started':
 				this.sendGameState(connection);
+				// Immediately start timer if it's this player's turn after blinds
+				if (event.gameState?.currentPlayerToAct === connection.playerId) {
+					this.startTurnTimer(connection);
+				}
 				break;
 
 			case 'action_taken':
@@ -274,6 +390,9 @@ export class SocketHandler {
 			case 'turn_dealt':
 			case 'river_dealt':
 				this.sendGameState(connection);
+				if (event.gameState?.currentPlayerToAct === connection.playerId) {
+					this.startTurnTimer(connection);
+				}
 				break;
 
 			case 'showdown_complete':
@@ -292,38 +411,60 @@ export class SocketHandler {
 			return;
 		}
 
-		// Clear existing timer
+		// Clear existing timers first
 		this.clearTurnTimer(connection.playerId);
 
-		// Get turn time limit from game config
+		// Get configuration
 		const game = this.gameController.getGame(connection.gameId);
 		if (!game) {
 			return;
 		}
 
-		const timeLimit = game.getConfig().turnTimeLimit * 1000; // Convert to milliseconds
+		const timeLimitMs = game.getConfig().turnTimeLimit * 1000;
+		const warningDelayMs = Math.max(5000, timeLimitMs * 0.7); // send warning when 30% time left
 
-		// Send turn start notification
+		// Turn start notification
 		connection.socket.emit('turnStart', {
-			timeLimit: timeLimit / 1000,
+			timeLimit: timeLimitMs / 1000,
 			timestamp: Date.now(),
 		});
 
-		// Set timer for warnings (simplified for compatibility)
-		const warningTime = Math.max(5000, timeLimit * 0.3); // 30% of time or 5 seconds
-		// Note: In a real implementation, you would use setTimeout here
-		// For this engine implementation, we'll use a simplified approach
+		// Warning timer
+		const warningTimer = setTimeout(() => {
+			connection.socket.emit('turnWarning', {
+				timeRemaining: (timeLimitMs - warningDelayMs) / 1000,
+				timestamp: Date.now(),
+			});
+		}, warningDelayMs);
 
-		// Store timeout timestamp instead of timer reference
-		const timeoutTimestamp = Date.now() + timeLimit;
-		this.turnTimeouts.set(connection.playerId, timeoutTimestamp);
+		// Timeout timer
+		const timeoutTimer = setTimeout(() => {
+			this.handleTurnTimeout(connection);
+		}, timeLimitMs);
+
+		// Store timers
+		this.warningTimers.set(connection.playerId, warningTimer);
+		this.turnTimers.set(connection.playerId, timeoutTimer);
+
+		connection.warningTimer = warningTimer;
+		connection.turnTimer = timeoutTimer;
 	}
 
 	/**
 	 * Clears turn timer for a player
 	 */
 	private clearTurnTimer(playerId: PlayerId): void {
-		this.turnTimeouts.delete(playerId);
+		const warning = this.warningTimers.get(playerId);
+		if (warning) {
+			clearTimeout(warning);
+			this.warningTimers.delete(playerId);
+		}
+
+		const timeout = this.turnTimers.get(playerId);
+		if (timeout) {
+			clearTimeout(timeout);
+			this.turnTimers.delete(playerId);
+		}
 	}
 
 	/**
@@ -334,7 +475,7 @@ export class SocketHandler {
 			return;
 		}
 
-		// Clear the timer
+		// Clear timers first to avoid duplicate actions
 		this.clearTurnTimer(connection.playerId);
 
 		// Send timeout notification
@@ -416,7 +557,7 @@ export class SocketHandler {
 		const botsInGames = Array.from(this.connections.values()).filter(
 			(c) => c.gameId && c.isConnected
 		).length;
-		const activeTurnTimers = this.turnTimeouts.size;
+		const activeTurnTimers = this.turnTimers.size;
 
 		return {
 			totalConnections,
