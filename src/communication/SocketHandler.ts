@@ -1,10 +1,5 @@
 import { GameController } from '@engine/GameController';
-import {
-	Action,
-	GameEvent,
-	GameId,
-	PlayerId
-} from '@types';
+import { Action, GameEvent, GameId, PlayerId } from '@types';
 import { BotInterface } from './BotInterface';
 
 // Socket interface for compatibility
@@ -14,6 +9,8 @@ export interface Socket {
 	on(event: string, callback: (...args: any[]) => void): void;
 	/** Optional Socket.io room join – only available when using real Socket.IO */
 	join?(room: string): void;
+	/** Optional Socket.io room leave – only available when using real Socket.IO */
+	leave?(room: string): void;
 }
 
 // SocketIO Server interface for compatibility
@@ -151,6 +148,19 @@ export class SocketHandler {
 		data: { botName: string; gameId: GameId; chipStack: number }
 	): void {
 		try {
+			// Check if game exists and has capacity
+			const game = this.gameController.getGame(data.gameId);
+			if (!game) {
+				throw new Error(`Game ${data.gameId} not found`);
+			}
+
+			const gameState = game.getGameState();
+			const maxPlayers = game.getConfig().maxPlayers;
+
+			if (gameState.players.length >= maxPlayers) {
+				throw new Error(`Game ${data.gameId} is full (${maxPlayers} players)`);
+			}
+
 			// Join the game
 			this.gameController.addPlayerToGame(
 				data.gameId,
@@ -246,14 +256,23 @@ export class SocketHandler {
 
 			// Unsubscribe from events and leave room
 			if (connection.eventHandler) {
-				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
-			}
-			if (typeof connection.socket.join === 'function') {
-				// socket.io v4 does not expose leave via same method; use rooms via `leave` if available
-				const sock: any = connection.socket as any;
-				if (typeof sock.leave === 'function') {
-					sock.leave(`game_${connection.gameId}`);
+				try {
+					this.gameController.unsubscribeFromGame(
+						connection.gameId,
+						connection.eventHandler
+					);
+				} catch (error) {
+					// Log error but don't prevent cleanup
+					console.error(
+						`Failed to unsubscribe from game events for player ${connection.playerId}:`,
+						error
+					);
 				}
+				// Clear the handler reference to prevent memory leaks
+				connection.eventHandler = undefined;
+			}
+			if (typeof connection.socket.leave === 'function') {
+				connection.socket.leave(`game_${connection.gameId}`);
 			}
 
 			connection.gameId = undefined;
@@ -421,7 +440,7 @@ export class SocketHandler {
 		}
 
 		const timeLimitMs = game.getConfig().turnTimeLimit * 1000;
-		const warningDelayMs = Math.max(5000, timeLimitMs * 0.7); // send warning when 30% time left
+		const warningDelayMs = timeLimitMs * 0.7; // send warning when 70% of time has elapsed
 
 		// Turn start notification
 		connection.socket.emit('turnStart', {
@@ -429,13 +448,17 @@ export class SocketHandler {
 			timestamp: Date.now(),
 		});
 
-		// Warning timer
-		const warningTimer = setTimeout(() => {
-			connection.socket.emit('turnWarning', {
-				timeRemaining: (timeLimitMs - warningDelayMs) / 1000,
-				timestamp: Date.now(),
-			});
-		}, warningDelayMs);
+		// Warning timer - only set if there's enough time for a meaningful warning
+		let warningTimer: NodeJS.Timeout | undefined;
+		if (timeLimitMs > 1000) {
+			// Only warn if timeout is longer than 1 second
+			warningTimer = setTimeout(() => {
+				connection.socket.emit('turnWarning', {
+					timeRemaining: (timeLimitMs - warningDelayMs) / 1000,
+					timestamp: Date.now(),
+				});
+			}, warningDelayMs);
+		}
 
 		// Timeout timer
 		const timeoutTimer = setTimeout(() => {
@@ -443,10 +466,11 @@ export class SocketHandler {
 		}, timeLimitMs);
 
 		// Store timers
-		this.warningTimers.set(connection.playerId, warningTimer);
+		if (warningTimer) {
+			this.warningTimers.set(connection.playerId, warningTimer);
+			connection.warningTimer = warningTimer;
+		}
 		this.turnTimers.set(connection.playerId, timeoutTimer);
-
-		connection.warningTimer = warningTimer;
 		connection.turnTimer = timeoutTimer;
 	}
 
@@ -487,8 +511,14 @@ export class SocketHandler {
 		try {
 			this.gameController.forcePlayerAction(connection.gameId, connection.playerId);
 		} catch (error) {
-			// Log error but don't crash - in a real implementation you'd use proper logging
-			throw error;
+			// Log error but don't crash - game should continue functioning
+			console.error(`Force action failed for player ${connection.playerId}:`, error);
+
+			// Notify the player that force action failed
+			connection.socket.emit('forceActionError', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				timestamp: Date.now(),
+			});
 		}
 	}
 
@@ -503,10 +533,17 @@ export class SocketHandler {
 
 		// Unsubscribe from game events
 		if (connection.gameId && connection.eventHandler) {
-			this.gameController.unsubscribeFromGame(
-				connection.gameId,
-				connection.eventHandler
-			);
+			try {
+				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
+			} catch (error) {
+				// Log error but don't prevent cleanup
+				console.error(
+					`Failed to unsubscribe from game events for player ${connection.playerId}:`,
+					error
+				);
+			}
+			// Clear the handler reference to prevent memory leaks
+			connection.eventHandler = undefined;
 		}
 
 		// Remove from connections
@@ -574,13 +611,22 @@ export class SocketHandler {
 		const now = Date.now();
 		const inactiveThreshold = 5 * 60 * 1000; // 5 minutes
 
+		// Collect connections to remove to avoid modifying map while iterating
+		const connectionsToRemove: BotConnection[] = [];
+
 		for (const [socketId, connection] of this.connections) {
-			if (
+			const shouldRemove =
 				!connection.isConnected ||
-				(connection.lastAction && now - connection.lastAction > inactiveThreshold)
-			) {
-				this.handleDisconnection(connection);
+				(connection.lastAction && now - connection.lastAction > inactiveThreshold);
+
+			if (shouldRemove) {
+				connectionsToRemove.push(connection);
 			}
+		}
+
+		// Remove inactive connections
+		for (const connection of connectionsToRemove) {
+			this.handleDisconnection(connection);
 		}
 	}
 }

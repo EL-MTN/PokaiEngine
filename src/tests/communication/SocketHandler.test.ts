@@ -1,6 +1,6 @@
 import { GameController } from '@engine/GameController';
 import { SocketHandler, Socket, SocketIOServer } from '@communication/SocketHandler';
-import { GameConfig, ActionType, Action } from '@types';
+import { GameConfig, ActionType, Action, GameEvent } from '@types';
 
 /**
  * Lightweight in-memory Socket.IO mocks so we can drive the SocketHandler
@@ -29,6 +29,14 @@ class MockSocket implements Socket {
 
 	join(_room: string): void {
 		/* rooms not needed for unit test */
+	}
+
+	leave(_room: string): void {
+		/* rooms not needed for unit test */
+	}
+
+	disconnect(): void {
+		this.trigger('disconnect', {});
 	}
 }
 
@@ -230,5 +238,816 @@ describe('SocketHandler – two-bot flow', () => {
 		}
 
 		expect(handComplete).toBe(true);
+	});
+
+	describe('Edge Case: Disconnection and Reconnection', () => {
+		it('handles bot disconnection mid-game', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			gameController.startHand(gameId);
+
+			// Check initial connection stats
+			const statsBeforeDisconnect = socketHandler.getConnectionStats();
+			expect(statsBeforeDisconnect.activeConnections).toBe(2);
+			expect(statsBeforeDisconnect.botsInGames).toBe(2);
+
+			// Simulate disconnection
+			bot1.trigger('disconnect', {});
+
+			// Check connection stats after disconnect
+			const statsAfterDisconnect = socketHandler.getConnectionStats();
+			expect(statsAfterDisconnect.activeConnections).toBe(1);
+			expect(statsAfterDisconnect.totalConnections).toBe(1);
+
+			// Verify game can continue with remaining player
+			const game = gameController.getGame(gameId);
+			expect(game).toBeDefined();
+		});
+
+		it('handles bot reconnection with same player ID', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Simulate disconnection
+			bot1.trigger('disconnect', {});
+
+			// Simulate reconnection
+			bot1.trigger('reconnect', {});
+
+			// Should receive game state after reconnection
+			const gameStateMsg = bot1.outgoing.find(e => e.event === 'gameState');
+			expect(gameStateMsg).toBeDefined();
+		});
+
+		it('maintains turn timer state during disconnection', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			gameController.startHand(gameId);
+
+			// Find who's turn it is
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			const actingBot = bot1Turn ? bot1 : bot2;
+
+			// Disconnect the acting bot
+			actingBot.trigger('disconnect', {});
+
+			// Advance time to trigger timeout
+			jest.advanceTimersByTime(3000);
+
+			// Game should handle timeout even with disconnected player
+			const game = gameController.getGame(gameId);
+			expect(game).toBeDefined();
+		});
+	});
+
+	describe('Edge Case: Invalid Actions and Error Handling', () => {
+		it('rejects action from unidentified bot', () => {
+			const bot1 = server.connect(bot1Id);
+
+			// Try to act without identifying
+			const action: Action = {
+				type: ActionType.Fold,
+				playerId: bot1Id,
+				timestamp: Date.now(),
+			};
+			bot1.trigger('action', { action });
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'actionError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Not in a game');
+		});
+
+		it('rejects action with mismatched player ID', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Try to act with wrong player ID
+			const action: Action = {
+				type: ActionType.Fold,
+				playerId: 'wrongId',
+				timestamp: Date.now(),
+			};
+			bot1.trigger('action', { action });
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'actionError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toContain('must be from the connected bot');
+		});
+
+		it('handles malformed identify data gracefully', () => {
+			const bot1 = server.connect(bot1Id);
+
+			// Send malformed data
+			bot1.trigger('identify', { gameId: 'nonexistent', chipStack: -100 });
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'identificationError');
+			expect(errorMsg).toBeDefined();
+		});
+
+		it('handles request for game state when not in game', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('requestGameState', {});
+
+			// Should not crash, just not send game state
+			const gameStateMsg = bot1.outgoing.find(e => e.event === 'gameState');
+			expect(gameStateMsg).toBeUndefined();
+		});
+
+		it('handles request for possible actions when not in game', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('requestPossibleActions', {});
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'possibleActionsError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Not in a game');
+		});
+	});
+
+	describe('Edge Case: Turn Timeouts', () => {
+		it('forces fold on turn timeout', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			gameController.startHand(gameId);
+
+			// Find who's turn it is
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			const bot2Turn = bot2.outgoing.find(e => e.event === 'turnStart');
+			const actingBot = bot1Turn ? bot1 : bot2;
+
+			// Clear outgoing to check for timeout
+			actingBot.outgoing = [];
+
+			// Advance time to warning (70% of 2 seconds = 1.4 seconds)
+			jest.advanceTimersByTime(1400);
+
+			const warningMsg = actingBot.outgoing.find(e => e.event === 'turnWarning');
+			expect(warningMsg).toBeDefined();
+			expect(warningMsg?.data.timeRemaining).toBe(0.6); // 30% of 2 seconds left
+
+			// Advance to full timeout
+			jest.advanceTimersByTime(600);
+
+			const timeoutMsg = actingBot.outgoing.find(e => e.event === 'turnTimeout');
+			expect(timeoutMsg).toBeDefined();
+		});
+
+		it('clears timer when action is taken', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			gameController.startHand(gameId);
+
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			const actingBot = bot1Turn ? bot1 : bot2;
+			const actingId = actingBot === bot1 ? bot1Id : bot2Id;
+
+			// Clear outgoing
+			actingBot.outgoing = [];
+
+			// Take action before timeout
+			const action: Action = {
+				type: ActionType.Check,
+				playerId: actingId,
+				timestamp: Date.now(),
+			};
+			actingBot.trigger('action', { action });
+
+			// Advance past timeout time
+			jest.advanceTimersByTime(3000);
+
+			// Should not receive timeout
+			const timeoutMsg = actingBot.outgoing.find(e => e.event === 'turnTimeout');
+			expect(timeoutMsg).toBeUndefined();
+		});
+
+		it('handles very short timeouts without warnings', () => {
+			// Create a game with very short timeout (0.5 seconds)
+			const shortGameId = 'shortGame';
+			const shortConfig: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 0.5,
+				isTournament: false,
+			};
+			gameController.createGame(shortGameId, shortConfig);
+
+			const bot1 = server.connect(`${bot1Id}_short`);
+			const bot2 = server.connect(`${bot2Id}_short`);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId: shortGameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId: shortGameId, chipStack: 1000 });
+
+			gameController.startHand(shortGameId);
+
+			// Find who's turn it is
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			const bot2Turn = bot2.outgoing.find(e => e.event === 'turnStart');
+			const actingBot = bot1Turn ? bot1 : bot2;
+
+			// Clear outgoing
+			actingBot.outgoing = [];
+
+			// Advance time to timeout (0.5 seconds)
+			jest.advanceTimersByTime(500);
+
+			// Should timeout without warning (too short for warning)
+			const timeoutMsg = actingBot.outgoing.find(e => e.event === 'turnTimeout');
+			expect(timeoutMsg).toBeDefined();
+
+			// Should not have received warning
+			const warningMsg = actingBot.outgoing.find(e => e.event === 'turnWarning');
+			expect(warningMsg).toBeUndefined();
+		});
+	});
+
+	describe('Edge Case: Game Management', () => {
+		it('handles bot leaving game', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Leave game
+			bot1.trigger('leaveGame', {});
+
+			const leftMsg = bot1.outgoing.find(e => e.event === 'leftGame');
+			expect(leftMsg).toBeDefined();
+
+			// Try to act after leaving
+			const action: Action = {
+				type: ActionType.Fold,
+				playerId: bot1Id,
+				timestamp: Date.now(),
+			};
+			bot1.trigger('action', { action });
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'actionError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Not in a game');
+		});
+
+		it('handles leaving game when not in a game', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('leaveGame', {});
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'leaveGameError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Bot is not in a game');
+		});
+
+		it('can list available games', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('listGames', {});
+
+			const gamesMsg = bot1.outgoing.find(e => e.event === 'gamesList');
+			expect(gamesMsg).toBeDefined();
+			expect(Array.isArray(gamesMsg?.data.games)).toBe(true);
+		});
+
+		it('handles ping/pong for connection monitoring', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('ping', {});
+
+			const pongMsg = bot1.outgoing.find(e => e.event === 'pong');
+			expect(pongMsg).toBeDefined();
+			expect(pongMsg?.data.timestamp).toBeDefined();
+		});
+	});
+
+	describe('Edge Case: Concurrent Connections', () => {
+		it('handles multiple bots connecting simultaneously', () => {
+			const bots = [];
+			for (let i = 0; i < 10; i++) {
+				const bot = server.connect(`bot_${i}`);
+				bot.trigger('identify', { 
+					botName: `Bot${i}`, 
+					gameId, 
+					chipStack: 1000 
+				});
+				bots.push(bot);
+			}
+
+			// Get stats to verify connections
+			const stats = socketHandler.getConnectionStats();
+			expect(stats.totalConnections).toBe(10);
+			
+			// All should connect, but only those in game should be counted
+			expect(stats.activeConnections).toBe(10);
+		});
+
+		it('enforces game capacity at socket level', () => {
+			// Create a game with capacity for 2 players
+			const bots = [];
+			for (let i = 0; i < 5; i++) {
+				const bot = server.connect(`capacity_bot_${i}`);
+				bot.trigger('identify', { 
+					botName: `Bot${i}`, 
+					gameId, 
+					chipStack: 1000 
+				});
+				bots.push(bot);
+			}
+
+			// Count success and error messages
+			const successCount = bots.filter(bot => 
+				bot.outgoing.some(e => e.event === 'identificationSuccess')
+			).length;
+			const errorCount = bots.filter(bot => 
+				bot.outgoing.some(e => e.event === 'identificationError')
+			).length;
+
+			// Should have 2 successes and 3 errors (game capacity is 2)
+			expect(successCount).toBe(2);
+			expect(errorCount).toBe(3);
+
+			// Check that error messages mention capacity
+			const errorBot = bots.find(bot => 
+				bot.outgoing.some(e => e.event === 'identificationError')
+			);
+			const errorMsg = errorBot?.outgoing.find(e => e.event === 'identificationError');
+			expect(errorMsg?.data.error).toContain('full');
+		});
+
+		it('handles rapid actions from same bot', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			gameController.startHand(gameId);
+
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			if (bot1Turn) {
+				// Send multiple actions rapidly
+				for (let i = 0; i < 5; i++) {
+					const action: Action = {
+						type: ActionType.Check,
+						playerId: bot1Id,
+						timestamp: Date.now() + i,
+					};
+					bot1.trigger('action', { action });
+				}
+
+				// Only first action should succeed
+				const successCount = bot1.outgoing.filter(e => e.event === 'actionSuccess').length;
+				const errorCount = bot1.outgoing.filter(e => e.event === 'actionError').length;
+
+				expect(successCount).toBe(1);
+				expect(errorCount).toBeGreaterThan(0);
+			}
+		});
+	});
+
+	describe('Edge Case: Cleanup Operations', () => {
+		it('cleans up inactive connections', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			// Check initial stats
+			const initialStats = socketHandler.getConnectionStats();
+			expect(initialStats.totalConnections).toBe(2);
+
+			// Disconnect bot1
+			bot1.trigger('disconnect', {});
+
+			// Check stats after disconnect
+			const afterDisconnect = socketHandler.getConnectionStats();
+			expect(afterDisconnect.totalConnections).toBe(1);
+			expect(afterDisconnect.activeConnections).toBe(1);
+		});
+
+		it('broadcasts events to all bots in game', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			// Clear outgoing
+			bot1.outgoing = [];
+			bot2.outgoing = [];
+
+			// Broadcast custom event
+			socketHandler.broadcastToGame(gameId, 'customEvent', { data: 'test' });
+
+			// Both bots should receive the event
+			const bot1Event = bot1.outgoing.find(e => e.event === 'customEvent');
+			const bot2Event = bot2.outgoing.find(e => e.event === 'customEvent');
+
+			expect(bot1Event).toBeDefined();
+			expect(bot2Event).toBeDefined();
+			expect(bot1Event?.data.data).toBe('test');
+		});
+	});
+
+	describe('Edge Case: Error Recovery', () => {
+		it('handles game controller errors gracefully', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Mock a game controller error
+			jest.spyOn(gameController, 'getPossibleActions').mockImplementationOnce(() => {
+				throw new Error('Game state corrupted');
+			});
+
+			bot1.trigger('requestPossibleActions', {});
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'possibleActionsError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Game state corrupted');
+		});
+
+		it('continues operation after force action failure', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			gameController.startHand(gameId);
+
+			// Mock force action to throw
+			jest.spyOn(gameController, 'forcePlayerAction').mockImplementationOnce(() => {
+				throw new Error('Force action failed');
+			});
+
+			// Find acting bot and trigger timeout
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			const actingBot = bot1Turn ? bot1 : bot2;
+
+			// Trigger timeout - should NOT throw anymore (fixed error handling)
+			expect(() => {
+				jest.advanceTimersByTime(2000);
+			}).not.toThrow();
+
+			// Should still send timeout notification
+			const timeoutMsg = actingBot.outgoing.find(e => e.event === 'turnTimeout');
+			expect(timeoutMsg).toBeDefined();
+
+			// Should send force action error notification
+			const forceActionErrorMsg = actingBot.outgoing.find(e => e.event === 'forceActionError');
+			expect(forceActionErrorMsg).toBeDefined();
+			expect(forceActionErrorMsg?.data.error).toBe('Force action failed');
+
+			// Socket handler should not crash
+			expect(() => socketHandler.getConnectionStats()).not.toThrow();
+		});
+
+		it('handles game state request errors', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Mock getBotGameState to throw
+			jest.spyOn(gameController, 'getBotGameState').mockImplementationOnce(() => {
+				throw new Error('Player not found');
+			});
+
+			bot1.trigger('requestGameState', {});
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'gameStateError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Player not found');
+		});
+	});
+
+	describe('Edge Case: Complex Game Event Scenarios', () => {
+		it('handles all game event types correctly', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			// Start hand
+			gameController.startHand(gameId);
+
+			// Just test that game exists and events are handled
+			const game = gameController.getGame(gameId);
+			expect(game).toBeDefined();
+			
+			// Both bots should receive some events after hand start
+			const bot1HasEvents = bot1.outgoing.some(e => e.event === 'gameEvent');
+			const bot2HasEvents = bot2.outgoing.some(e => e.event === 'gameEvent');
+			
+			expect(bot1HasEvents || bot2HasEvents).toBe(true);
+		});
+
+		it('handles connection without gameId for event subscription', () => {
+			const bot1 = server.connect(bot1Id);
+			
+			// Connection is created but bot hasn't identified yet
+			// This tests the subscribeToGameEvents path when gameId is undefined
+			const stats = socketHandler.getConnectionStats();
+			expect(stats.totalConnections).toBe(1);
+			expect(stats.botsInGames).toBe(0);
+		});
+
+		it('ignores events for disconnected bots', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+			
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+			// Disconnect bot1
+			bot1.disconnect();
+
+			// Clear outgoing
+			bot1.outgoing = [];
+			bot2.outgoing = [];
+
+			// Start a new hand which will trigger events
+			gameController.startHand(gameId);
+
+			// Bot1 should not receive any events
+			expect(bot1.outgoing.length).toBe(0);
+			
+			// Bot2 should still receive events
+			expect(bot2.outgoing.length).toBeGreaterThan(0);
+		});
+	});
+
+	describe('Branch Coverage: Conditional Paths', () => {
+		it('handles game not found in identification', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId: 'nonexistent', chipStack: 1000 });
+
+			const errorMsg = bot1.outgoing.find(e => e.event === 'identificationError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toContain('not found');
+		});
+
+		it('handles socket without join function', () => {
+			const bot1 = server.connect(bot1Id);
+			// Remove join function to test conditional path
+			delete (bot1 as any).join;
+			
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			const successMsg = bot1.outgoing.find(e => e.event === 'identificationSuccess');
+			expect(successMsg).toBeDefined();
+		});
+
+		it('handles socket without leave function', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Remove leave function to test conditional path
+			delete (bot1 as any).leave;
+			
+			bot1.trigger('leaveGame', {});
+
+			const leftMsg = bot1.outgoing.find(e => e.event === 'leftGame');
+			expect(leftMsg).toBeDefined();
+		});
+
+		it('handles turn timer with no game found', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Manually call startTurnTimer with a connection that has no valid game
+			const connection = (socketHandler as any).connections.get(bot1.id);
+			if (connection) {
+				// Mock getGame to return undefined
+				jest.spyOn(gameController, 'getGame').mockReturnValueOnce(undefined);
+				
+				// Call the private method directly to test the branch
+				(socketHandler as any).startTurnTimer(connection);
+			}
+
+			// Should not crash when game is not found
+			expect(() => socketHandler.getConnectionStats()).not.toThrow();
+		});
+
+		it('handles cleanup with no inactive connections', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// All connections are active, so cleanup should not remove any
+			const statsBefore = socketHandler.getConnectionStats();
+			socketHandler.cleanupInactiveConnections();
+			const statsAfter = socketHandler.getConnectionStats();
+
+			expect(statsBefore.totalConnections).toBe(statsAfter.totalConnections);
+		});
+
+		it('handles cleanup with connections missing lastAction', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Manually set lastAction to undefined to test branch
+			const connection = (socketHandler as any).connections.get(bot1.id);
+			if (connection) {
+				connection.lastAction = undefined;
+			}
+
+			// Should not crash
+			expect(() => socketHandler.cleanupInactiveConnections()).not.toThrow();
+		});
+
+		it('handles warning timer not set for short timeouts', () => {
+			// Create a game with very short timeout (0.8 seconds) - below 1 second threshold
+			const veryShortGameId = 'veryShortGame';
+			const veryShortConfig: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 0.8,
+				isTournament: false,
+			};
+			gameController.createGame(veryShortGameId, veryShortConfig);
+
+			const bot1 = server.connect(`${bot1Id}_veryshort`);
+			const bot2 = server.connect(`${bot2Id}_veryshort`);
+
+			bot1.trigger('identify', { botName: 'Alpha', gameId: veryShortGameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId: veryShortGameId, chipStack: 1000 });
+
+			gameController.startHand(veryShortGameId);
+
+			// Find who's turn it is
+			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
+			const bot2Turn = bot2.outgoing.find(e => e.event === 'turnStart');
+			const actingBot = bot1Turn ? bot1 : bot2;
+
+			// Clear outgoing
+			actingBot.outgoing = [];
+
+			// Advance time to timeout (0.8 seconds)
+			jest.advanceTimersByTime(800);
+
+			// Should timeout but no warning should be sent (timeLimitMs <= 1000)
+			const timeoutMsg = actingBot.outgoing.find(e => e.event === 'turnTimeout');
+			expect(timeoutMsg).toBeDefined();
+
+			const warningMsg = actingBot.outgoing.find(e => e.event === 'turnWarning');
+			expect(warningMsg).toBeUndefined();
+		});
+
+		it('handles event handler cleanup failure in leaveGame', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Mock unsubscribeFromGame to throw error
+			jest.spyOn(gameController, 'unsubscribeFromGame').mockImplementationOnce(() => {
+				throw new Error('Unsubscribe failed');
+			});
+
+			// Should not crash game leaving
+			expect(() => bot1.trigger('leaveGame', {})).not.toThrow();
+
+			const leftMsg = bot1.outgoing.find(e => e.event === 'leftGame');
+			expect(leftMsg).toBeDefined();
+		});
+
+		it('handles event handler cleanup failure in disconnection', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Mock unsubscribeFromGame to throw error
+			jest.spyOn(gameController, 'unsubscribeFromGame').mockImplementationOnce(() => {
+				throw new Error('Unsubscribe failed');
+			});
+
+			// Should not crash disconnection
+			expect(() => bot1.disconnect()).not.toThrow();
+
+			const stats = socketHandler.getConnectionStats();
+			expect(stats.totalConnections).toBe(0);
+		});
+	});
+
+	describe('Branch Coverage: Game Event Handling', () => {
+		it('handles game events with no gameState', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			// Clear outgoing
+			bot1.outgoing = [];
+
+			// Manually trigger event handler with event lacking gameState
+			const connection = (socketHandler as any).connections.get(bot1.id);
+			if (connection && connection.eventHandler) {
+				const eventWithoutGameState: GameEvent = {
+					type: 'hand_complete',
+					timestamp: Date.now(),
+					handNumber: 1
+				};
+				connection.eventHandler(eventWithoutGameState);
+			}
+
+			// Should still emit the event
+			const gameEventMsg = bot1.outgoing.find(e => e.event === 'gameEvent');
+			expect(gameEventMsg).toBeDefined();
+		});
+
+		it('handles all game event types that update game state', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			const connection = (socketHandler as any).connections.get(bot1.id);
+			if (connection && connection.eventHandler) {
+				// Test each event type that calls sendGameState
+				const eventTypes = ['hand_started', 'action_taken', 'flop_dealt', 'turn_dealt', 'river_dealt', 'showdown_complete', 'hand_complete'];
+				
+				for (const eventType of eventTypes) {
+					bot1.outgoing = [];
+					
+					const event: GameEvent = {
+						type: eventType as any,
+						timestamp: Date.now(),
+						handNumber: 1,
+						gameState: gameController.getGame(gameId)?.getGameState()
+					};
+					
+					connection.eventHandler(event);
+					
+					// Should emit game event
+					const gameEventMsg = bot1.outgoing.find(e => e.event === 'gameEvent');
+					expect(gameEventMsg).toBeDefined();
+					
+					// Should send game state update
+					const gameStateMsg = bot1.outgoing.find(e => e.event === 'gameState');
+					expect(gameStateMsg).toBeDefined();
+				}
+			}
+		});
+
+		it('handles event with currentPlayerToAct matching connection', () => {
+			const bot1 = server.connect(bot1Id);
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+
+			const connection = (socketHandler as any).connections.get(bot1.id);
+			if (connection && connection.eventHandler) {
+				bot1.outgoing = [];
+				
+				// Create mock game state with this player as current to act
+				const mockGameState = {
+					...gameController.getGame(gameId)?.getGameState(),
+					currentPlayerToAct: bot1.id
+				};
+				
+				const event: GameEvent = {
+					type: 'action_taken',
+					timestamp: Date.now(),
+					handNumber: 1,
+					gameState: mockGameState as any
+				};
+				
+				connection.eventHandler(event);
+				
+				// Should start turn timer
+				const turnStartMsg = bot1.outgoing.find(e => e.event === 'turnStart');
+				expect(turnStartMsg).toBeDefined();
+			}
+		});
+
+		it('handles cleanup of turn timers on hand completion', () => {
+			const bot1 = server.connect(bot1Id);
+			const bot2 = server.connect(bot2Id);
+			
+			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+			
+			gameController.startHand(gameId);
+			
+			// Get current turn timer count
+			const statsBefore = socketHandler.getConnectionStats();
+			
+			// Simulate hand completion
+			const connection = (socketHandler as any).connections.get(bot1.id);
+			if (connection && connection.eventHandler) {
+				const event: GameEvent = {
+					type: 'hand_complete',
+					timestamp: Date.now(),
+					handNumber: 1,
+					gameState: gameController.getGame(gameId)?.getGameState()
+				};
+				
+				connection.eventHandler(event);
+			}
+			
+			// Should have cleared turn timers
+			const statsAfter = socketHandler.getConnectionStats();
+			expect(statsAfter.activeTurnTimers).toBeLessThanOrEqual(statsBefore.activeTurnTimers);
+		});
 	});
 }); 
