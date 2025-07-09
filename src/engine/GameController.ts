@@ -381,7 +381,7 @@ export class GameController {
 		}
 
 		const gameState = game.getGameState();
-		const config = game['config'];
+		const config = game.getConfig();
 
 		return gameState.getActivePlayers().length < config.maxPlayers;
 	}
