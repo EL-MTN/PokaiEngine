@@ -15,6 +15,7 @@
 			"@engine/*": ["engine/*"],
 			"@communication/*": ["communication/*"],
 			"@logging/*": ["logging/*"],
+			"@server/*": ["server/*"],
 			"@types": ["types/index"],
 			"@tests/*": ["tests/*"]
 		},
