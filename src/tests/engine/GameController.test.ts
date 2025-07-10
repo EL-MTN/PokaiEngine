@@ -328,4 +328,162 @@ describe('GameController', () => {
 			expect(gameController.getPlayerGameId('p2')).toBe('game2');
 		});
 	});
+
+	describe('Coverage Tests - Error handling for missing games', () => {
+		it('throws error when forcing action on non-existent game', () => {
+			expect(() => {
+				gameController.forcePlayerAction('nonexistent', 'player1');
+			}).toThrow('Game with ID nonexistent not found');
+		});
+
+		it('returns undefined when handling event for non-existent game', () => {
+			// Access private method through any cast
+			const handleGameEvent = (gameController as any).handleGameEvent.bind(gameController);
+			
+			// Should not throw, just return early
+			expect(() => {
+				handleGameEvent('nonexistent', {
+					type: 'hand_started',
+					timestamp: Date.now(),
+					handNumber: 1,
+					gameState: null
+				});
+			}).not.toThrow();
+		});
+
+		it('throws error when requesting unseat for non-existent game', () => {
+			expect(() => {
+				gameController.requestUnseat('nonexistent', 'player1');
+			}).toThrow('Game with ID nonexistent not found');
+		});
+	});
+
+	describe('Coverage Tests - Tournament game creation', () => {
+		it('creates tournament game with proper configuration', () => {
+			const gameId = 'tournament1';
+			const game = gameController.createTournamentGame(
+				gameId,
+				1500, // starting stack
+				25,   // initial small blind
+				50,   // initial big blind
+				8,    // max players
+				20    // turn time limit
+			);
+
+			expect(game).toBeDefined();
+			expect(gameController.getGame(gameId)).toBe(game);
+		});
+	});
+
+	describe('Coverage Tests - Overall stats calculation', () => {
+		it('calculates stats correctly with active players', () => {
+			// Create multiple games with different player counts
+			const config1 = createConfig({ maxPlayers: 3 });
+			const config2 = createConfig({ maxPlayers: 3 });
+
+			const game1 = setupMockGame('game1', config1);
+			(game1.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [{ id: 'p1' }],
+				players: [{ id: 'p1' }],
+			} as any);
+
+			const game2 = setupMockGame('game2', config2);
+			(game2.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [{ id: 'p2' }],
+				players: [{ id: 'p2' }],
+			} as any);
+
+			const stats = gameController.getOverallStats();
+			
+			expect(stats.totalGames).toBe(2);
+			expect(stats.totalPlayers).toBe(2);
+			expect(stats.averagePlayersPerGame).toBe(1);
+		});
+	});
+
+	describe('Coverage Tests - Find available games with maxPlayers filter', () => {
+		it('filters out games that meet maxPlayers threshold', () => {
+			// Create games with different player counts to test filtering
+			const config1 = createConfig({ maxPlayers: 3 });
+			const config2 = createConfig({ maxPlayers: 2 });
+
+			const game1 = setupMockGame('game1', config1);
+			(game1.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [{ id: 'p1' }],
+				players: [{ id: 'p1' }],
+			} as any);
+
+			const game2 = setupMockGame('game2', config2);
+			(game2.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [{ id: 'p2' }, { id: 'p3' }],
+				players: [{ id: 'p2' }, { id: 'p3' }],
+			} as any);
+			
+			const availableGames = gameController.findAvailableGames(2);
+			
+			// Should only return game1 since game2 is full (2 >= 2)
+			expect(availableGames).toHaveLength(1);
+			expect(availableGames[0].id).toBe('game1');
+		});
+	});
+
+	describe('Coverage Tests - Cleanup inactive games', () => {
+		it('removes games with no active players', () => {
+			const config = createConfig();
+
+			// Create games
+			const game1 = setupMockGame('game1', config);
+			const game2 = setupMockGame('game2', config);
+			const game3 = setupMockGame('game3', config);
+
+			// Mock game states
+			(game1.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [],
+				players: [{ id: 'p1', isActive: false }],
+			} as any);
+
+			(game2.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [{ id: 'p2' }],
+				players: [{ id: 'p2', isActive: true }],
+			} as any);
+
+			(game3.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [],
+				players: [],
+			} as any);
+
+			// Run cleanup
+			gameController.cleanupInactiveGames();
+
+			// game1 and game3 should be removed, game2 should remain
+			expect(gameController.getGame('game1')).toBeUndefined();
+			expect(gameController.getGame('game2')).toBeDefined();
+			expect(gameController.getGame('game3')).toBeUndefined();
+		});
+	});
+
+	describe('Coverage Tests - Remove game cleanup', () => {
+		it('properly cleans up when removing a game', () => {
+			const gameId = 'game1';
+			const config = createConfig();
+
+			const game = setupMockGame(gameId, config);
+			(game.getGameState as jest.Mock).mockReturnValue({
+				getActivePlayers: () => [{ id: 'player1' }],
+				players: [{ id: 'player1' }],
+			} as any);
+
+			// Subscribe to game events
+			const callback = jest.fn();
+			gameController.subscribeToGame(gameId, callback);
+
+			// Remove the game (this tests the cleanup path)
+			gameController.removeGame(gameId);
+
+			// Verify cleanup
+			expect(gameController.getGame(gameId)).toBeUndefined();
+			expect((gameController as any).eventCallbacks.has(gameId)).toBe(false);
+			expect((gameController as any).pendingUnseats.has(gameId)).toBe(false);
+		});
+	});
 });

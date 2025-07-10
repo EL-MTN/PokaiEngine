@@ -1109,4 +1109,248 @@ describe('SocketHandler – two-bot flow', () => {
 			expect(statsAfter.activeTurnTimers).toBeLessThanOrEqual(statsBefore.activeTurnTimers);
 		});
 	});
+
+	describe('Coverage Tests - Unseat Feature Edge Cases', () => {
+		it('handles unseat request when bot is not in game', () => {
+			const bot = server.connect('bot1');
+			
+			// Trigger unseat without joining a game
+			bot.trigger('unseat', {});
+
+			const errorMsg = bot.outgoing.find(e => e.event === 'unseatError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Bot is not in a game');
+		});
+
+		it('handles unseat request successfully', () => {
+			const testGameId = 'unseat-test-game';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot1 = server.connect('bot1');
+			const bot2 = server.connect('bot2');
+
+			// Join game
+			bot1.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+			bot2.trigger('identify', { botName: 'Beta', gameId: testGameId, chipStack: 1000 });
+
+			// Clear outgoing
+			bot1.outgoing = [];
+
+			// Request unseat
+			bot1.trigger('unseat', {});
+
+			const confirmMsg = bot1.outgoing.find(e => e.event === 'unseatConfirmed');
+			expect(confirmMsg).toBeDefined();
+		});
+
+		it('handles unseat request error from game controller', () => {
+			const testGameId = 'unseat-error-test';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot = server.connect('bot1');
+			bot.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+
+			// Mock requestUnseat to throw error
+			jest.spyOn(gameController, 'requestUnseat').mockImplementationOnce(() => {
+				throw new Error('Cannot unseat during critical phase');
+			});
+
+			bot.outgoing = [];
+			bot.trigger('unseat', {});
+
+			const errorMsg = bot.outgoing.find(e => e.event === 'unseatError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Cannot unseat during critical phase');
+		});
+	});
+
+	describe('Coverage Tests - Leave Game Error Handling', () => {
+		it('handles error when leaving game fails', () => {
+			const testGameId = 'leave-error-test';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot = server.connect('bot1');
+			bot.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+
+			// Mock removePlayerFromGame to throw error
+			jest.spyOn(gameController, 'removePlayerFromGame').mockImplementationOnce(() => {
+				throw new Error('Cannot remove player during hand');
+			});
+
+			bot.outgoing = [];
+			bot.trigger('leaveGame', {});
+
+			const errorMsg = bot.outgoing.find(e => e.event === 'leaveGameError');
+			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Cannot remove player during hand');
+		});
+	});
+
+	describe('Coverage Tests - Reconnection Handling', () => {
+		it('handles reconnection event', () => {
+			const testGameId = 'reconnect-test';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot = server.connect('bot1');
+			bot.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+
+			// Clear outgoing
+			bot.outgoing = [];
+
+			// Trigger reconnect
+			bot.trigger('reconnect', {});
+
+			// Should update last action timestamp
+			const connection = (socketHandler as any).connections.get('bot1');
+			expect(connection?.lastAction).toBeGreaterThan(0);
+		});
+	});
+
+	describe('Coverage Tests - Game Event Handling Edge Cases', () => {
+		it('ignores game events for disconnected bots', () => {
+			const testGameId = 'disconnect-event-test';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot = server.connect('bot1');
+			bot.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+
+			// Manually set connection as disconnected
+			const connection = (socketHandler as any).connections.get('bot1');
+			if (connection) {
+				connection.isConnected = false;
+			}
+
+			bot.outgoing = [];
+
+			// Try to handle a game event
+			(socketHandler as any).handleGameEvent(connection, {
+				type: 'hand_started',
+				timestamp: Date.now(),
+				handNumber: 1,
+				gameState: null
+			});
+
+			// Should not emit any events
+			expect(bot.outgoing.length).toBe(0);
+		});
+
+		it('handles turn timer start when bot has no gameId', () => {
+			const bot = server.connect('bot1');
+			
+			// Create a connection without gameId
+			const connection = {
+				socket: bot,
+				playerId: 'bot1',
+				gameId: undefined,
+				isConnected: true,
+				lastAction: Date.now()
+			};
+
+			// Manually add to connections map
+			(socketHandler as any).connections.set('bot1', connection);
+
+			// Should not throw when starting timer without gameId
+			expect(() => {
+				(socketHandler as any).startTurnTimer(connection);
+			}).not.toThrow();
+		});
+	});
+
+	describe('Coverage Tests - Cleanup Edge Cases', () => {
+		it('handles cleanup with error in unsubscribe', () => {
+			const testGameId = 'cleanup-error-test';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot = server.connect('bot1');
+			bot.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+
+			// Mock unsubscribeFromGame to throw
+			jest.spyOn(gameController, 'unsubscribeFromGame').mockImplementationOnce(() => {
+				throw new Error('Unsubscribe failed');
+			});
+
+			// Should not throw when cleaning up
+			expect(() => {
+				socketHandler.cleanupInactiveConnections();
+			}).not.toThrow();
+		});
+
+		it('handles cleanup when socket.leave is missing', () => {
+			const testGameId = 'cleanup-missing-test';
+			const config: GameConfig = {
+				maxPlayers: 2,
+				smallBlindAmount: 50,
+				bigBlindAmount: 100,
+				turnTimeLimit: 2,
+				isTournament: false,
+			};
+
+			gameController.createGame(testGameId, config);
+
+			const bot = server.connect('bot1');
+			bot.trigger('identify', { botName: 'Alpha', gameId: testGameId, chipStack: 1000 });
+
+			// Remove leave function
+			delete (bot as any).leave;
+
+			// Make connection inactive
+			const connection = (socketHandler as any).connections.get('bot1');
+			if (connection) {
+				connection.lastAction = Date.now() - 35 * 60 * 1000; // 35 minutes ago
+			}
+
+			// Should not throw when cleaning up
+			expect(() => {
+				socketHandler.cleanupInactiveConnections();
+			}).not.toThrow();
+		});
+	});
 }); 
