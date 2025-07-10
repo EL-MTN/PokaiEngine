@@ -94,9 +94,6 @@ describe('SocketHandler – two-bot flow', () => {
 		bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 		bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-		// Start the first hand
-		gameController.startHand(gameId);
-
 		// The GameEngine posts blinds internally and then sets first player to act.
 		// SocketHandler should emit `turnStart` to whichever bot is first.
 		const bot1TurnStart = bot1.outgoing.find((e) => e.event === 'turnStart');
@@ -145,8 +142,6 @@ describe('SocketHandler – two-bot flow', () => {
 		bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 		bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-		gameController.startHand(gameId);
-
 		let handComplete = false;
 		let safetyCounter = 0;
 
@@ -182,6 +177,77 @@ describe('SocketHandler – two-bot flow', () => {
 		expect(handComplete).toBe(true);
 	});
 
+	it('allows bots to play multiple consecutive hands', () => {
+		const bot1 = server.connect(`${bot1Id}_multi`);
+		const bot2 = server.connect(`${bot2Id}_multi`);
+
+		bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+		bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+
+		const numberOfHandsToPlay = 10;
+		let handsPlayed = 0;
+		let safetyCounter = 0;
+		const safetyLimit = numberOfHandsToPlay * 50; // Total loops allowed across all hands
+
+		const allBots = [bot1, bot2];
+
+		const decideAction = (possible: any[]) => {
+			// Prefer Call, otherwise Check, otherwise Fold
+			const call = possible.find((a) => a.type === 'call');
+			if (call) return { type: ActionType.Call, amount: call.minAmount };
+			const check = possible.find((a) => a.type === 'check');
+			if (check) return { type: ActionType.Check };
+			return { type: ActionType.Fold };
+		};
+
+		// The first hand starts automatically when the second bot joins.
+		// This loop will process events and actions until 10 hands are complete.
+		while (handsPlayed < numberOfHandsToPlay && safetyCounter < safetyLimit) {
+			let handCompletedInLoop = false;
+
+			for (const bot of allBots) {
+				while (bot.outgoing.length > 0) {
+					const evt = bot.outgoing.shift()!;
+					if (evt.event === 'turnStart') {
+						bot.trigger('requestPossibleActions', undefined);
+					}
+
+					if (evt.event === 'possibleActions') {
+						const { possibleActions } = evt.data;
+						const chosen = decideAction(possibleActions);
+						const action: Action = {
+							...chosen,
+							playerId: bot.id,
+							timestamp: Date.now(),
+						};
+						bot.trigger('action', { action });
+					}
+
+					if (evt.event === 'gameEvent' && evt.data?.event?.type === 'hand_complete') {
+						handCompletedInLoop = true;
+					}
+				}
+			}
+
+			if (handCompletedInLoop) {
+				handsPlayed++;
+				// Clear any remaining events to ensure next hand starts clean
+				allBots.forEach((b) => (b.outgoing = []));
+			}
+
+			// Advance timers to process game logic and automatic hand starting
+			jest.advanceTimersByTime(500);
+			safetyCounter++;
+		}
+
+		expect(handsPlayed).toBe(numberOfHandsToPlay);
+
+		const game = gameController.getGame(gameId);
+		const finalState = game!.getGameState();
+		const totalChips = finalState.players.reduce((sum, p) => sum + p.chipStack, 0);
+		expect(totalChips).toBe(2000);
+	});
+
 
 	it('bots can call pre-flop then check to showdown', () => {
 		const bot1 = server.connect(`${bot1Id}_2`);
@@ -189,8 +255,6 @@ describe('SocketHandler – two-bot flow', () => {
 
 		bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 		bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
-
-		gameController.startHand(gameId);
 
 		let handComplete = false;
 		let safetyCounter = 0;
@@ -248,8 +312,6 @@ describe('SocketHandler – two-bot flow', () => {
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-			gameController.startHand(gameId);
-
 			// Check initial connection stats
 			const statsBeforeDisconnect = socketHandler.getConnectionStats();
 			expect(statsBeforeDisconnect.activeConnections).toBe(2);
@@ -289,8 +351,6 @@ describe('SocketHandler – two-bot flow', () => {
 
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
-
-			gameController.startHand(gameId);
 
 			// Find who's turn it is
 			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
@@ -379,8 +439,6 @@ describe('SocketHandler – two-bot flow', () => {
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-			gameController.startHand(gameId);
-
 			// Find who's turn it is
 			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
 			const bot2Turn = bot2.outgoing.find(e => e.event === 'turnStart');
@@ -410,8 +468,7 @@ describe('SocketHandler – two-bot flow', () => {
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-			gameController.startHand(gameId);
-
+			// Find who's turn it is
 			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
 			const actingBot = bot1Turn ? bot1 : bot2;
 			const actingId = actingBot === bot1 ? bot1Id : bot2Id;
@@ -452,8 +509,6 @@ describe('SocketHandler – two-bot flow', () => {
 
 			bot1.trigger('identify', { botName: 'Alpha', gameId: shortGameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId: shortGameId, chipStack: 1000 });
-
-			gameController.startHand(shortGameId);
 
 			// Find who's turn it is
 			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
@@ -589,8 +644,6 @@ describe('SocketHandler – two-bot flow', () => {
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-			gameController.startHand(gameId);
-
 			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
 			if (bot1Turn) {
 				// Send multiple actions rapidly
@@ -682,8 +735,6 @@ describe('SocketHandler – two-bot flow', () => {
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
-			gameController.startHand(gameId);
-
 			// Mock force action to throw
 			jest.spyOn(gameController, 'forcePlayerAction').mockImplementationOnce(() => {
 				throw new Error('Force action failed');
@@ -737,8 +788,7 @@ describe('SocketHandler – two-bot flow', () => {
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
 
 			// Start hand
-			gameController.startHand(gameId);
-
+			
 			// Just test that game exists and events are handled
 			const game = gameController.getGame(gameId);
 			expect(game).toBeDefined();
@@ -774,8 +824,21 @@ describe('SocketHandler – two-bot flow', () => {
 			bot1.outgoing = [];
 			bot2.outgoing = [];
 
-			// Start a new hand which will trigger events
-			gameController.startHand(gameId);
+			// Starting a new hand is now automatic after previous hand completes.
+			// To test this, we can simulate a hand_complete event from the controller.
+			const game = gameController.getGame(gameId);
+			if (game) {
+				// Manually trigger the event that would normally be emitted by the engine
+				(gameController as any).handleGameEvent(gameId, {
+					type: 'hand_complete',
+					timestamp: Date.now(),
+					handNumber: 1, // A previous hand number
+					gameState: game.getGameState()
+				});
+			}
+
+			// Advance timers to allow the 1-second delay in GameController to fire
+			jest.advanceTimersByTime(1000);
 
 			// Bot1 should not receive any events
 			expect(bot1.outgoing.length).toBe(0);
@@ -880,8 +943,6 @@ describe('SocketHandler – two-bot flow', () => {
 
 			bot1.trigger('identify', { botName: 'Alpha', gameId: veryShortGameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId: veryShortGameId, chipStack: 1000 });
-
-			gameController.startHand(veryShortGameId);
 
 			// Find who's turn it is
 			const bot1Turn = bot1.outgoing.find(e => e.event === 'turnStart');
@@ -1026,8 +1087,6 @@ describe('SocketHandler – two-bot flow', () => {
 			
 			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
 			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
-			
-			gameController.startHand(gameId);
 			
 			// Get current turn timer count
 			const statsBefore = socketHandler.getConnectionStats();

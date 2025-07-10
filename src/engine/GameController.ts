@@ -132,6 +132,15 @@ export class GameController {
 
 		game.addPlayer(playerId, playerName, chipStack);
 		this.playerGameMap.set(playerId, gameId);
+
+		// Automatically start the first hand if the game hasn't started and now has enough players
+		const gameState = game.getGameState();
+		if (!game.isGameRunning() && gameState.players.length >= 2) {
+			console.log(
+				`[GameController] Two or more players have joined game ${gameId}. Starting first hand.`
+			);
+			this.startHand(gameId);
+		}
 	}
 
 	/**
@@ -250,13 +259,31 @@ export class GameController {
 			return;
 		}
 
-		callbacks.forEach((callback) => {
+		// Forward event to all subscribers
+		callbacks.forEach((cb) => {
 			try {
-				callback(event);
+				cb(event);
 			} catch (error) {
-				// Silently ignore callback errors
+				console.error(`Error in event callback for game ${gameId}:`, error);
 			}
 		});
+
+		// If the hand is complete, automatically start the next one after a short delay
+		if (event.type === 'hand_complete') {
+			const timer = setTimeout(() => {
+				const game = this.games.get(gameId);
+				// Check if game still exists and has enough players to continue
+				if (game && game.getGameState().players.length >= 2) {
+					console.log(`[GameController] Automatically starting new hand for game: ${gameId}`);
+					this.startHand(gameId);
+				} else {
+					console.log(
+						`[GameController] Game ${gameId} ended or not enough players to continue.`
+					);
+				}
+			}, 2000); // 2-second delay
+			timer.unref();
+		}
 	}
 
 	/**

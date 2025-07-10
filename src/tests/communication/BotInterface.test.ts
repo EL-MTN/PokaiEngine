@@ -232,6 +232,9 @@ describe('BotInterface', () => {
 		});
 
 		it('should return false for full game', () => {
+			// Temporarily disable auto-start to fill the game
+			const startHandSpy = jest.spyOn(gameController, 'startHand').mockImplementation(() => {});
+
 			// Fill the game to capacity
 			for (let i = 0; i < 4; i++) {
 				botInterface.joinGame(gameId, `player${i}`, `Bot${i}`, chipStack);
@@ -239,6 +242,9 @@ describe('BotInterface', () => {
 
 			const canJoin = botInterface.canJoinGame(gameId, 'new-player');
 			expect(canJoin).toBe(false);
+
+			// Restore original functionality
+			startHandSpy.mockRestore();
 		});
 	});
 
@@ -265,13 +271,18 @@ describe('BotInterface', () => {
 		});
 
 		it('should return empty array when no games available', () => {
-			// Fill all games
+			// Temporarily disable auto-start to fill the game
+			const startHandSpy = jest.spyOn(gameController, 'startHand').mockImplementation(() => {});
+
+			// Fill the existing game
 			for (let i = 0; i < 4; i++) {
 				botInterface.joinGame(gameId, `player${i}`, `Bot${i}`, chipStack);
 			}
-
 			const availableGames = botInterface.findAvailableGames();
 			expect(availableGames.length).toBe(0);
+
+			// Restore original functionality
+			startHandSpy.mockRestore();
 		});
 	});
 
@@ -465,30 +476,34 @@ describe('BotInterface', () => {
 			}).toThrow('Game controller error');
 		});
 
-		it('should handle concurrent operations', () => {
-			// Test concurrent join attempts - all should succeed since game engine doesn't have concurrency protection
-			const promises = [];
+		it('should handle concurrent operations', async () => {
+			const gameId = 'concurrent-game';
+			gameController.createGame(gameId, {
+				maxPlayers: 10,
+				smallBlindAmount: 10,
+				bigBlindAmount: 20,
+				turnTimeLimit: 1,
+				isTournament: false,
+			});
+
+			// Prevent auto-start for this test
+			const startHandSpy = jest.spyOn(gameController, 'startHand').mockImplementation(() => {});
+
+			const joinPromises = [];
 			for (let i = 0; i < 10; i++) {
-				promises.push(
-					new Promise((resolve, reject) => {
-						try {
-							botInterface.joinGame(gameId, `player${i}`, `Bot${i}`, chipStack);
-							resolve(true);
-						} catch (error) {
-							reject(error);
-						}
-					})
+				joinPromises.push(
+					botInterface.joinGame(gameId, `concurrent-player-${i}`, `Bot${i}`, 1000)
 				);
 			}
 
-			// All connections should succeed - the game engine doesn't enforce max players at this level
-			return Promise.allSettled(promises).then((results) => {
-				const fulfilled = results.filter(r => r.status === 'fulfilled').length;
-				const rejected = results.filter(r => r.status === 'rejected').length;
-				
-				expect(fulfilled).toBe(10);
-				expect(rejected).toBe(0);
-			});
+			const results = await Promise.allSettled(joinPromises);
+			const fulfilled = results.filter((r) => r.status === 'fulfilled').length;
+			const rejected = results.filter((r) => r.status === 'rejected').length;
+
+			expect(fulfilled).toBe(10);
+			expect(rejected).toBe(0);
+
+			startHandSpy.mockRestore();
 		});
 	});
 });

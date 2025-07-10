@@ -201,20 +201,6 @@ export class PokaiExpressServer {
 			}
 		});
 
-		this.app.post('/api/games/:gameId/start', (req: Request, res: Response) => {
-			try {
-				const gameId = req.params.gameId;
-				this.gameController.startHand(gameId);
-				res.json({ success: true, message: 'Hand started successfully' });
-			} catch (error) {
-				res.status(400).json({
-					success: false,
-					error: 'Failed to start hand',
-					message: error instanceof Error ? error.message : 'Unknown error',
-				});
-			}
-		});
-
 		// Player API routes
 		this.app.get('/api/games/:gameId/can-join/:playerId', (req: Request, res: Response) => {
 			try {
@@ -272,7 +258,6 @@ export class PokaiExpressServer {
 					'POST /api/games': 'Create new game',
 					'GET /api/games/available': 'Find available games',
 					'GET /api/games/:gameId': 'Get game info',
-					'POST /api/games/:gameId/start': 'Start a hand',
 					'GET /api/games/:gameId/can-join/:playerId': 'Check if player can join',
 					'GET /api/games/:gameId/players/:playerId/state': 'Get player game state',
 					'GET /api/games/:gameId/players/:playerId/actions': 'Get possible actions',
