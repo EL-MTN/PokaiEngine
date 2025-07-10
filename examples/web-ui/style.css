@@ -148,8 +148,30 @@ main {
 	color: var(--danger-color);
 }
 
+.player-view .card-list {
+	display: flex;
+	gap: 5px;
+}
+
+.unseat-container {
+	margin-top: 10px;
+	text-align: right;
+}
+
+.unseat-btn {
+	background-color: #7f8c8d;
+	color: white;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-weight: bold;
+}
+
+.unseat-btn:hover {
+	background-color: #95a5a6;
+}
+
 .actions-container {
-	margin-top: 20px;
+	margin-top: 15px;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;

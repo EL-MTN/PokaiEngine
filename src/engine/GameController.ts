@@ -6,6 +6,7 @@ import {
 	GameId,
 	PlayerId,
 	PossibleAction,
+	GamePhase,
 } from '@types';
 import { GameEngine } from './GameEngine';
 
@@ -23,6 +24,8 @@ export class GameController {
 	private games: Map<GameId, GameEngine> = new Map();
 	private playerGameMap: Map<PlayerId, GameId> = new Map();
 	private eventCallbacks: Map<GameId, ((event: GameEvent) => void)[]> = new Map();
+	/** Players who have requested to leave after the current hand finishes */
+	private pendingUnseats: Map<GameId, Set<PlayerId>> = new Map();
 
 	/**
 	 * Creates a new game
@@ -270,6 +273,18 @@ export class GameController {
 
 		// If the hand is complete, automatically start the next one after a short delay
 		if (event.type === 'hand_complete') {
+			// First, process any players that requested to unseat
+			const pending = this.pendingUnseats.get(gameId);
+			if (pending && pending.size > 0) {
+				pending.forEach((pid) => {
+					try {
+						this.removePlayerFromGame(gameId, pid);
+					} catch (err) {
+						console.error(`Error removing player ${pid} from game ${gameId}:`, err);
+					}
+				});
+				this.pendingUnseats.delete(gameId);
+			}
 			const timer = setTimeout(() => {
 				const game = this.games.get(gameId);
 				// Check if game still exists and has enough players to continue
@@ -432,5 +447,33 @@ export class GameController {
 		gamesToRemove.forEach((gameId) => {
 			this.removeGame(gameId);
 		});
+	}
+
+	/**
+	 * Player requests to leave the table. If no hand is running (or hand already complete)
+	 * we remove them immediately, otherwise mark them to be removed once the hand finishes.
+	 */
+	requestUnseat(gameId: GameId, playerId: PlayerId): void {
+		const game = this.games.get(gameId);
+		if (!game) {
+			throw new Error(`Game with ID ${gameId} not found`);
+		}
+
+		const phase = game.getGameState().currentPhase;
+
+		// If no hand is in progress (hand complete) remove right away
+		if (phase === GamePhase.HandComplete) {
+			// hand already finished; safe to remove now
+			this.removePlayerFromGame(gameId, playerId);
+			return;
+		}
+
+		// Otherwise add to pending set – they will be removed after the hand
+		let set = this.pendingUnseats.get(gameId);
+		if (!set) {
+			set = new Set<PlayerId>();
+			this.pendingUnseats.set(gameId, set);
+		}
+		set.add(playerId);
 	}
 }

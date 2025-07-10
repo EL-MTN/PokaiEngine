@@ -119,6 +119,11 @@ export class SocketHandler {
 			this.handleLeaveGame(connection);
 		});
 
+		// Request to unseat after current hand / immediately if possible
+		socket.on('unseat', () => {
+			this.handleUnseatRequest(connection);
+		});
+
 		// List available games
 		socket.on('listGames', () => {
 			this.sendGamesList(socket);
@@ -288,6 +293,34 @@ export class SocketHandler {
 			});
 		} catch (error) {
 			connection.socket.emit('leaveGameError', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				timestamp: Date.now(),
+			});
+		}
+	}
+
+	/**
+	 * Handles a player's request to unseat (leave after current hand).
+	 */
+	private handleUnseatRequest(connection: BotConnection): void {
+		if (!connection.gameId) {
+			connection.socket.emit('unseatError', {
+				error: 'Bot is not in a game',
+				timestamp: Date.now(),
+			});
+			return;
+		}
+
+		try {
+			this.gameController.requestUnseat(connection.gameId, connection.playerId);
+
+			connection.socket.emit('unseatConfirmed', {
+				timestamp: Date.now(),
+			});
+
+			// Optional: If removed immediately, we can send updated game state
+		} catch (error) {
+			connection.socket.emit('unseatError', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});

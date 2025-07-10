@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const communityCardsEl = document.getElementById('community-cards');
 	const potSizeEl = document.getElementById('pot-size');
 	const gameLogEl = document.getElementById('game-log');
+	const bot1UnseatBtn = document.getElementById('bot1-unseat-btn');
+	const bot2UnseatBtn = document.getElementById('bot2-unseat-btn');
 
 	const log = (message) => {
 		const entry = document.createElement('div');
@@ -144,6 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
 				log(`Hand complete! ${winnerInfo}`);
 			}
 		});
+		bot.socket.on('unseatConfirmed', () => {
+			log(`${bot.name} requested to be unseated. They will leave after the hand.`);
+		});
+
+		bot.socket.on('unseatError', (data) => {
+			log(`[${bot.name}] Unseat error: ${data.error}`);
+		});
 	};
 
 	createGameBtn.addEventListener('click', async () => {
@@ -179,6 +188,18 @@ document.addEventListener('DOMContentLoaded', () => {
 			});
 		} catch (error) {
 			log(`Error creating game: ${error.message}`);
+		}
+	});
+
+	bot1UnseatBtn.addEventListener('click', () => {
+		if (bots.bot1.socket) {
+			bots.bot1.socket.emit('unseat');
+		}
+	});
+
+	bot2UnseatBtn.addEventListener('click', () => {
+		if (bots.bot2.socket) {
+			bots.bot2.socket.emit('unseat');
 		}
 	});
 
