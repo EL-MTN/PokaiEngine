@@ -354,7 +354,7 @@ export class GameState implements GameStateInterface {
 
 		// Update minimum raise if the bet is a raise
 		if (player.totalBetThisHand > currentBet) {
-			const raiseAmount = player.totalBetThisHand - currentBet;
+			const raiseAmount = player.currentBet - currentBet; // Increment within this betting round
 			this.minimumRaise = Math.max(this.minimumRaise, raiseAmount);
 			this.lastRaiseAmount = raiseAmount;
 		}
