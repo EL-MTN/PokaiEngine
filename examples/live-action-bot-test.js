@@ -120,8 +120,27 @@ class ActionLoggingBot extends EventEmitter {
 
 			// Hand complete
 			if (gameEvent.type === 'hand_complete') {
-				console.log('HAND_COMPLETE', gameEvent.gameState);
 				this.handsPlayed++;
+				const myWin =
+					gameEvent.winners &&
+					gameEvent.winners.find((w) => w.playerId === this.playerId);
+
+				if (myWin) {
+					this.wins++;
+					this.log(
+						`🎉 WON HAND #${this.handsPlayed} with ${myWin.handDescription}! (W/L: ${
+							this.wins
+						}/${this.handsPlayed - this.wins})`,
+						'win'
+					);
+				} else {
+					this.log(
+						`💸 Lost hand #${this.handsPlayed}. (W/L: ${this.wins}/${
+							this.handsPlayed - this.wins
+						})`,
+						'lose'
+					);
+				}
 
 				// Emit an event to signal a hand has been played
 				this.emit('hand_complete');
@@ -264,7 +283,7 @@ async function runLiveActionTest() {
 
 			const testTimeout = setTimeout(() => {
 				reject(new Error(`Test timed out after failing to complete ${handsToPlay} hands.`));
-			}, 20000); // 12-second overall timeout
+			}, 20000); // 20-second overall timeout
 
 			const run = async () => {
 				try {

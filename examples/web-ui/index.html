@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Pokai Web UI</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<div id="app">
+		<header>
+			<h1>Pokai Web UI</h1>
+			<div class="controls">
+				<button id="create-game-btn">Create New Game</button>
+				<div class="game-info">
+					Game ID: <span id="game-id">N/A</span>
+				</div>
+			</div>
+		</header>
+		<main>
+			<div class="game-board">
+				<h2>Game Board</h2>
+				<div class="community-cards-container">
+					Community Cards:
+					<div class="card-list" id="community-cards"></div>
+				</div>
+				<div class="pot-container">
+					Pot: $<span id="pot-size">0</span>
+				</div>
+			</div>
+			<div class="players-container">
+				<div class="player-view" id="bot1-view">
+					<h3>Bot 1 (Player)</h3>
+					<div class="player-info">
+						<div>
+							Stack: $<span id="bot1-stack">0</span>
+						</div>
+						<div>
+							Hand:
+							<div class="card-list" id="bot1-hand"></div>
+						</div>
+					</div>
+					<div class="actions-container" id="bot1-actions"></div>
+				</div>
+				<div class="player-view" id="bot2-view">
+					<h3>Bot 2 (Opponent)</h3>
+					<div class="player-info">
+						<div>
+							Stack: $<span id="bot2-stack">0</span>
+						</div>
+						<div>
+							Hand:
+							<div class="card-list" id="bot2-hand"></div>
+						</div>
+					</div>
+					<div class="actions-container" id="bot2-actions"></div>
+				</div>
+			</div>
+			<div class="log-container">
+				<h2>Game Log</h2>
+				<div id="game-log"></div>
+			</div>
+		</main>
+	</div>
+	<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+	<script src="client.js"></script>
+</body>
+
+</html>

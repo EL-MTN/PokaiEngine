@@ -190,6 +190,12 @@ export class SocketHandler {
 
 			// Send initial game state
 			this.sendGameState(connection);
+
+			// If it's already this bot's turn, start the turn timer immediately.
+			const joinedGame = this.gameController.getGame(data.gameId);
+			if (joinedGame && joinedGame.getGameState().currentPlayerToAct === connection.playerId) {
+				this.startTurnTimer(connection);
+			}
 		} catch (error) {
 			connection.socket.emit('identificationError', {
 				error: error instanceof Error ? error.message : 'Unknown error',

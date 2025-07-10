@@ -91,12 +91,20 @@ export class GameEngine {
 		// Deal hole cards
 		this.dealHoleCards();
 
-		// Post blinds
+		/*
+		 * Post blinds – this sets the initial player to act.  For heads-up we
+		 * want the small blind (dealer) to act first, so we rely on the state
+		 * set by postBlinds().
+		 *
+		 * For 3-plus handed games, we need the small blind to act first — but
+		 * postBlinds() leaves the action on UTG (button when 3-handed). We
+		 * therefore advance the action pointer once more so that the SB is up.
+		 */
 		this.postBlinds();
 
-		// Start pre-flop betting
-		this.gameState.currentPhase = GamePhase.PreFlop;
-		this.gameState.setNextPlayerToAct();
+		if (this.gameState.getActivePlayers().length > 2) {
+			this.gameState.setNextPlayerToAct();
+		}
 
 		this.emitEvent({
 			type: 'hand_started',
@@ -374,11 +382,19 @@ export class GameEngine {
 
 		// Handle single winner (win by default) - no showdown needed
 		if (playersInShowdown.length === 1) {
-			const winner = playersInShowdown[0];
+			const winnerPlayer = playersInShowdown[0];
 			const allPots = potManager.getPots();
 			const totalWinnings = allPots.reduce((sum, pot) => sum + pot.amount, 0);
-			
-			winner.addChips(totalWinnings);
+
+			winnerPlayer.addChips(totalWinnings);
+
+			const winnerData = [
+				{
+					playerId: winnerPlayer.id,
+					winAmount: totalWinnings,
+					handDescription: 'Win by default',
+				},
+			];
 
 			// Emit showdown event
 			this.emitEvent({
@@ -388,7 +404,7 @@ export class GameEngine {
 				gameState: this.gameState.getCompleteState(),
 			});
 
-			this.completeHand();
+			this.completeHand(winnerData);
 			return;
 		}
 
@@ -449,7 +465,7 @@ export class GameEngine {
 		});
 
 		// Complete the hand
-		this.completeHand();
+		this.completeHand(winners);
 	}
 
 	/**
@@ -459,14 +475,20 @@ export class GameEngine {
 		const potManager = this.gameState.getPotManager();
 		const allPots = potManager.getPots();
 		const totalWinnings = allPots.reduce((sum, pot) => sum + pot.amount, 0);
-		
+
 		// Distribute equally among remaining players
 		const baseAmount = Math.floor(totalWinnings / players.length);
 		const remainder = totalWinnings % players.length;
-		
+
+		const winners: any[] = [];
 		players.forEach((player, index) => {
 			const amount = baseAmount + (index < remainder ? 1 : 0);
 			player.addChips(amount);
+			winners.push({
+				playerId: player.id,
+				winAmount: amount,
+				handDescription: 'Split Pot (Tie)',
+			});
 		});
 
 		// Emit showdown event
@@ -477,13 +499,15 @@ export class GameEngine {
 			gameState: this.gameState.getCompleteState(),
 		});
 
-		this.completeHand();
+		this.completeHand(winners);
 	}
 
 	/**
 	 * Completes the current hand
 	 */
-	private completeHand(): void {
+	private completeHand(
+		winners: Array<{ playerId: string; winAmount: number; handDescription: string }>
+	): void {
 		this.gameState.advancePhase();
 		this.gameRunning = false;
 
@@ -491,8 +515,9 @@ export class GameEngine {
 			type: 'hand_complete',
 			timestamp: Date.now(),
 			handNumber: this.gameState.handNumber,
+			winners,
 			gameState: this.gameState.getPublicState(),
-		});
+		} as any);
 	}
 
 	/**

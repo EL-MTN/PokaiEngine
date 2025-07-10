@@ -6,6 +6,7 @@ import { SocketHandler } from './communication/SocketHandler';
 import { BotInterface } from './communication/BotInterface';
 import { GameLogger } from './logging/GameLogger';
 import { GameConfig } from './types';
+import * as path from 'path';
 
 /**
  * Enhanced Pokai Server with Express REST API support
@@ -60,6 +61,10 @@ export class PokaiExpressServer {
 		// Parse JSON bodies
 		this.app.use(express.json());
 		this.app.use(express.urlencoded({ extended: true }));
+
+		// Serve the web UI static files
+		const webUiPath = path.join(__dirname, '..', '..', 'examples', 'web-ui');
+		this.app.use(express.static(webUiPath));
 
 		// Request logging
 		this.app.use((req, res, next) => {

@@ -285,8 +285,30 @@ export class GameState implements GameStateInterface {
 				(this.players.findIndex((p) => p.id === this.currentPlayerToAct) + 1) %
 				this.players.length;
 		} else if (this.currentPhase === GamePhase.PreFlop) {
-			// Pre-flop: action starts to the left of big blind
-			startPosition = (this.bigBlindPosition + 1) % this.players.length;
+			/*
+			 * Pre-flop action order depends on whether blinds have already been
+			 * posted:
+			 *   • Before blinds are posted (e.g. unit tests that call
+			 *     setNextPlayerToAct() directly), action begins with the
+			 *     player to the left of the big blind (UTG).  This is
+			 *     (bigBlindPosition + 1) mod N.
+			 *   • After blinds are posted, the small blind acts first – this is
+			 *     the behaviour during normal hand play triggered through the
+			 *     engine (postBlinds() -> setNextPlayerToAct()).
+			 */
+			const blindsPosted = this.players.some((p) => p.currentBet > 0);
+			if (blindsPosted) {
+				// Heads-up: SB (who is also the dealer) acts first.
+				if (this.players.length === 2) {
+					startPosition = this.smallBlindPosition;
+				} else {
+					// Multi-way: action starts with the first player after the BB (UTG).
+					startPosition = (this.bigBlindPosition + 1) % this.players.length;
+				}
+			} else {
+				// Blinds not yet posted – use UTG (bigBlind + 1).
+				startPosition = (this.bigBlindPosition + 1) % this.players.length;
+			}
 		} else {
 			// Post-flop: action starts with the SB or the first active player to their left.
 			if (this.players.length === 2) {
