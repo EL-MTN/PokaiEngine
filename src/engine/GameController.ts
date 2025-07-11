@@ -7,6 +7,7 @@ import {
 	PlayerId,
 	PossibleAction,
 	GamePhase,
+	StartCondition,
 } from '@types';
 import { GameEngine } from './GameEngine';
 
@@ -26,6 +27,8 @@ export class GameController {
 	private eventCallbacks: Map<GameId, ((event: GameEvent) => void)[]> = new Map();
 	/** Players who have requested to leave after the current hand finishes */
 	private pendingUnseats: Map<GameId, Set<PlayerId>> = new Map();
+	/** Cleanup timers for empty games */
+	private cleanupTimers: Map<GameId, NodeJS.Timeout> = new Map();
 
 	/**
 	 * Creates a new game
@@ -56,6 +59,13 @@ export class GameController {
 			throw new Error(`Game with ID ${gameId} not found`);
 		}
 
+		// Cancel any pending cleanup timer
+		const cleanupTimer = this.cleanupTimers.get(gameId);
+		if (cleanupTimer) {
+			clearTimeout(cleanupTimer);
+			this.cleanupTimers.delete(gameId);
+		}
+
 		// Remove all players from the game mapping
 		for (const [playerId, playerGameId] of this.playerGameMap) {
 			if (playerGameId === gameId) {
@@ -66,6 +76,7 @@ export class GameController {
 		// Clean up
 		this.games.delete(gameId);
 		this.eventCallbacks.delete(gameId);
+		this.pendingUnseats.delete(gameId);
 	}
 
 	/**
@@ -133,17 +144,18 @@ export class GameController {
 			throw new Error(`Player ${playerId} is already in a game`);
 		}
 
+		// Cancel any pending cleanup since game is no longer empty
+		const cleanupTimer = this.cleanupTimers.get(gameId);
+		if (cleanupTimer) {
+			clearTimeout(cleanupTimer);
+			this.cleanupTimers.delete(gameId);
+		}
+
 		game.addPlayer(playerId, playerName, chipStack);
 		this.playerGameMap.set(playerId, gameId);
 
-		// Automatically start the first hand if the game hasn't started and now has enough players
-		const gameState = game.getGameState();
-		if (!game.isGameRunning() && gameState.players.length >= 2) {
-			console.log(
-				`[GameController] Two or more players have joined game ${gameId}. Starting first hand.`
-			);
-			this.startHand(gameId);
-		}
+		// Check if we should auto-start based on start settings
+		this.checkAutoStart(gameId);
 	}
 
 	/**
@@ -157,6 +169,9 @@ export class GameController {
 
 		game.removePlayer(playerId);
 		this.playerGameMap.delete(playerId);
+
+		// Schedule cleanup if game is now empty
+		this.scheduleCleanupIfEmpty(gameId);
 	}
 
 	/**
@@ -325,7 +340,8 @@ export class GameController {
 		smallBlind: number,
 		bigBlind: number,
 		maxPlayers: number = 9,
-		turnTimeLimit: number = 30
+		turnTimeLimit: number = 30,
+		minPlayersToStart: number = 2
 	): GameEngine {
 		const config: GameConfig = {
 			maxPlayers,
@@ -333,6 +349,10 @@ export class GameController {
 			bigBlindAmount: bigBlind,
 			turnTimeLimit,
 			isTournament: false,
+			startSettings: {
+				condition: 'minPlayers',
+				minPlayers: minPlayersToStart,
+			},
 		};
 
 		return this.createGame(gameId, config);
@@ -347,7 +367,8 @@ export class GameController {
 		initialSmallBlind: number,
 		initialBigBlind: number,
 		maxPlayers: number = 9,
-		turnTimeLimit: number = 30
+		turnTimeLimit: number = 30,
+		creatorId?: string
 	): GameEngine {
 		const config: GameConfig = {
 			maxPlayers,
@@ -380,6 +401,10 @@ export class GameController {
 				startingStack,
 				maxPlayers,
 				currentBlindLevel: 0,
+			},
+			startSettings: {
+				condition: 'manual',
+				creatorId,
 			},
 		};
 
@@ -491,5 +516,123 @@ export class GameController {
 			this.pendingUnseats.set(gameId, set);
 		}
 		set.add(playerId);
+	}
+
+	/**
+	 * Checks if a game should auto-start based on its start settings
+	 */
+	private checkAutoStart(gameId: GameId): void {
+		const game = this.games.get(gameId);
+		if (!game || game.isGameRunning()) {
+			return;
+		}
+
+		const config = game.getConfig();
+		const gameState = game.getGameState();
+		const startSettings = config.startSettings;
+
+		// Default behavior: auto-start with 2 players (backward compatibility)
+		if (!startSettings) {
+			if (gameState.players.length >= 2) {
+				console.log(
+					`[GameController] Two or more players have joined game ${gameId}. Starting first hand.`
+				);
+				this.startHand(gameId);
+			}
+			return;
+		}
+
+		// Handle different start conditions
+		switch (startSettings.condition) {
+			case 'minPlayers':
+				const minPlayers = startSettings.minPlayers || 2;
+				if (gameState.players.length >= minPlayers) {
+					console.log(
+						`[GameController] Minimum players (${minPlayers}) reached for game ${gameId}. Starting first hand.`
+					);
+					this.startHand(gameId);
+				}
+				break;
+
+			case 'scheduled':
+				// Scheduled starts would be handled by an external timer/scheduler
+				// This is just a placeholder for future implementation
+				break;
+
+			case 'manual':
+				// Manual starts require explicit startGame call
+				break;
+		}
+	}
+
+	/**
+	 * Manually starts a game (for manual start condition)
+	 */
+	startGame(gameId: GameId, requesterId?: PlayerId): void {
+		const game = this.games.get(gameId);
+		if (!game) {
+			throw new Error(`Game with ID ${gameId} not found`);
+		}
+
+		if (game.isGameRunning()) {
+			throw new Error(`Game ${gameId} is already running`);
+		}
+
+		const config = game.getConfig();
+		const startSettings = config.startSettings;
+
+		// Check if manual start is allowed
+		if (startSettings && startSettings.condition === 'manual') {
+			// If creatorId is specified, verify the requester
+			if (startSettings.creatorId && requesterId && startSettings.creatorId !== requesterId) {
+				throw new Error(`Only the game creator can start game ${gameId}`);
+			}
+		}
+
+		const gameState = game.getGameState();
+		if (gameState.players.length < 2) {
+			throw new Error(`Need at least 2 players to start game ${gameId}`);
+		}
+
+		console.log(`[GameController] Manually starting game ${gameId}`);
+		this.startHand(gameId);
+	}
+
+	/**
+	 * Schedules cleanup for a game if it's empty
+	 */
+	private scheduleCleanupIfEmpty(gameId: GameId): void {
+		const game = this.games.get(gameId);
+		if (!game) {
+			return;
+		}
+
+		const gameState = game.getGameState();
+		const activePlayers = gameState.getActivePlayers();
+
+		// Only schedule cleanup if game is empty
+		if (activePlayers.length === 0) {
+			// Cancel any existing cleanup timer
+			const existingTimer = this.cleanupTimers.get(gameId);
+			if (existingTimer) {
+				clearTimeout(existingTimer);
+			}
+
+			// Schedule new cleanup after 5 seconds
+			console.log(`[GameController] Game ${gameId} is empty. Scheduling cleanup in 5 seconds.`);
+			const timer = setTimeout(() => {
+				// Double-check game is still empty before removing
+				const game = this.games.get(gameId);
+				if (game && game.getGameState().getActivePlayers().length === 0) {
+					console.log(`[GameController] Removing empty game ${gameId}`);
+					this.removeGame(gameId);
+				}
+				this.cleanupTimers.delete(gameId);
+			}, 5000);
+
+			// Prevent timer from keeping process alive
+			timer.unref();
+			this.cleanupTimers.set(gameId, timer);
+		}
 	}
 }

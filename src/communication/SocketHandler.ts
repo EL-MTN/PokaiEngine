@@ -153,28 +153,43 @@ export class SocketHandler {
 		data: { botName: string; gameId: GameId; chipStack: number }
 	): void {
 		try {
-			// Check if game exists and has capacity
+			// Check if game exists
 			const game = this.gameController.getGame(data.gameId);
 			if (!game) {
 				throw new Error(`Game ${data.gameId} not found`);
 			}
 
-			const gameState = game.getGameState();
-			const maxPlayers = game.getConfig().maxPlayers;
+			// Check if this is a reconnection (player already in the game)
+			const existingGameId = this.gameController.getPlayerGameId(connection.playerId);
+			
+			if (existingGameId) {
+				// This is a reconnection scenario
+				if (existingGameId !== data.gameId) {
+					throw new Error(`Player ${connection.playerId} is already in a different game: ${existingGameId}`);
+				}
+				
+				// Player is reconnecting to the same game - just update connection info
+				connection.gameId = data.gameId;
+				console.log(`[SocketHandler] Player ${connection.playerId} reconnected to game ${data.gameId}`);
+			} else {
+				// This is a new connection - check capacity and add player
+				const gameState = game.getGameState();
+				const maxPlayers = game.getConfig().maxPlayers;
 
-			if (gameState.players.length >= maxPlayers) {
-				throw new Error(`Game ${data.gameId} is full (${maxPlayers} players)`);
+				if (gameState.players.length >= maxPlayers) {
+					throw new Error(`Game ${data.gameId} is full (${maxPlayers} players)`);
+				}
+
+				// Join the game
+				this.gameController.addPlayerToGame(
+					data.gameId,
+					connection.playerId,
+					data.botName,
+					data.chipStack
+				);
+
+				connection.gameId = data.gameId;
 			}
-
-			// Join the game
-			this.gameController.addPlayerToGame(
-				data.gameId,
-				connection.playerId,
-				data.botName,
-				data.chipStack
-			);
-
-			connection.gameId = data.gameId;
 
 			// Now that gameId is known, ensure event subscription is active
 			this.subscribeToGameEvents(connection);
@@ -593,6 +608,24 @@ export class SocketHandler {
 	}
 
 	/**
+	 * Handles permanent bot disconnection (no reconnection expected)
+	 */
+	private handlePermanentDisconnection(connection: BotConnection): void {
+		// First handle regular disconnection cleanup
+		this.handleDisconnection(connection);
+
+		// Then remove player from game entirely
+		if (connection.gameId) {
+			try {
+				console.log(`[SocketHandler] Permanently removing player ${connection.playerId} from game ${connection.gameId} due to timeout`);
+				this.gameController.removePlayerFromGame(connection.gameId, connection.playerId);
+			} catch (error) {
+				console.error(`Failed to remove player ${connection.playerId} from game:`, error);
+			}
+		}
+	}
+
+	/**
 	 * Handles bot reconnection
 	 */
 	private handleReconnection(connection: BotConnection): void {
@@ -665,7 +698,7 @@ export class SocketHandler {
 
 		// Remove inactive connections
 		for (const connection of connectionsToRemove) {
-			this.handleDisconnection(connection);
+			this.handlePermanentDisconnection(connection);
 		}
 	}
 }

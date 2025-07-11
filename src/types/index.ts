@@ -173,6 +173,16 @@ export interface TournamentSettings {
 	currentBlindLevel: number;
 }
 
+// Start condition types
+export type StartCondition = 'manual' | 'minPlayers' | 'scheduled';
+
+export interface StartSettings {
+	condition: StartCondition;
+	minPlayers?: number; // For 'minPlayers' condition (default: 2)
+	scheduledStartTime?: Date; // For 'scheduled' condition
+	creatorId?: string; // For 'manual' condition - who can start the game
+}
+
 // Game configuration
 export interface GameConfig {
 	maxPlayers: number;
@@ -182,6 +192,7 @@ export interface GameConfig {
 	handStartDelay?: number; // in milliseconds, delay between hands
 	isTournament: boolean;
 	tournamentSettings?: TournamentSettings;
+	startSettings?: StartSettings; // Optional to maintain backward compatibility
 }
 
 // Error types

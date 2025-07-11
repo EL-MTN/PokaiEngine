@@ -66,6 +66,23 @@ PokaiEngine is a Texas Hold'em poker engine designed for bot battles with real-t
 - **Library Mode**: Import individual classes from package exports
 - **Bot Connection**: Socket.io on port 3000 (configurable via PORT env)
 
+### Game Start Conditions
+
+Games support three start conditions via `startSettings` in GameConfig:
+
+1. **`minPlayers`** (default): Auto-start when minimum players join
+   - Default minPlayers: 2
+   - Used for cash games
+
+2. **`manual`**: Requires explicit `gameController.startGame()` call
+   - Optional `creatorId` for permission control
+   - Used for tournaments
+
+3. **`scheduled`**: For future scheduled starts
+   - `scheduledStartTime` property for timing
+
+Backward compatible - games without `startSettings` auto-start at 2 players.
+
 ### Testing Strategy
 
 Tests are organized by layer:
