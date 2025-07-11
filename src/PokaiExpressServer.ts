@@ -66,6 +66,10 @@ export class PokaiExpressServer {
 		const webUiPath = path.join(__dirname, '..', '..', 'examples', 'web-ui');
 		this.app.use(express.static(webUiPath));
 
+		// Serve the admin dashboard static files
+		const dashboardPath = path.join(__dirname, '/dashboard');
+		this.app.use('/dashboard', express.static(dashboardPath));
+
 		// Request logging
 		this.app.use((req, res, next) => {
 			console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -84,6 +88,7 @@ export class PokaiExpressServer {
 					health: '/health',
 					stats: '/stats',
 					games: '/api/games',
+					dashboard: '/dashboard',
 					websocket: `ws://localhost:${this.port}`,
 					docs: '/docs',
 				},
@@ -135,6 +140,7 @@ export class PokaiExpressServer {
 					turnTimeLimit = 30,
 					handStartDelay = 2000,
 					isTournament = false,
+					startSettings,
 				} = req.body;
 
 				if (!gameId) {
@@ -152,6 +158,7 @@ export class PokaiExpressServer {
 					turnTimeLimit,
 					handStartDelay,
 					isTournament,
+					startSettings,
 				};
 
 				this.gameController.createGame(gameId, gameConfig);
@@ -251,6 +258,110 @@ export class PokaiExpressServer {
 			}
 		});
 
+		// Dashboard API routes
+		this.app.post('/api/games/:gameId/start', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				this.gameController.startGame(gameId);
+				res.json({
+					success: true,
+					message: `Game ${gameId} started successfully`
+				});
+			} catch (error) {
+				res.status(400).json({
+					success: false,
+					error: 'Failed to start game',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.delete('/api/games/:gameId', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				this.gameController.removeGame(gameId);
+				res.json({
+					success: true,
+					message: `Game ${gameId} deleted successfully`
+				});
+			} catch (error) {
+				res.status(400).json({
+					success: false,
+					error: 'Failed to delete game',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.get('/api/games/:gameId/state', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				const game = this.gameController.getGame(gameId);
+				
+				if (!game) {
+					res.status(404).json({
+						success: false,
+						error: 'Game not found',
+					});
+					return;
+				}
+
+				const gameState = game.getGameState();
+				const totalPot = gameState.pots.reduce((sum, pot) => sum + pot.amount, 0);
+				res.json({
+					success: true,
+					data: {
+						gameId,
+						currentPhase: gameState.currentPhase,
+						potSize: totalPot,
+						players: gameState.players.map(player => ({
+							id: player.id,
+							name: player.name,
+							chipStack: player.chipStack,
+							position: player.position,
+							isActive: player.isActive,
+							isFolded: player.isFolded,
+							hasActed: player.hasActed
+						})),
+						communityCards: gameState.communityCards,
+						currentPlayerToAct: gameState.currentPlayerToAct,
+						handNumber: gameState.handNumber,
+						status: game.isGameRunning() ? 'running' : 'waiting'
+					}
+				});
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to get game state',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.get('/api/dashboard/stats', (req: Request, res: Response) => {
+			try {
+				const stats = this.gameController.getOverallStats();
+				const socketStats = this.socketHandler.getConnectionStats();
+				
+				res.json({
+					success: true,
+					data: {
+						...stats,
+						...socketStats,
+						serverUptime: process.uptime(),
+						memoryUsage: process.memoryUsage(),
+						timestamp: new Date().toISOString(),
+					}
+				});
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to get dashboard stats',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
 		// Documentation
 		this.app.get('/docs', (req: Request, res: Response) => {
 			res.json({
@@ -299,6 +410,7 @@ export class PokaiExpressServer {
 			console.log(`📈 Stats: http://localhost:${this.port}/stats`);
 			console.log(`🎮 WebSocket: ws://localhost:${this.port}`);
 			console.log(`📚 API Docs: http://localhost:${this.port}/docs`);
+			console.log(`🎛️  Admin Dashboard: http://localhost:${this.port}/dashboard`);
 			console.log(`\n🃏 Ready for bot connections!`);
 		});
 	}

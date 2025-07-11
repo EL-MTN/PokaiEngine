@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokai Admin Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1><i class="fas fa-crown"></i> Pokai Admin Dashboard</h1>
+                <div class="server-status">
+                    <span id="connection-status" class="status-indicator">
+                        <i class="fas fa-circle"></i> Connecting...
+                    </span>
+                    <span id="server-uptime">Uptime: --</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-main">
+            <!-- Statistics Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Active Games</h3>
+                        <span id="active-games-count" class="stat-number">0</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Connected Players</h3>
+                        <span id="connected-players-count" class="stat-number">0</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-hand-paper"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Hands Played</h3>
+                        <span id="total-hands-count" class="stat-number">0</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Server Load</h3>
+                        <span id="server-load" class="stat-number">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Game Management Panel -->
+            <section class="panel game-management">
+                <div class="panel-header">
+                    <h2><i class="fas fa-cogs"></i> Game Management</h2>
+                    <button id="create-game-btn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Game
+                    </button>
+                </div>
+                <div class="panel-content">
+                    <div id="games-table-container">
+                        <!-- Games table will be populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Games Monitor -->
+            <section class="panel active-games">
+                <div class="panel-header">
+                    <h2><i class="fas fa-eye"></i> Live Games Monitor</h2>
+                    <div class="refresh-controls">
+                        <label>
+                            <input type="checkbox" id="auto-refresh" checked> Auto Refresh
+                        </label>
+                        <button id="refresh-btn" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="active-games-list">
+                        <!-- Active games will be populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Player Activity -->
+            <section class="panel player-activity">
+                <div class="panel-header">
+                    <h2><i class="fas fa-chart-line"></i> Player Activity</h2>
+                </div>
+                <div class="panel-content">
+                    <div id="player-activity-chart">
+                        <!-- Activity chart will be here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Logs -->
+            <section class="panel system-logs">
+                <div class="panel-header">
+                    <h2><i class="fas fa-terminal"></i> System Logs</h2>
+                    <div class="log-controls">
+                        <select id="log-level">
+                            <option value="all">All Levels</option>
+                            <option value="info">Info</option>
+                            <option value="warn">Warning</option>
+                            <option value="error">Error</option>
+                        </select>
+                        <button id="clear-logs-btn" class="btn btn-warning">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="system-logs-list">
+                        <!-- System logs will be populated here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Create Game Modal -->
+    <div id="create-game-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Game</h3>
+                <button class="modal-close" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="create-game-form">
+                    <div class="form-group">
+                        <label for="game-id">Game ID:</label>
+                        <input type="text" id="game-id" name="gameId" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max-players">Max Players:</label>
+                        <select id="max-players" name="maxPlayers">
+                            <option value="2">2</option>
+                            <option value="4">4</option>
+                            <option value="6" selected>6</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="small-blind">Small Blind:</label>
+                            <input type="number" id="small-blind" name="smallBlindAmount" value="10" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="big-blind">Big Blind:</label>
+                            <input type="number" id="big-blind" name="bigBlindAmount" value="20" min="2">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="turn-time-limit">Turn Time Limit (seconds):</label>
+                            <input type="number" id="turn-time-limit" name="turnTimeLimit" value="30" min="5" max="300">
+                        </div>
+                        <div class="form-group">
+                            <label for="hand-start-delay">Hand Start Delay (ms):</label>
+                            <input type="number" id="hand-start-delay" name="handStartDelay" value="2000" min="0" max="10000">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start-condition">Start Condition:</label>
+                        <select id="start-condition" name="startCondition">
+                            <option value="minPlayers" selected>Min Players (2)</option>
+                            <option value="manual">Manual Start</option>
+                            <option value="scheduled">Scheduled Start</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="is-tournament" name="isTournament">
+                            Tournament Game
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-create">Cancel</button>
+                <button type="submit" form="create-game-form" class="btn btn-primary">Create Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Details Modal -->
+    <div id="game-details-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="game-details-title">Game Details</h3>
+                <button class="modal-close" id="close-details-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="game-details-content">
+                    <!-- Game details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>
