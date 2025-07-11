@@ -179,6 +179,7 @@ export interface GameConfig {
 	smallBlindAmount: number;
 	bigBlindAmount: number;
 	turnTimeLimit: number; // in seconds
+	handStartDelay?: number; // in milliseconds, delay between hands
 	isTournament: boolean;
 	tournamentSettings?: TournamentSettings;
 }

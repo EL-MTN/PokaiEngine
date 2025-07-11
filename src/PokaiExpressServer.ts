@@ -133,6 +133,7 @@ export class PokaiExpressServer {
 					smallBlindAmount = 10,
 					bigBlindAmount = 20,
 					turnTimeLimit = 30,
+					handStartDelay = 2000,
 					isTournament = false,
 				} = req.body;
 
@@ -149,6 +150,7 @@ export class PokaiExpressServer {
 					smallBlindAmount,
 					bigBlindAmount,
 					turnTimeLimit,
+					handStartDelay,
 					isTournament,
 				};
 

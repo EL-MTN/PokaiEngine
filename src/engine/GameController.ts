@@ -285,6 +285,9 @@ export class GameController {
 				});
 				this.pendingUnseats.delete(gameId);
 			}
+			const game = this.games.get(gameId);
+			const handStartDelay = game?.getConfig().handStartDelay ?? 2000; // Default to 2 seconds if not specified
+			
 			const timer = setTimeout(() => {
 				const game = this.games.get(gameId);
 				// Check if game still exists and has enough players to continue
@@ -296,7 +299,7 @@ export class GameController {
 						`[GameController] Game ${gameId} ended or not enough players to continue.`
 					);
 				}
-			}, 2000); // 2-second delay
+			}, handStartDelay);
 			timer.unref();
 		}
 	}
