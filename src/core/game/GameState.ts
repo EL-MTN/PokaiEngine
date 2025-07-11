@@ -48,6 +48,10 @@ export class GameState implements GameStateInterface {
 			throw new Error('Player already exists in the game');
 		}
 
+		if (player.chipStack <= 0) {
+			throw new Error('Player must have a positive chip count to join the game');
+		}
+
 		this.players.push(player);
 		this.assignPositions();
 	}

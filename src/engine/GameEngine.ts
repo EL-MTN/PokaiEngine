@@ -518,6 +518,12 @@ export class GameEngine {
 			winners,
 			gameState: this.gameState.getPublicState(),
 		} as any);
+
+		// Eliminate players with no chips
+		const playersToEliminate = this.gameState.players.filter((p) => p.chipStack === 0);
+		for (const player of playersToEliminate) {
+			this.removePlayer(player.id);
+		}
 	}
 
 	/**
