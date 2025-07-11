@@ -83,6 +83,7 @@ describe('GameController', () => {
 			const game = setupMockGame('game1', config);
 			(game.getGameState as jest.Mock).mockReturnValue({
 				players: [{ id: 'p1' }, { id: 'p2' }],
+				getActivePlayers: () => [{ id: 'p1' }, { id: 'p2' }],
 			} as any);
 
 			gameController.addPlayerToGame('game1', 'p1', 'Alice', 1000);
@@ -192,6 +193,10 @@ describe('GameController', () => {
 	describe('Game Actions', () => {
 		it('should start a hand', () => {
 			const game = setupMockGame('game1', createConfig());
+			(game.getGameState as jest.Mock).mockReturnValue({
+				players: [{ id: 'p1' }, { id: 'p2' }],
+				getActivePlayers: () => [{ id: 'p1' }, { id: 'p2' }],
+			} as any);
 			gameController.startHand('game1');
 			expect(game.startHand).toHaveBeenCalled();
 		});

@@ -179,15 +179,12 @@ describe('GameEngine - Comprehensive Test Suite', () => {
 
 			// p1 (best hand) should end with more chips than starting + potential wins
 			const p1 = gs.getPlayer('p1');
-			const p0 = gs.getPlayer('p0');
-			const p2 = gs.getPlayer('p2');
 
-			if (!p0 || !p1 || !p2) throw new Error('Players not found');
+			expect(p1).toBeDefined();
+			expect(p1!.chipStack).toBeGreaterThan(300); // Winner profit
 
-			expect(p1.chipStack).toBeGreaterThan(300); // Winner profit
-			expect(p0.chipStack).toBeGreaterThanOrEqual(0); // Bust or small return
-			// Total chips conserved (1000 initial + blinds posting)
-			const totalChips = p0.chipStack + p1.chipStack + p2.chipStack;
+			// Total chips conserved among remaining players (busted players are removed)
+			const totalChips = gs.players.reduce((sum, p) => sum + p.chipStack, 0);
 			expect(totalChips).toBe(1000); // No chips lost or created
 		});
 
@@ -502,15 +499,15 @@ describe('GameEngine - Comprehensive Test Suite', () => {
 			}
 
 			const finalState = engine.getGameState();
-			const p1Final = finalState.getPlayer('p1')!.chipStack;
-			const p2Final = finalState.getPlayer('p2')!.chipStack;
-			const p3Final = finalState.getPlayer('p3')!.chipStack;
+			const p1Final = finalState.getPlayer('p1')?.chipStack ?? 0;
+			const p2Final = finalState.getPlayer('p2')?.chipStack ?? 0;
+			const p3Final = finalState.getPlayer('p3')?.chipStack ?? 0;
 
 			// Total chips should be conserved (accounting for blinds)
 			const totalFinal = p1Final + p2Final + p3Final;
 			expect(totalFinal).toBe(700);
 			
-			// p3 should win the most
+			// p3 should win the most (could have been removed if busted but still wins chips)
 			expect(p3Final).toBeGreaterThan(500);
 		});
 
@@ -552,15 +549,15 @@ describe('GameEngine - Comprehensive Test Suite', () => {
 			}
 
 			const finalState = engine.getGameState();
-			const p1Final = finalState.getPlayer('p1')!.chipStack;
-			const p2Final = finalState.getPlayer('p2')!.chipStack;
-			const p3Final = finalState.getPlayer('p3')!.chipStack;
+			const p1Final = finalState.getPlayer('p1')?.chipStack ?? 0;
+			const p2Final = finalState.getPlayer('p2')?.chipStack ?? 0;
+			const p3Final = finalState.getPlayer('p3')?.chipStack ?? 0;
 
 			// p1 wins main pot (50 * 3 = 150)
 			expect(p1Final).toBe(150);
 			// p2 wins side pot
 			expect(p2Final).toBe(500);
-			// p3 loses all
+			// p3 loses all (may be removed)
 			expect(p3Final).toBe(0);
 			// Total chips conserved
 			expect(p1Final + p2Final + p3Final).toBe(650);

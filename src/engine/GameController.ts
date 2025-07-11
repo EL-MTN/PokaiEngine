@@ -168,6 +168,19 @@ export class GameController {
 			throw new Error(`Game with ID ${gameId} not found`);
 		}
 
+		// Before starting a new hand, purge any players who have busted.
+		const busted = game.getGameState().players.filter(p => p.chipStack <= 0).map(p => p.id);
+		busted.forEach(pid => {
+			try {
+				game.removePlayer(pid);
+			} catch {}
+		});
+
+		// Now proceed to start the hand if still enough players.
+		if (game.getGameState().getActivePlayers().length < 2) {
+			throw new Error('Need at least 2 players to start a hand');
+		}
+
 		game.startHand();
 	}
 

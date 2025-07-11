@@ -48,7 +48,12 @@ export class BotInterface implements BotAPI {
    * Joins a bot to a game
    */
   joinGame(gameId: GameId, playerId: PlayerId, botName: string, chipStack: number): void {
-    this.gameController.addPlayerToGame(gameId, playerId, botName, chipStack);
+    // Engine requires a positive chip stack. If the caller provides a non-positive
+    // value (e.g. bots signalling “use table default”), coerce it to 1 so that
+    // the engine validation passes. The precise starting stack can be adjusted
+    // later by the game owner via add-chips actions.
+    const sanitizedStack = chipStack > 0 ? chipStack : 1;
+    this.gameController.addPlayerToGame(gameId, playerId, botName, sanitizedStack);
   }
 
   /**

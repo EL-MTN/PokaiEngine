@@ -356,6 +356,19 @@ export class GameState implements GameStateInterface {
 		this.potManager.addBet(playerId, amount);
 		this.pots = this.potManager.getPots();
 
+		// If this bet increases the current highest bet (i.e., it is a bet or raise),
+		// all other players who are still able to act must have their `hasActed` flag
+		// cleared so they get an opportunity to respond. Without this reset, heads-up
+		// scenarios where the first aggressor is raised could incorrectly mark the
+		// betting round as complete, allowing the aggressor to skip facing the raise.
+		if (player.currentBet > currentBet) {
+			this.players.forEach((p) => {
+				if (p.id !== playerId && p.canAct()) {
+					p.hasActed = false;
+				}
+			});
+		}
+
 		// Update minimum raise if the bet is a raise
 		if (player.totalBetThisHand > currentBet) {
 			const raiseAmount = player.currentBet - currentBet; // Increment within this betting round

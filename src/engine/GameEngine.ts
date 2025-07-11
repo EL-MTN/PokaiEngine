@@ -519,9 +519,11 @@ export class GameEngine {
 			gameState: this.gameState.getPublicState(),
 		} as any);
 
-		// Eliminate players with no chips
-		const playersToEliminate = this.gameState.players.filter((p) => p.chipStack === 0);
-		for (const player of playersToEliminate) {
+		// Eliminate players who have no chips left. This keeps the table free of
+		// bust-out seats and prevents zero-stack players from being dealt into
+		// the next hand.
+		const bustedPlayers = this.gameState.players.filter(p => p.chipStack <= 0);
+		for (const player of bustedPlayers) {
 			this.removePlayer(player.id);
 		}
 	}
