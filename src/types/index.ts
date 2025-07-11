@@ -215,6 +215,75 @@ export class GameStateError extends PokerEngineError {
 	}
 }
 
+// Replay System Types
+export interface ReplayEvent extends GameEvent {
+	sequenceId: number;
+	gameStateBefore?: GameState; // State before this event
+	gameStateAfter?: GameState;  // State after this event
+	playerDecisionContext?: PlayerDecisionContext;
+	eventDuration?: number; // Time taken for this event (ms)
+}
+
+export interface PlayerDecisionContext {
+	playerId: string;
+	possibleActions: PossibleAction[];
+	timeToDecide: number; // Time taken to make decision (ms)
+	equityBefore?: number; // Hand equity before action (if calculated)
+	equityAfter?: number;  // Hand equity after action (if calculated)
+	position: Position;
+	chipStack: number;
+	potOdds?: number;
+	effectiveStackSize?: number;
+}
+
+export interface ReplayMetadata {
+	gameConfig: GameConfig;
+	playerNames: Record<PlayerId, string>;
+	handCount: number;
+	totalEvents: number;
+	totalActions: number;
+	gameDuration: number; // Total game time in ms
+	avgHandDuration?: number;
+	winners?: { playerId: PlayerId; handsWon: number }[];
+	finalChipCounts?: Record<PlayerId, number>;
+	createdAt: Date;
+	version: string; // Replay format version
+}
+
+export interface ReplayData {
+	gameId: GameId;
+	startTime: Date;
+	endTime?: Date;
+	events: ReplayEvent[];
+	initialGameState: GameState;
+	finalGameState?: GameState;
+	metadata: ReplayMetadata;
+	checkpoints?: ReplayCheckpoint[]; // For faster seeking
+}
+
+export interface ReplayCheckpoint {
+	sequenceId: number;
+	handNumber: number;
+	phase: GamePhase;
+	gameState: GameState;
+	timestamp: number;
+	eventIndex: number; // Index in events array
+}
+
+export interface HandReplayData {
+	handNumber: number;
+	startTime: Date;
+	endTime: Date;
+	events: ReplayEvent[];
+	playersInvolved: PlayerId[];
+	initialState: GameState;
+	finalState: GameState;
+	communityCards: Card[];
+	winners: { playerId: PlayerId; handDescription?: string; winAmount: number }[];
+	potSize: number;
+	showdownResults?: Record<PlayerId, HandEvaluation>;
+}
+
 // Utility types
 export type PlayerId = string;
 export type GameId = string;

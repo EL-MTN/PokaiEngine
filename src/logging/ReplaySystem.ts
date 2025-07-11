@@ -1,447 +1,588 @@
-import { GameController } from '@engine/GameController';
-import { Action, Card, GameConfig, GameEvent, GameId, GameState, PlayerId } from '@types';
-import { GameLog, GameLogger } from '@logging/GameLogger';
+import { 
+	ReplayData, 
+	ReplayEvent, 
+	GameState, 
+	GameId, 
+	PlayerId,
+	ReplayCheckpoint,
+	HandReplayData,
+	GamePhase
+} from '@types';
+import { EnhancedGameLogger } from './EnhancedGameLogger';
 
-export interface ReplayOptions {
-	speed: 'slow' | 'normal' | 'fast' | 'instant';
-	stopAtHand?: number;
-	stopAtAction?: number;
-	skipToHand?: number;
-	playersToObserve?: PlayerId[];
+export interface ReplayPosition {
+	eventIndex: number;
+	sequenceId: number;
+	handNumber: number;
+	phase: GamePhase;
+	timestamp: number;
 }
 
-export interface ReplayState {
-	currentEventIndex: number;
+export interface ReplayControls {
 	isPlaying: boolean;
-	isPaused: boolean;
-	currentGameState?: GameState;
-	currentHand: number;
+	playbackSpeed: number; // 0.25x to 8x
+	currentPosition: ReplayPosition;
+	canStepForward: boolean;
+	canStepBackward: boolean;
 	totalEvents: number;
 }
 
-export interface ReplayScenario {
-	name: string;
-	description: string;
-	gameConfig: GameConfig;
-	initialPlayers: Array<{
-		id: PlayerId;
-		name: string;
-		chipStack: number;
-		holeCards?: [Card, Card];
-	}>;
-	communityCards?: Card[];
-	actions: Action[];
-	expectedOutcome?: {
-		winner: PlayerId;
-		finalPot: number;
-		handDescription: string;
-	};
+export interface ReplayAnalysis {
+	handAnalysis: HandAnalysisResult[];
+	playerStatistics: Record<PlayerId, PlayerReplayStats>;
+	gameFlow: GameFlowAnalysis;
+	interestingMoments: InterestingMoment[];
 }
 
+export interface HandAnalysisResult {
+	handNumber: number;
+	duration: number;
+	totalActions: number;
+	potSize: number;
+	players: PlayerId[];
+	winner?: PlayerId;
+	keyDecisions: KeyDecision[];
+	unusual: boolean; // Flag for unusual or interesting hands
+}
+
+export interface PlayerReplayStats {
+	playerId: PlayerId;
+	name: string;
+	handsPlayed: number;
+	actionsCount: number;
+	avgDecisionTime: number;
+	aggression: number; // Calculated aggression factor
+	tightness: number; // Calculated tightness factor
+	winRate: number;
+	chipStackProgression: { timestamp: number; chips: number }[];
+}
+
+export interface GameFlowAnalysis {
+	totalDuration: number;
+	avgHandDuration: number;
+	actionDistribution: Record<string, number>;
+	phaseDistribution: Record<GamePhase, number>;
+	potSizeProgression: { handNumber: number; potSize: number }[];
+}
+
+export interface KeyDecision {
+	eventIndex: number;
+	playerId: PlayerId;
+	actionTaken: string;
+	alternatives: string[];
+	potOdds?: number;
+	estimated: boolean; // Whether this was identified as a key decision
+}
+
+export interface InterestingMoment {
+	eventIndex: number;
+	handNumber: number;
+	type: 'big_pot' | 'unusual_play' | 'all_in' | 'bad_beat' | 'bluff_caught';
+	description: string;
+	players: PlayerId[];
+}
+
+/**
+ * ReplaySystem handles playback control and analysis of poker game replays
+ */
 export class ReplaySystem {
-	private gameLogger: GameLogger;
-	private replayState: ReplayState;
-	private currentGameLog?: GameLog;
-	private eventCallbacks: Array<(event: GameEvent, state: ReplayState) => void> = [];
+	private replayData: ReplayData | null = null;
+	private currentEventIndex: number = 0;
+	private isPlaying: boolean = false;
+	private playbackSpeed: number = 1.0;
+	private playbackInterval: NodeJS.Timeout | null = null;
+	private eventCallbacks: ((event: ReplayEvent, gameState: GameState) => void)[] = [];
+	private positionCallbacks: ((position: ReplayPosition) => void)[] = [];
 
-	constructor(gameLogger: GameLogger) {
-		this.gameLogger = gameLogger;
-		this.replayState = {
-			currentEventIndex: 0,
-			isPlaying: false,
-			isPaused: false,
-			currentHand: 0,
-			totalEvents: 0,
-		};
-	}
+	constructor(private logger?: EnhancedGameLogger) {}
 
 	/**
-	 * Replays a complete game from logs
+	 * Loads a replay for playback
 	 */
-	async replayGame(gameId: GameId, options: ReplayOptions = { speed: 'normal' }): Promise<void> {
-		const gameLog = this.gameLogger.getGameLog(gameId);
-		if (!gameLog) {
-			throw new Error(`Game log not found for game ${gameId}`);
-		}
-
-		this.currentGameLog = gameLog;
-		this.resetReplayState(gameLog.events.length);
-
-		// Skip to specific hand if requested
-		if (options.skipToHand) {
-			this.skipToHand(options.skipToHand);
-		}
-
-		// Start replay
-		this.replayState.isPlaying = true;
-
-		while (
-			this.replayState.currentEventIndex < this.replayState.totalEvents &&
-			this.replayState.isPlaying
-		) {
-			if (this.replayState.isPaused) {
-				await this.waitForResume();
-			}
-
-			const event = gameLog.events[this.replayState.currentEventIndex];
-
-			// Check stop conditions
-			if (options.stopAtHand && event.handNumber >= options.stopAtHand) {
-				this.pause();
-				break;
-			}
-
-			if (
-				options.stopAtAction &&
-				this.replayState.currentEventIndex >= options.stopAtAction
-			) {
-				this.pause();
-				break;
-			}
-
-			// Process event
-			await this.processReplayEvent(event, options);
-
-			this.replayState.currentEventIndex++;
-			this.replayState.currentHand = event.handNumber;
-
-			// Wait based on speed
-			if (options.speed !== 'instant') {
-				await this.waitForSpeed(options.speed);
-			}
-		}
-
-		this.replayState.isPlaying = false;
-	}
-
-	/**
-	 * Replays a specific hand
-	 */
-	async replayHand(
-		gameId: GameId,
-		handNumber: number,
-		options: ReplayOptions = { speed: 'normal' }
-	): Promise<void> {
-		const handEvents = this.gameLogger.getHandEvents(gameId, handNumber);
-		if (handEvents.length === 0) {
-			throw new Error(`No events found for hand ${handNumber} in game ${gameId}`);
-		}
-
-		this.resetReplayState(handEvents.length);
-		this.replayState.isPlaying = true;
-		this.replayState.currentHand = handNumber;
-
-		for (let i = 0; i < handEvents.length && this.replayState.isPlaying; i++) {
-			if (this.replayState.isPaused) {
-				await this.waitForResume();
-			}
-
-			const event = handEvents[i];
-			await this.processReplayEvent(event, options);
-
-			this.replayState.currentEventIndex = i + 1;
-
-			if (options.speed !== 'instant') {
-				await this.waitForSpeed(options.speed);
-			}
-		}
-
-		this.replayState.isPlaying = false;
-	}
-
-	/**
-	 * Tests a specific scenario
-	 */
-	async testScenario(scenario: ReplayScenario): Promise<{
-		success: boolean;
-		actualOutcome?: any;
-		errors: string[];
-	}> {
-		const errors: string[] = [];
-
+	loadReplay(replayData: ReplayData): boolean {
 		try {
-			// Create a temporary game controller for testing
-			const gameController = new GameController();
-			const gameId = `test_${Date.now()}`;
-
-			// Create game with scenario config
-			const game = gameController.createGame(gameId, scenario.gameConfig);
-
-			// Add players
-			for (const player of scenario.initialPlayers) {
-				game.addPlayer(player.id, player.name, player.chipStack);
-			}
-
-			// Start hand
-			game.startHand();
-
-			// Deal specific hole cards if provided
-			if (scenario.initialPlayers.some((p) => p.holeCards)) {
-				// In a real implementation, you'd set up the deck with specific cards
-				// For now, we'll simulate this
-			}
-
-			// Deal specific community cards if provided
-			if (scenario.communityCards) {
-				const gameState = game.getGameState();
-				// Note: In a real implementation, you'd need to convert between Card types
-				// gameState.dealCommunityCards(scenario.communityCards);
-			}
-
-			// Execute actions
-			for (const action of scenario.actions) {
-				try {
-					game.processAction(action);
-				} catch (error) {
-					errors.push(
-						`Action failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-					);
-				}
-			}
-
-			// Check expected outcome
-			if (scenario.expectedOutcome) {
-				const finalGameState = game.getGameState();
-				// In a real implementation, you'd validate the outcome here
-				// For now, we'll assume success if no errors occurred
-			}
-
-			return {
-				success: errors.length === 0,
-				errors,
-			};
+			this.replayData = replayData;
+			this.currentEventIndex = 0;
+			this.stop();
+			
+			console.log(`[ReplaySystem] Loaded replay: ${replayData.gameId} (${replayData.events.length} events)`);
+			return true;
 		} catch (error) {
-			errors.push(
-				`Scenario test failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-			);
-			return {
-				success: false,
-				errors,
-			};
+			console.error(`[ReplaySystem] Failed to load replay:`, error);
+			return false;
 		}
 	}
 
 	/**
-	 * Creates a scenario from a specific hand
+	 * Loads a replay from file
 	 */
-	createScenarioFromHand(
-		gameId: GameId,
-		handNumber: number,
-		name: string,
-		description: string
-	): ReplayScenario | undefined {
-		const gameLog = this.gameLogger.getGameLog(gameId);
-		const handSummary = this.gameLogger.getHandSummary(gameId, handNumber);
-
-		if (!gameLog || !handSummary) {
-			return undefined;
+	loadReplayFromFile(filepath: string): boolean {
+		if (!this.logger) {
+			console.error('[ReplaySystem] No logger available for file operations');
+			return false;
 		}
 
-		const scenario: ReplayScenario = {
-			name,
-			description,
-			gameConfig: {
-				maxPlayers: gameLog.metadata.maxPlayers,
-				smallBlindAmount: gameLog.metadata.smallBlind,
-				bigBlindAmount: gameLog.metadata.bigBlind,
-				turnTimeLimit: 30,
-				isTournament: false,
-			},
-			initialPlayers: handSummary.players.map((playerId) => ({
-				id: playerId,
-				name: gameLog.playerNames.get(playerId) || 'Unknown',
-				chipStack: 1000, // Default stack - in real implementation, get from game state
-			})),
-			communityCards: handSummary.finalBoard,
-			actions: handSummary.actions,
-		};
+		const replayData = this.logger.loadReplayFromFile(filepath);
+		if (!replayData) {
+			return false;
+		}
 
-		return scenario;
+		return this.loadReplay(replayData);
 	}
 
 	/**
-	 * Pauses the replay
+	 * Starts playback
+	 */
+	play(): void {
+		if (!this.replayData || this.isPlaying) return;
+
+		this.isPlaying = true;
+		const intervalMs = Math.max(50, 1000 / this.playbackSpeed); // Min 50ms interval
+
+		this.playbackInterval = setInterval(() => {
+			if (!this.stepForward()) {
+				this.stop();
+			}
+		}, intervalMs);
+
+		console.log(`[ReplaySystem] Started playback at ${this.playbackSpeed}x speed`);
+	}
+
+	/**
+	 * Pauses playback
 	 */
 	pause(): void {
-		this.replayState.isPaused = true;
+		this.isPlaying = false;
+		if (this.playbackInterval) {
+			clearInterval(this.playbackInterval);
+			this.playbackInterval = null;
+		}
 	}
 
 	/**
-	 * Resumes the replay
-	 */
-	resume(): void {
-		this.replayState.isPaused = false;
-	}
-
-	/**
-	 * Stops the replay
+	 * Stops playback and resets to beginning
 	 */
 	stop(): void {
-		this.replayState.isPlaying = false;
-		this.replayState.isPaused = false;
+		this.pause();
+		this.currentEventIndex = 0;
+		this.notifyPositionChange();
 	}
 
 	/**
 	 * Steps forward one event
 	 */
-	stepForward(): void {
-		if (
-			this.currentGameLog &&
-			this.replayState.currentEventIndex < this.replayState.totalEvents
-		) {
-			const event = this.currentGameLog.events[this.replayState.currentEventIndex];
-			this.processReplayEvent(event, { speed: 'instant' });
-
-			this.replayState.currentEventIndex++;
-			this.replayState.currentHand = event.handNumber;
+	stepForward(): boolean {
+		if (!this.replayData || this.currentEventIndex >= this.replayData.events.length - 1) {
+			return false;
 		}
+
+		this.currentEventIndex++;
+		this.processCurrentEvent();
+		this.notifyPositionChange();
+		return true;
 	}
 
 	/**
 	 * Steps backward one event
 	 */
-	stepBackward(): void {
-		if (this.replayState.currentEventIndex > 0) {
-			this.replayState.currentEventIndex--;
+	stepBackward(): boolean {
+		if (!this.replayData || this.currentEventIndex <= 0) {
+			return false;
+		}
 
-			if (this.currentGameLog) {
-				const event = this.currentGameLog.events[this.replayState.currentEventIndex];
-				this.replayState.currentHand = event.handNumber;
+		this.currentEventIndex--;
+		this.processCurrentEvent();
+		this.notifyPositionChange();
+		return true;
+	}
 
-				// In a full implementation, you'd rebuild game state up to this point
-				// For now, we'll just update the index
-			}
+	/**
+	 * Jumps to a specific event index
+	 */
+	seekToEvent(eventIndex: number): boolean {
+		if (!this.replayData || eventIndex < 0 || eventIndex >= this.replayData.events.length) {
+			return false;
+		}
+
+		this.currentEventIndex = eventIndex;
+		this.processCurrentEvent();
+		this.notifyPositionChange();
+		return true;
+	}
+
+	/**
+	 * Jumps to a specific hand
+	 */
+	seekToHand(handNumber: number): boolean {
+		if (!this.replayData) return false;
+
+		const handStartEvent = this.replayData.events.findIndex(
+			event => event.type === 'hand_started' && event.handNumber === handNumber
+		);
+
+		if (handStartEvent === -1) return false;
+
+		return this.seekToEvent(handStartEvent);
+	}
+
+	/**
+	 * Jumps to the nearest checkpoint before a specific event
+	 */
+	seekToCheckpoint(eventIndex: number): boolean {
+		if (!this.replayData || !this.replayData.checkpoints) return false;
+
+		// Find the latest checkpoint before the target event
+		const checkpoint = this.replayData.checkpoints
+			.filter(cp => cp.eventIndex <= eventIndex)
+			.sort((a, b) => b.eventIndex - a.eventIndex)[0];
+
+		if (!checkpoint) return false;
+
+		return this.seekToEvent(checkpoint.eventIndex);
+	}
+
+	/**
+	 * Sets playback speed (0.25x to 8x)
+	 */
+	setPlaybackSpeed(speed: number): void {
+		this.playbackSpeed = Math.max(0.25, Math.min(8.0, speed));
+		
+		// Restart playback with new speed if currently playing
+		if (this.isPlaying) {
+			this.pause();
+			this.play();
 		}
 	}
 
 	/**
-	 * Jumps to a specific event
+	 * Gets current replay controls state
 	 */
-	jumpToEvent(eventIndex: number): void {
-		if (this.currentGameLog && eventIndex >= 0 && eventIndex < this.replayState.totalEvents) {
-			this.replayState.currentEventIndex = eventIndex;
-
-			const event = this.currentGameLog.events[eventIndex];
-			this.replayState.currentHand = event.handNumber;
-
-			// Rebuild game state up to this point
-			this.rebuildGameStateToEvent(eventIndex);
-		}
-	}
-
-	/**
-	 * Gets current replay state
-	 */
-	getReplayState(): ReplayState {
-		return { ...this.replayState };
-	}
-
-	/**
-	 * Subscribes to replay events
-	 */
-	onReplayEvent(callback: (event: GameEvent, state: ReplayState) => void): void {
-		this.eventCallbacks.push(callback);
-	}
-
-	/**
-	 * Unsubscribes from replay events
-	 */
-	offReplayEvent(callback: (event: GameEvent, state: ReplayState) => void): void {
-		const index = this.eventCallbacks.indexOf(callback);
-		if (index > -1) {
-			this.eventCallbacks.splice(index, 1);
-		}
-	}
-
-	/**
-	 * Resets replay state
-	 */
-	private resetReplayState(totalEvents: number): void {
-		this.replayState = {
-			currentEventIndex: 0,
-			isPlaying: false,
-			isPaused: false,
-			currentHand: 0,
-			totalEvents,
+	getControls(): ReplayControls {
+		return {
+			isPlaying: this.isPlaying,
+			playbackSpeed: this.playbackSpeed,
+			currentPosition: this.getCurrentPosition(),
+			canStepForward: this.canStepForward(),
+			canStepBackward: this.canStepBackward(),
+			totalEvents: this.replayData?.events.length || 0
 		};
 	}
 
 	/**
-	 * Processes a replay event
+	 * Gets the current game state at the current position
 	 */
-	private async processReplayEvent(event: GameEvent, options: ReplayOptions): Promise<void> {
-		// Update current game state if available
-		if (event.gameState) {
-			this.replayState.currentGameState = event.gameState;
+	getCurrentGameState(): GameState | null {
+		if (!this.replayData || this.currentEventIndex < 0) {
+			return this.replayData?.initialGameState || null;
 		}
 
-		// Emit event to callbacks
-		this.eventCallbacks.forEach((callback) => {
-			try {
-				callback(event, this.replayState);
-			} catch (error) {
-				// Ignore callback errors
-			}
-		});
+		const currentEvent = this.replayData.events[this.currentEventIndex];
+		return currentEvent?.gameStateAfter || currentEvent?.gameStateBefore || null;
 	}
 
 	/**
-	 * Waits for resume when paused
+	 * Gets replay data for a specific hand
 	 */
-	private async waitForResume(): Promise<void> {
-		return new Promise((resolve) => {
-			const checkResume = () => {
-				if (!this.replayState.isPaused || !this.replayState.isPlaying) {
-					resolve();
-				} else {
-					// In a real implementation, use setTimeout here
-					// For this engine, we'll resolve immediately
-					resolve();
+	getHandReplay(handNumber: number): HandReplayData | undefined {
+		if (!this.logger || !this.replayData) return undefined;
+		return this.logger.getHandReplayData(this.replayData.gameId, handNumber);
+	}
+
+	/**
+	 * Analyzes the entire replay for insights
+	 */
+	analyzeReplay(): ReplayAnalysis | null {
+		if (!this.replayData) return null;
+
+		const handAnalysis = this.analyzeHands();
+		const playerStatistics = this.calculatePlayerStatistics();
+		const gameFlow = this.analyzeGameFlow();
+		const interestingMoments = this.findInterestingMoments();
+
+		return {
+			handAnalysis,
+			playerStatistics,
+			gameFlow,
+			interestingMoments
+		};
+	}
+
+	/**
+	 * Subscribes to event notifications during playback
+	 */
+	onEvent(callback: (event: ReplayEvent, gameState: GameState) => void): void {
+		this.eventCallbacks.push(callback);
+	}
+
+	/**
+	 * Subscribes to position change notifications
+	 */
+	onPositionChange(callback: (position: ReplayPosition) => void): void {
+		this.positionCallbacks.push(callback);
+	}
+
+	/**
+	 * Removes all event callbacks
+	 */
+	clearEventCallbacks(): void {
+		this.eventCallbacks = [];
+	}
+
+	/**
+	 * Removes all position callbacks
+	 */
+	clearPositionCallbacks(): void {
+		this.positionCallbacks = [];
+	}
+
+	/**
+	 * Private helper methods
+	 */
+	private processCurrentEvent(): void {
+		if (!this.replayData) return;
+
+		const currentEvent = this.replayData.events[this.currentEventIndex];
+		const gameState = this.getCurrentGameState();
+
+		if (currentEvent && gameState) {
+			this.eventCallbacks.forEach(callback => {
+				try {
+					callback(currentEvent, gameState);
+				} catch (error) {
+					console.error('[ReplaySystem] Error in event callback:', error);
 				}
-			};
-			checkResume();
+			});
+		}
+	}
+
+	private notifyPositionChange(): void {
+		const position = this.getCurrentPosition();
+		this.positionCallbacks.forEach(callback => {
+			try {
+				callback(position);
+			} catch (error) {
+				console.error('[ReplaySystem] Error in position callback:', error);
+			}
 		});
 	}
 
-	/**
-	 * Waits based on replay speed
-	 */
-	private async waitForSpeed(speed: string): Promise<void> {
-		// In a real implementation, you would use setTimeout with appropriate delays
-		// For this engine implementation, we'll resolve immediately
-		return Promise.resolve();
+	private getCurrentPosition(): ReplayPosition {
+		if (!this.replayData || this.currentEventIndex < 0) {
+			return {
+				eventIndex: 0,
+				sequenceId: 0,
+				handNumber: 0,
+				phase: GamePhase.PreFlop,
+				timestamp: this.replayData?.startTime.getTime() || 0
+			};
+		}
+
+		const currentEvent = this.replayData.events[this.currentEventIndex];
+		const gameState = this.getCurrentGameState();
+
+		return {
+			eventIndex: this.currentEventIndex,
+			sequenceId: currentEvent.sequenceId,
+			handNumber: currentEvent.handNumber,
+			phase: gameState?.currentPhase || GamePhase.PreFlop,
+			timestamp: currentEvent.timestamp
+		};
 	}
 
-	/**
-	 * Skips to a specific hand
-	 */
-	private skipToHand(handNumber: number): void {
-		if (!this.currentGameLog) return;
-
-		for (let i = 0; i < this.currentGameLog.events.length; i++) {
-			const event = this.currentGameLog.events[i];
-			if (event.handNumber === handNumber && event.type === 'hand_started') {
-				this.replayState.currentEventIndex = i;
-				this.replayState.currentHand = handNumber;
-				break;
-			}
-		}
+	private canStepForward(): boolean {
+		return this.replayData ? this.currentEventIndex < this.replayData.events.length - 1 : false;
 	}
 
-	/**
-	 * Rebuilds game state to a specific event
-	 */
-	private rebuildGameStateToEvent(eventIndex: number): void {
-		if (!this.currentGameLog) return;
+	private canStepBackward(): boolean {
+		return this.currentEventIndex > 0;
+	}
 
-		// In a full implementation, you would replay all events up to this point
-		// to rebuild the exact game state. For now, we'll use the last available state.
-		for (let i = eventIndex; i >= 0; i--) {
-			const event = this.currentGameLog.events[i];
-			if (event.gameState) {
-				this.replayState.currentGameState = event.gameState;
-				break;
-			}
+	private analyzeHands(): HandAnalysisResult[] {
+		if (!this.replayData) return [];
+
+		const results: HandAnalysisResult[] = [];
+		const handNumbers = new Set(this.replayData.events.map(e => e.handNumber));
+
+		for (const handNumber of handNumbers) {
+			if (handNumber === 0) continue; // Skip game start events
+
+			const handEvents = this.replayData.events.filter(e => e.handNumber === handNumber);
+			const startEvent = handEvents.find(e => e.type === 'hand_started');
+			const endEvent = handEvents.find(e => e.type === 'hand_complete');
+
+			if (!startEvent || !endEvent) continue;
+
+			const duration = endEvent.timestamp - startEvent.timestamp;
+			const actions = handEvents.filter(e => e.action).length;
+			const finalState = endEvent.gameStateAfter || endEvent.gameStateBefore;
+			const potSize = finalState ? finalState.pots.reduce((sum, pot) => sum + pot.amount, 0) : 0;
+
+			const players = new Set<PlayerId>();
+			handEvents.forEach(e => {
+				if (e.playerId) players.add(e.playerId);
+			});
+
+			results.push({
+				handNumber,
+				duration,
+				totalActions: actions,
+				potSize,
+				players: Array.from(players),
+				keyDecisions: [], // TODO: Implement key decision detection
+				unusual: potSize > 500 || duration > 60000 // Simple heuristic for unusual hands
+			});
 		}
+
+		return results;
+	}
+
+	private calculatePlayerStatistics(): Record<PlayerId, PlayerReplayStats> {
+		if (!this.replayData) return {};
+
+		const stats: Record<PlayerId, PlayerReplayStats> = {};
+
+		// Initialize stats for all players
+		Object.entries(this.replayData.metadata.playerNames).forEach(([playerId, name]) => {
+			stats[playerId] = {
+				playerId,
+				name,
+				handsPlayed: 0,
+				actionsCount: 0,
+				avgDecisionTime: 0,
+				aggression: 0,
+				tightness: 0,
+				winRate: 0,
+				chipStackProgression: []
+			};
+		});
+
+		// Calculate statistics from events
+		const decisionTimes: Record<PlayerId, number[]> = {};
+		Object.keys(stats).forEach(playerId => {
+			decisionTimes[playerId] = [];
+		});
+
+		this.replayData.events.forEach(event => {
+			if (event.playerId && stats[event.playerId]) {
+				const playerStats = stats[event.playerId];
+
+				if (event.action) {
+					playerStats.actionsCount++;
+					if (event.playerDecisionContext?.timeToDecide) {
+						decisionTimes[event.playerId].push(event.playerDecisionContext.timeToDecide);
+					}
+				}
+
+				if (event.type === 'hand_started') {
+					playerStats.handsPlayed++;
+				}
+
+				// Track chip progression
+				const gameState = event.gameStateAfter || event.gameStateBefore;
+				if (gameState) {
+					const player = gameState.players.find(p => p.id === event.playerId);
+					if (player) {
+						playerStats.chipStackProgression.push({
+							timestamp: event.timestamp,
+							chips: player.chipStack
+						});
+					}
+				}
+			}
+		});
+
+		// Calculate average decision times
+		Object.entries(decisionTimes).forEach(([playerId, times]) => {
+			if (times.length > 0) {
+				stats[playerId].avgDecisionTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+			}
+		});
+
+		return stats;
+	}
+
+	private analyzeGameFlow(): GameFlowAnalysis {
+		if (!this.replayData) {
+			return {
+				totalDuration: 0,
+				avgHandDuration: 0,
+				actionDistribution: {},
+				phaseDistribution: {} as Record<GamePhase, number>,
+				potSizeProgression: []
+			};
+		}
+
+		const actionDistribution: Record<string, number> = {};
+		const phaseDistribution: Partial<Record<GamePhase, number>> = {};
+		const potSizeProgression: { handNumber: number; potSize: number }[] = [];
+
+		this.replayData.events.forEach(event => {
+			// Count action types
+			if (event.action) {
+				actionDistribution[event.action.type] = (actionDistribution[event.action.type] || 0) + 1;
+			}
+
+			// Count phases
+			if (event.phase) {
+				phaseDistribution[event.phase] = (phaseDistribution[event.phase] || 0) + 1;
+			}
+
+			// Track pot progression
+			if (event.type === 'hand_complete') {
+				const gameState = event.gameStateAfter || event.gameStateBefore;
+				if (gameState) {
+					const potSize = gameState.pots.reduce((sum, pot) => sum + pot.amount, 0);
+					potSizeProgression.push({
+						handNumber: event.handNumber,
+						potSize
+					});
+				}
+			}
+		});
+
+		return {
+			totalDuration: this.replayData.metadata.gameDuration,
+			avgHandDuration: this.replayData.metadata.avgHandDuration || 0,
+			actionDistribution,
+			phaseDistribution: phaseDistribution as Record<GamePhase, number>,
+			potSizeProgression
+		};
+	}
+
+	private findInterestingMoments(): InterestingMoment[] {
+		if (!this.replayData) return [];
+
+		const moments: InterestingMoment[] = [];
+
+		this.replayData.events.forEach((event, index) => {
+			const gameState = event.gameStateAfter || event.gameStateBefore;
+			if (!gameState) return;
+
+			const potSize = gameState.pots.reduce((sum, pot) => sum + pot.amount, 0);
+
+			// Big pot (over 500 chips)
+			if (potSize > 500 && event.type === 'hand_complete') {
+				moments.push({
+					eventIndex: index,
+					handNumber: event.handNumber,
+					type: 'big_pot',
+					description: `Big pot: ${potSize} chips`,
+					players: gameState.players.filter(p => p.isActive).map(p => p.id)
+				});
+			}
+
+			// All-in situations
+			if (event.action?.type === 'all_in') {
+				moments.push({
+					eventIndex: index,
+					handNumber: event.handNumber,
+					type: 'all_in',
+					description: `${event.playerId} went all-in`,
+					players: [event.playerId!]
+				});
+			}
+		});
+
+		return moments;
 	}
 }

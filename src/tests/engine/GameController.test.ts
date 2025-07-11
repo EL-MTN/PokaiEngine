@@ -130,6 +130,8 @@ describe('GameController', () => {
 				currentHand: 1,
 				smallBlind: 5,
 				bigBlind: 10,
+				isTournament: false,
+				turnTimeLimit: 30000,
 			});
 		});
 

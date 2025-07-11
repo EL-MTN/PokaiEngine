@@ -102,6 +102,23 @@
                 </div>
             </section>
 
+            <!-- Replay System -->
+            <section class="panel replay-system">
+                <div class="panel-header">
+                    <h2><i class="fas fa-play-circle"></i> Game Replays</h2>
+                    <div class="replay-controls">
+                        <button id="refresh-replays-btn" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div id="replays-list">
+                        <!-- Replays will be populated here -->
+                    </div>
+                </div>
+            </section>
+
             <!-- Player Activity -->
             <section class="panel player-activity">
                 <div class="panel-header">
@@ -224,6 +241,119 @@
             <div class="modal-body">
                 <div id="game-details-content">
                     <!-- Game details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replay Viewer Modal -->
+    <div id="replay-viewer-modal" class="modal">
+        <div class="modal-content extra-large">
+            <div class="modal-header">
+                <h3 id="replay-viewer-title">Game Replay</h3>
+                <button class="modal-close" id="close-replay-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="replay-viewer-content">
+                    <!-- Replay viewer interface -->
+                    <div class="replay-interface">
+                        <!-- Replay Controls -->
+                        <div class="replay-controls">
+                            <div class="playback-controls">
+                                <button id="replay-play-pause" class="btn btn-primary">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button id="replay-step-back" class="btn btn-secondary">
+                                    <i class="fas fa-step-backward"></i>
+                                </button>
+                                <button id="replay-step-forward" class="btn btn-secondary">
+                                    <i class="fas fa-step-forward"></i>
+                                </button>
+                                <button id="replay-restart" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <div class="speed-control">
+                                    <label for="replay-speed">Speed:</label>
+                                    <select id="replay-speed">
+                                        <option value="0.25">0.25x</option>
+                                        <option value="0.5">0.5x</option>
+                                        <option value="1" selected>1x</option>
+                                        <option value="2">2x</option>
+                                        <option value="4">4x</option>
+                                        <option value="8">8x</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="progress-control">
+                                <div class="progress-info">
+                                    <span id="current-event">0</span> / <span id="total-events">0</span> events
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div id="progress-bar" class="progress-bar"></div>
+                                    <input id="progress-slider" type="range" min="0" max="100" value="0" class="progress-slider">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Game State Display -->
+                        <div class="game-state-display">
+                            <div class="poker-table">
+                                <div class="table-info">
+                                    <div class="hand-info">
+                                        <span>Hand #<span id="current-hand">1</span></span>
+                                        <span>Phase: <span id="current-phase">Pre-Flop</span></span>
+                                        <span>Pot: $<span id="current-pot">0</span></span>
+                                    </div>
+                                    <div class="community-cards" id="community-cards">
+                                        <!-- Community cards will be displayed here -->
+                                    </div>
+                                </div>
+                                <div class="players-display" id="players-display">
+                                    <!-- Players will be displayed here -->
+                                </div>
+                            </div>
+                            <div class="action-history">
+                                <h4>Action History</h4>
+                                <div id="action-log" class="action-log">
+                                    <!-- Action history will be displayed here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Replay Analysis -->
+                        <div class="replay-analysis">
+                            <div class="analysis-tabs">
+                                <button class="tab-button active" data-tab="overview">Overview</button>
+                                <button class="tab-button" data-tab="hands">Hands</button>
+                                <button class="tab-button" data-tab="players">Players</button>
+                                <button class="tab-button" data-tab="decisions">Decisions</button>
+                            </div>
+                            <div class="tab-content">
+                                <div id="analysis-overview" class="tab-pane active">
+                                    <div id="game-overview">
+                                        <!-- Game overview will be populated here -->
+                                    </div>
+                                </div>
+                                <div id="analysis-hands" class="tab-pane">
+                                    <div id="hands-breakdown">
+                                        <!-- Hands breakdown will be populated here -->
+                                    </div>
+                                </div>
+                                <div id="analysis-players" class="tab-pane">
+                                    <div id="player-stats">
+                                        <!-- Player statistics will be populated here -->
+                                    </div>
+                                </div>
+                                <div id="analysis-decisions" class="tab-pane">
+                                    <div id="decision-analysis">
+                                        <!-- Decision analysis will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

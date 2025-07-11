@@ -10,6 +10,8 @@ import {
 	StartCondition,
 } from '@types';
 import { GameEngine } from './GameEngine';
+import { EnhancedGameLogger } from '../logging/EnhancedGameLogger';
+import { ReplaySystem } from '../logging/ReplaySystem';
 
 export interface GameInfo {
 	id: GameId;
@@ -31,6 +33,22 @@ export class GameController {
 	private pendingUnseats: Map<GameId, Set<PlayerId>> = new Map();
 	/** Cleanup timers for empty games */
 	private cleanupTimers: Map<GameId, NodeJS.Timeout> = new Map();
+	/** Enhanced game logger for replay functionality */
+	private enhancedLogger: EnhancedGameLogger;
+	/** Replay system for playback */
+	private replaySystem: ReplaySystem;
+
+	constructor(loggerConfig?: any) {
+		// Enable auto-save by default for replay files
+		const defaultConfig = {
+			autoSave: true,
+			enabled: true,
+			directory: './replays',
+			...loggerConfig
+		};
+		this.enhancedLogger = new EnhancedGameLogger(defaultConfig);
+		this.replaySystem = new ReplaySystem(this.enhancedLogger);
+	}
 
 	/**
 	 * Creates a new game
@@ -49,6 +67,22 @@ export class GameController {
 			this.handleGameEvent(gameId, event);
 		});
 
+		// Start enhanced logging for the game
+		const initialGameState = game.getGameState();
+		const playerNames = new Map<PlayerId, string>();
+		
+		// Extract player names from initial state (if any players exist)
+		if (initialGameState && initialGameState.players) {
+			initialGameState.players.forEach(player => {
+				playerNames.set(player.id, player.name);
+			});
+		}
+
+		// Only start logging if we have a valid game state
+		if (initialGameState) {
+			this.enhancedLogger.startGame(gameId, config, initialGameState, playerNames);
+		}
+
 		return game;
 	}
 
@@ -60,6 +94,10 @@ export class GameController {
 		if (!game) {
 			throw new Error(`Game with ID ${gameId} not found`);
 		}
+
+		// End enhanced logging for the game
+		const finalGameState = game.getGameState();
+		this.enhancedLogger.endGame(gameId, finalGameState);
 
 		// Cancel any pending cleanup timer
 		const cleanupTimer = this.cleanupTimers.get(gameId);
@@ -293,6 +331,9 @@ export class GameController {
 		if (!callbacks) {
 			return;
 		}
+
+		// Log event to enhanced logger for replay functionality
+		this.enhancedLogger.logEvent(gameId, event);
 
 		// Forward event to all subscribers
 		callbacks.forEach((cb) => {
@@ -638,5 +679,58 @@ export class GameController {
 			timer.unref();
 			this.cleanupTimers.set(gameId, timer);
 		}
+	}
+
+	/**
+	 * Replay System Methods
+	 */
+
+	/**
+	 * Gets replay data for a game
+	 */
+	getReplayData(gameId: GameId) {
+		return this.enhancedLogger.getReplayData(gameId);
+	}
+
+	/**
+	 * Gets hand replay data for a specific hand
+	 */
+	getHandReplayData(gameId: GameId, handNumber: number) {
+		return this.enhancedLogger.getHandReplayData(gameId, handNumber);
+	}
+
+	/**
+	 * Saves a game replay to file
+	 */
+	saveReplayToFile(gameId: GameId): boolean {
+		return this.enhancedLogger.saveReplayToFile(gameId);
+	}
+
+	/**
+	 * Loads a replay from file
+	 */
+	loadReplayFromFile(filepath: string) {
+		return this.enhancedLogger.loadReplayFromFile(filepath);
+	}
+
+	/**
+	 * Lists all available replay files
+	 */
+	listAvailableReplays(): string[] {
+		return this.enhancedLogger.listAvailableReplays();
+	}
+
+	/**
+	 * Gets the replay system for playback control
+	 */
+	getReplaySystem(): ReplaySystem {
+		return this.replaySystem;
+	}
+
+	/**
+	 * Exports a replay in various formats
+	 */
+	exportReplay(gameId: GameId, format: 'json' | 'compressed' = 'json') {
+		return this.enhancedLogger.exportReplay(gameId, format);
 	}
 }

@@ -70,6 +70,10 @@ export class PokaiExpressServer {
 		const dashboardPath = path.join(__dirname, '/dashboard');
 		this.app.use('/dashboard', express.static(dashboardPath));
 
+		// Serve replay files statically
+		const replaysPath = path.join(__dirname, '/replays');
+		this.app.use('/replays', express.static(replaysPath));
+
 		// Request logging
 		this.app.use((req, res, next) => {
 			console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -362,6 +366,203 @@ export class PokaiExpressServer {
 			}
 		});
 
+		// Replay API routes
+		this.app.get('/api/replays', (req: Request, res: Response) => {
+			try {
+				const replays = this.gameController.listAvailableReplays();
+				res.json({
+					success: true,
+					data: replays.map(filepath => ({
+						filename: filepath.split('/').pop(),
+						path: filepath
+					}))
+				});
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to list replays',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.get('/api/replays/:gameId', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				const replayData = this.gameController.getReplayData(gameId);
+				
+				if (!replayData) {
+					res.status(404).json({
+						success: false,
+						error: 'Replay not found',
+						message: `No replay data found for game ${gameId}`
+					});
+					return;
+				}
+
+				res.json({
+					success: true,
+					data: replayData
+				});
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to get replay data',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.get('/api/replays/:gameId/hands/:handNumber', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				const handNumber = parseInt(req.params.handNumber);
+				
+				if (isNaN(handNumber)) {
+					res.status(400).json({
+						success: false,
+						error: 'Invalid hand number',
+						message: 'Hand number must be a valid integer'
+					});
+					return;
+				}
+
+				const handReplay = this.gameController.getHandReplayData(gameId, handNumber);
+				
+				if (!handReplay) {
+					res.status(404).json({
+						success: false,
+						error: 'Hand replay not found',
+						message: `No replay data found for hand ${handNumber} in game ${gameId}`
+					});
+					return;
+				}
+
+				res.json({
+					success: true,
+					data: handReplay
+				});
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to get hand replay data',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.post('/api/replays/:gameId/save', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				const success = this.gameController.saveReplayToFile(gameId);
+				
+				if (success) {
+					res.json({
+						success: true,
+						message: `Replay for game ${gameId} saved successfully`
+					});
+				} else {
+					res.status(400).json({
+						success: false,
+						error: 'Failed to save replay',
+						message: `Could not save replay for game ${gameId}`
+					});
+				}
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to save replay',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.get('/api/replays/:gameId/export', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				const format = (req.query.format as string) || 'json';
+				
+				if (!['json', 'compressed'].includes(format)) {
+					res.status(400).json({
+						success: false,
+						error: 'Invalid format',
+						message: 'Format must be json or compressed'
+					});
+					return;
+				}
+
+				const exportData = this.gameController.exportReplay(gameId, format as 'json' | 'compressed');
+				
+				if (!exportData) {
+					res.status(404).json({
+						success: false,
+						error: 'Replay not found',
+						message: `No replay data found for game ${gameId}`
+					});
+					return;
+				}
+
+				// Set appropriate content type and filename
+				const filename = `${gameId}_replay.${format === 'json' ? 'json' : 'gz'}`;
+				
+				if (format === 'json') {
+					res.setHeader('Content-Type', 'application/json');
+					res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+					res.send(exportData);
+				} else {
+					res.setHeader('Content-Type', 'application/gzip');
+					res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+					res.send(exportData);
+				}
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to export replay',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
+		this.app.get('/api/replays/:gameId/analysis', (req: Request, res: Response) => {
+			try {
+				const gameId = req.params.gameId;
+				const replaySystem = this.gameController.getReplaySystem();
+				const replayData = this.gameController.getReplayData(gameId);
+				
+				if (!replayData) {
+					res.status(404).json({
+						success: false,
+						error: 'Replay not found',
+						message: `No replay data found for game ${gameId}`
+					});
+					return;
+				}
+
+				// Load replay into replay system for analysis
+				const loaded = replaySystem.loadReplay(replayData);
+				if (!loaded) {
+					res.status(500).json({
+						success: false,
+						error: 'Failed to load replay for analysis'
+					});
+					return;
+				}
+
+				const analysis = replaySystem.analyzeReplay();
+				
+				res.json({
+					success: true,
+					data: analysis
+				});
+			} catch (error) {
+				res.status(500).json({
+					success: false,
+					error: 'Failed to analyze replay',
+					message: error instanceof Error ? error.message : 'Unknown error',
+				});
+			}
+		});
+
 		// Documentation
 		this.app.get('/docs', (req: Request, res: Response) => {
 			res.json({
@@ -379,6 +580,12 @@ export class PokaiExpressServer {
 					'GET /api/games/:gameId/can-join/:playerId': 'Check if player can join',
 					'GET /api/games/:gameId/players/:playerId/state': 'Get player game state',
 					'GET /api/games/:gameId/players/:playerId/actions': 'Get possible actions',
+					'GET /api/replays': 'List all available replay files',
+					'GET /api/replays/:gameId': 'Get complete replay data for a game',
+					'GET /api/replays/:gameId/hands/:handNumber': 'Get replay data for specific hand',
+					'POST /api/replays/:gameId/save': 'Save replay to file',
+					'GET /api/replays/:gameId/export': 'Export replay in various formats',
+					'GET /api/replays/:gameId/analysis': 'Get detailed replay analysis',
 				},
 				websocket: {
 					connection: `ws://localhost:${this.port}`,
