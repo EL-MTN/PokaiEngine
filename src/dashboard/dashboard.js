@@ -191,16 +191,49 @@ class PokaiDashboard {
     async loadGames() {
         try {
             const response = await fetch('/api/games');
-            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
-            if (result.success) {
+            const result = await response.json();
+            console.log('Games API response:', result); // Debug logging
+            
+            if (result.success && result.data) {
                 this.games.clear();
+                
+                if (!Array.isArray(result.data)) {
+                    throw new Error('Expected games data to be an array');
+                }
+                
                 result.data.forEach(game => {
-                    this.games.set(game.gameId, game);
+                    // Transform API response to expected format
+                    const transformedGame = {
+                        gameId: game.id,
+                        id: game.id,
+                        maxPlayers: game.maxPlayers || 0,
+                        smallBlind: game.smallBlind || 0,
+                        bigBlind: game.bigBlind || 0,
+                        playerCount: game.playerCount || 0,
+                        players: Array(game.playerCount || 0).fill().map((_, i) => ({ id: `player-${i}` })), // Placeholder for player count
+                        status: game.isRunning ? 'running' : 'waiting',
+                        isRunning: game.isRunning || false,
+                        currentHand: game.currentHand || 0,
+                        isTournament: game.isTournament || false,
+                        turnTimeLimit: game.turnTimeLimit || 30,
+                        potSize: 0, // Default value, will be updated when we get detailed state
+                        currentPhase: 'waiting' // Default value, will be updated when we get detailed state
+                    };
+                    this.games.set(game.id, transformedGame);
                 });
+                
+                this.addLog('info', `Loaded ${result.data.length} games`);
                 this.updateGamesTable();
+            } else {
+                console.error('Invalid API response:', result);
+                this.addLog('error', `Invalid API response: ${result.error || 'Unknown error'}`);
             }
         } catch (error) {
+            console.error('Load games error:', error);
             this.addLog('error', `Failed to load games: ${error.message}`);
         }
     }
@@ -209,8 +242,9 @@ class PokaiDashboard {
         const activeGamesContainer = document.getElementById('active-games-list');
         if (!activeGamesContainer) return;
 
+        // Filter for games with players or running games
         const activeGames = Array.from(this.games.values()).filter(game => 
-            game.status === 'running' || game.players.length > 0
+            game.status === 'running' || game.playerCount > 0
         );
 
         if (activeGames.length === 0) {
@@ -224,7 +258,25 @@ class PokaiDashboard {
             return;
         }
 
-        activeGamesContainer.innerHTML = activeGames.map(game => `
+        // Fetch detailed state for each active game
+        const gamesWithState = await Promise.all(
+            activeGames.map(async (game) => {
+                try {
+                    const stateResponse = await fetch(`/api/games/${game.gameId}/state`);
+                    if (stateResponse.ok) {
+                        const stateResult = await stateResponse.json();
+                        if (stateResult.success) {
+                            return { ...game, ...stateResult.data };
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Failed to fetch state for game ${game.gameId}:`, error);
+                }
+                return game; // Return original game if state fetch fails
+            })
+        );
+
+        activeGamesContainer.innerHTML = gamesWithState.map(game => `
             <div class="game-card" data-game-id="${game.gameId}">
                 <div class="game-card-header">
                     <div class="game-card-title">${game.gameId}</div>
@@ -235,7 +287,7 @@ class PokaiDashboard {
                 <div class="game-card-info">
                     <div class="info-item">
                         <div class="info-label">Players</div>
-                        <div class="info-value">${game.players.length}/${game.maxPlayers}</div>
+                        <div class="info-value">${game.players ? game.players.length : game.playerCount}/${game.maxPlayers}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Blinds</div>
@@ -300,7 +352,7 @@ class PokaiDashboard {
                     ${games.map(game => `
                         <tr>
                             <td><strong>${game.gameId}</strong></td>
-                            <td>${game.players.length}/${game.maxPlayers}</td>
+                            <td>${game.players ? game.players.length : game.playerCount}/${game.maxPlayers}</td>
                             <td>$${game.smallBlind}/$${game.bigBlind}</td>
                             <td>
                                 <span class="game-card-status status-${game.status || 'waiting'}">

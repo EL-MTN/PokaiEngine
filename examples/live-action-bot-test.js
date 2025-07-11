@@ -266,6 +266,7 @@ async function runLiveActionTest() {
 	console.log('⚡ Live decision making process\n');
 
 	const gameId = `live-test-${Date.now()}`;
+	currentGameId = gameId; // Set global for cleanup
 	let handsPlayed = 0;
 	const handsToPlay = 5;
 
@@ -274,16 +275,20 @@ async function runLiveActionTest() {
 
 	try {
 		await new Promise((resolve, reject) => {
+			let timeoutId;
+			
 			const onHandPlayed = () => {
 				handsPlayed++;
+				console.log(`🎯 Hand ${handsPlayed}/${handsToPlay} completed`);
 				if (handsPlayed >= handsToPlay) {
+					clearTimeout(timeoutId);
 					resolve();
 				}
 			};
 
-			const testTimeout = setTimeout(() => {
-				reject(new Error(`Test timed out after failing to complete ${handsToPlay} hands.`));
-			}, 20000); // 20-second overall timeout
+			timeoutId = setTimeout(() => {
+				reject(new Error(`Test timed out after failing to complete ${handsToPlay} hands in 45 seconds.`));
+			}, 45000); // 45-second timeout for 5 hands
 
 			const run = async () => {
 				try {
@@ -294,8 +299,12 @@ async function runLiveActionTest() {
 						maxPlayers: 2,
 						smallBlindAmount: 10,
 						bigBlindAmount: 20,
-						turnTimeLimit: 5, // 5 seconds for faster gameplay
+						turnTimeLimit: 8, // 8 seconds for more reliable gameplay
 						isTournament: false,
+						startSettings: {
+							condition: 'minPlayers', // Ensure auto-start
+							minPlayers: 2
+						}
 					});
 					console.log(`✅ Game created: ${gameId}\n`);
 
@@ -303,22 +312,29 @@ async function runLiveActionTest() {
 					console.log('🤖 Creating bots with different strategies...');
 					aggressiveBot = new ActionLoggingBot('AggressiveBot', 'aggressive');
 					conservativeBot = new ActionLoggingBot('ConservativeBot', 'conservative');
+					
+					// Set global reference for cleanup
+					currentBots = [aggressiveBot, conservativeBot];
 
 					// One bot will report hand completions
 					aggressiveBot.on('hand_complete', onHandPlayed);
 
-					// Wait for connections
-					await new Promise((resolve) => setTimeout(resolve, 2000));
+					// Wait for socket connections to establish
+					await new Promise((resolve) => setTimeout(resolve, 1000));
 
 					// Join game
 					console.log('🔗 Connecting bots to game...');
 					aggressiveBot.joinGame(gameId);
+					
+					// Small delay between bot connections
+					await new Promise((resolve) => setTimeout(resolve, 500));
 					conservativeBot.joinGame(gameId);
 
-					// Start game
-					console.log('🚀 Starting live gameplay...\n');
+					// Wait for both bots to join and game to start
+					console.log('🚀 Waiting for game to start...\n');
 					console.log('='.repeat(80));
 				} catch (err) {
+					clearTimeout(timeoutId);
 					reject(err);
 				}
 			};
@@ -338,6 +354,8 @@ async function runLiveActionTest() {
 			const aggStats = aggressiveBot.getStats();
 			const conStats = conservativeBot.getStats();
 
+			// Disconnect bots first
+			console.log('🔌 Disconnecting bots...');
 			aggressiveBot.socket.disconnect();
 			conservativeBot.socket.disconnect();
 
@@ -367,12 +385,45 @@ async function runLiveActionTest() {
 		} else {
 			console.log('\n⚠️  Bots were not initialized, no stats to display.');
 		}
+
+		// Clean up the game by deleting it
+		try {
+			console.log('\n🧹 Cleaning up game...');
+			await axios.delete(`${SERVER_URL}/api/games/${gameId}`);
+			console.log('✅ Game deleted successfully');
+		} catch (cleanupError) {
+			console.log('⚠️  Failed to delete game (it may have been auto-cleaned):', cleanupError.response?.data?.message || cleanupError.message);
+		}
 	}
 }
 
-// Add process handlers
-process.on('SIGINT', () => {
+// Add process handlers for cleanup on interruption
+let currentGameId = null;
+let currentBots = [];
+
+process.on('SIGINT', async () => {
 	console.log('\n\n🛑 Test interrupted by user');
+	
+	// Clean up bots and game
+	if (currentBots.length > 0) {
+		console.log('🔌 Disconnecting bots...');
+		currentBots.forEach(bot => {
+			if (bot && bot.socket) {
+				bot.socket.disconnect();
+			}
+		});
+	}
+	
+	if (currentGameId) {
+		try {
+			console.log('🧹 Cleaning up game...');
+			await axios.delete(`${SERVER_URL}/api/games/${currentGameId}`);
+			console.log('✅ Game cleaned up');
+		} catch (error) {
+			console.log('⚠️  Failed to cleanup game:', error.message);
+		}
+	}
+	
 	process.exit(0);
 });
 

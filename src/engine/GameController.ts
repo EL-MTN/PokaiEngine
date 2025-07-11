@@ -19,6 +19,8 @@ export interface GameInfo {
 	currentHand: number;
 	smallBlind: number;
 	bigBlind: number;
+	turnTimeLimit: number;
+	isTournament: boolean;
 }
 
 export class GameController {
@@ -113,6 +115,8 @@ export class GameController {
 			currentHand: gameState.handNumber,
 			smallBlind: gameState.smallBlindAmount,
 			bigBlind: gameState.bigBlindAmount,
+			turnTimeLimit: config.turnTimeLimit,
+			isTournament: config.isTournament,
 		};
 	}
 
