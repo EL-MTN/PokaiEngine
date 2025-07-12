@@ -574,3 +574,162 @@
 {"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:18:50.241Z"}
 {"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:18:50.241Z"}
 {"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:18:50.242Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T17:46:25.327Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T17:46:25.711Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T17:46:25.722Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:46:25.725Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:46:25.725Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:46:25.725Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T17:46:25.726Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:46:25.731Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:46:25.732Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:46:25.732Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T17:51:00.327Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T17:51:00.714Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T17:51:00.725Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:51:00.728Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:51:00.728Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:51:00.728Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T17:51:00.729Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T17:51:00.729Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T17:51:00.729Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T17:51:00.729Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T17:51:00.730Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T17:51:00.730Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T17:51:00.730Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:51:00.738Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:51:00.738Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:51:00.738Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:03:31.824Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:03:32.226Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:03:32.238Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:03:32.241Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:03:32.241Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:03:32.241Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:03:32.242Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:03:32.247Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:03:32.248Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:03:32.248Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:11:03.812Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:04.200Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:04.211Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:04.214Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:04.214Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:04.214Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:11:04.215Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:11:04.215Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:11:04.215Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:11:04.215Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:11:04.216Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:11:04.216Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:11:04.216Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:04.221Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:04.221Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:04.221Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:11:11.717Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:12.103Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:12.115Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:12.118Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:12.118Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:12.118Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:11:12.119Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:11:12.119Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:11:12.119Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:11:12.119Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:11:12.120Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:11:12.120Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:11:12.120Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:12.124Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:12.124Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:12.125Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:11:24.414Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:24.797Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:24.809Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:24.812Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:24.812Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:24.812Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:11:24.813Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:24.818Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:24.818Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:24.818Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:11:32.652Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:33.031Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:11:33.042Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:33.045Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:33.045Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:33.045Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:11:33.046Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:11:33.051Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:11:33.051Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:11:33.052Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:27:04.464Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:27:04.933Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:27:04.944Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:27:04.947Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:27:04.947Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:27:04.947Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:27:04.948Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:27:04.955Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:27:04.955Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:27:04.955Z"}
+{"level":"info","message":"Started recording for game: live-test-1752344834393","module":"Replay","timestamp":"2025-07-12T18:27:14.427Z"}
+{"level":"info","message":"Minimum players (2) reached for game live-test-1752344834393. Starting first hand.","module":"Game","timestamp":"2025-07-12T18:27:15.947Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344834393","module":"Game","timestamp":"2025-07-12T18:27:19.177Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344834393","module":"Game","timestamp":"2025-07-12T18:27:21.994Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344834393","module":"Game","timestamp":"2025-07-12T18:27:25.217Z"}
+{"level":"info","message":"\n🛑 Shutting down gracefully...","module":"Server","timestamp":"2025-07-12T18:27:27.279Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:27:27.678Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T18:27:27.689Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:27:27.692Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:27:27.692Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:27:27.692Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T18:27:27.693Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T18:27:27.693Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T18:27:27.693Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T18:27:27.693Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T18:27:27.694Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T18:27:27.694Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T18:27:27.694Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T18:27:27.699Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T18:27:27.699Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T18:27:27.699Z"}
+{"level":"info","message":"Started recording for game: live-test-1752344857625","module":"Replay","timestamp":"2025-07-12T18:27:37.640Z"}
+{"level":"info","message":"Minimum players (2) reached for game live-test-1752344857625. Starting first hand.","module":"Game","timestamp":"2025-07-12T18:27:39.149Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344857625","module":"Game","timestamp":"2025-07-12T18:27:42.378Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344857625","module":"Game","timestamp":"2025-07-12T18:27:45.197Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344857625","module":"Game","timestamp":"2025-07-12T18:27:48.421Z"}
+{"level":"info","message":"Automatically starting new hand for game: live-test-1752344857625","module":"Game","timestamp":"2025-07-12T18:27:51.239Z"}
+{"level":"info","message":"Ended recording for game: live-test-1752344857625 (96 events)","module":"Replay","timestamp":"2025-07-12T18:27:52.366Z"}
+{"level":"error","message":"Failed to save replay to file: replayData.startTime.toISOString is not a function","module":"Replay","stack":"TypeError: replayData.startTime.toISOString is not a function\n    at ReplayStorage.saveReplayToFile (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/storage/ReplayStorage.ts:358:66)\n    at ReplayStorage.saveReplay (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/storage/ReplayStorage.ts:67:26)\n    at ReplayManager.endRecording (/Users/mastermind/Desktop/Programming/PokaiEngine/src/domain/replay/ReplayManager.ts:74:40)\n    at GameController.removeGame (/Users/mastermind/Desktop/Programming/PokaiEngine/src/application/engine/GameController.ts:97:28)\n    at <anonymous> (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:288:31)\n    at Layer.handleRequest (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/layer.js:152:17)\n    at next (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/route.js:117:3)\n    at handle (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/layer.js:152:17)","timestamp":"2025-07-12T18:27:52.370Z"}
+{"level":"error","message":"Failed to save replay to MongoDB: replayData.startTime.getTime is not a function","module":"Replay","stack":"TypeError: replayData.startTime.getTime is not a function\n    at ReplayStorage.saveReplayToMongo (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/storage/ReplayStorage.ts:386:40)\n    at ReplayStorage.saveReplay (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/storage/ReplayStorage.ts:80:16)\n    at ReplayManager.endRecording (/Users/mastermind/Desktop/Programming/PokaiEngine/src/domain/replay/ReplayManager.ts:74:40)\n    at GameController.removeGame (/Users/mastermind/Desktop/Programming/PokaiEngine/src/application/engine/GameController.ts:97:28)\n    at <anonymous> (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:288:31)\n    at Layer.handleRequest (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/layer.js:152:17)\n    at next (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/route.js:117:3)\n    at handle (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/index.js:435:11)\n    at Layer.handleRequest (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/router/lib/layer.js:152:17)","timestamp":"2025-07-12T18:27:52.370Z"}
+{"level":"info","message":"Saved replay live-test-1752344857625 - File: false, Mongo: false","module":"Replay","timestamp":"2025-07-12T18:27:52.370Z"}

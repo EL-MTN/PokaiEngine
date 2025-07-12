@@ -11,6 +11,11 @@ describe('ReplayManager', () => {
 		replaySystem = new ReplaySystem();
 	});
 
+	afterEach(() => {
+		// Stop replay system to clean up any intervals
+		replaySystem.stop();
+	});
+
 	const createMockGameConfig = (): GameConfig => ({
 		maxPlayers: 2,
 		smallBlindAmount: 5,

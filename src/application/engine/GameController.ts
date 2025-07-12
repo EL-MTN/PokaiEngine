@@ -34,6 +34,8 @@ export class GameController {
 	private pendingUnseats: Map<GameId, Set<PlayerId>> = new Map();
 	/** Cleanup timers for empty games */
 	private cleanupTimers: Map<GameId, NodeJS.Timeout> = new Map();
+	/** Hand start timers for automatic hand starts */
+	private handStartTimers: Map<GameId, NodeJS.Timeout> = new Map();
 	/** Replay manager for recording and storage */
 	private replayManager: ReplayManager;
 	/** Replay system for playback */
@@ -101,6 +103,13 @@ export class GameController {
 			this.cleanupTimers.delete(gameId);
 		}
 
+		// Cancel any pending hand start timer
+		const handStartTimer = this.handStartTimers.get(gameId);
+		if (handStartTimer) {
+			clearTimeout(handStartTimer);
+			this.handStartTimers.delete(gameId);
+		}
+
 		// Remove all players from the game mapping
 		for (const [playerId, playerGameId] of this.playerGameMap) {
 			if (playerGameId === gameId) {
@@ -126,6 +135,32 @@ export class GameController {
 	 */
 	getAllGames(): GameEngine[] {
 		return Array.from(this.games.values());
+	}
+
+	/**
+	 * Destroys the controller and cleans up all resources
+	 */
+	destroy(): void {
+		// Clear all cleanup timers
+		for (const timer of this.cleanupTimers.values()) {
+			clearTimeout(timer);
+		}
+		this.cleanupTimers.clear();
+
+		// Clear all hand start timers
+		for (const timer of this.handStartTimers.values()) {
+			clearTimeout(timer);
+		}
+		this.handStartTimers.clear();
+
+		// Stop replay system if playing
+		this.replaySystem.stop();
+
+		// Clear all games
+		this.games.clear();
+		this.eventCallbacks.clear();
+		this.playerGameMap.clear();
+		this.pendingUnseats.clear();
 	}
 
 	/**
@@ -356,6 +391,12 @@ export class GameController {
 			const game = this.games.get(gameId);
 			const handStartDelay = game?.getConfig().handStartDelay ?? 2000; // Default to 2 seconds if not specified
 			
+			// Clear any existing hand start timer for this game
+			const existingTimer = this.handStartTimers.get(gameId);
+			if (existingTimer) {
+				clearTimeout(existingTimer);
+			}
+			
 			const timer = setTimeout(() => {
 				const game = this.games.get(gameId);
 				// Check if game still exists and has enough players to continue
@@ -365,8 +406,11 @@ export class GameController {
 				} else {
 					gameLogger.info(`Game ${gameId} ended or not enough players to continue.`);
 				}
+				// Remove timer from tracking
+				this.handStartTimers.delete(gameId);
 			}, handStartDelay);
 			timer.unref();
+			this.handStartTimers.set(gameId, timer);
 		}
 	}
 

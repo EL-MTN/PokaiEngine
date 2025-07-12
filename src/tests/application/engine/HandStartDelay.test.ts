@@ -8,6 +8,10 @@ describe('Hand Start Delay', () => {
 		gameController = new GameController();
 	});
 
+	afterEach(async () => {
+		gameController.destroy();
+	});
+
 	it('should use default 2-second delay when not specified', async () => {
 		const config: GameConfig = {
 			maxPlayers: 2,

@@ -1,10 +1,15 @@
+// Increase max listeners to prevent warnings in tests
+if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
+	process.setMaxListeners(20);
+}
+
 module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
 	roots: ['<rootDir>/src'],
 	testMatch: ['**/tests/**/*.test.ts'],
 	transform: {
-		'^.+.ts$': 'ts-jest',
+		'^.+\\.ts$': 'ts-jest',
 	},
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',

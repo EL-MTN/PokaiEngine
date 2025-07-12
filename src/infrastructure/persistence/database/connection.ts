@@ -140,16 +140,18 @@ export class DatabaseConnection {
 			this.isConnected = true;
 		});
 
-		// Graceful shutdown
-		process.on('SIGINT', async () => {
-			try {
-				await this.disconnect();
-				process.exit(0);
-			} catch (error) {
-				this.logError('Error during graceful shutdown:', error);
-				process.exit(1);
-			}
-		});
+		// Graceful shutdown (only in non-test environments)
+		if (process.env.NODE_ENV !== 'test') {
+			process.on('SIGINT', async () => {
+				try {
+					await this.disconnect();
+					process.exit(0);
+				} catch (error) {
+					this.logError('Error during graceful shutdown:', error);
+					process.exit(1);
+				}
+			});
+		}
 	}
 
 	private delay(ms: number): Promise<void> {

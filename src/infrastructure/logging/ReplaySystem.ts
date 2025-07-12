@@ -1,12 +1,12 @@
-import { 
-	ReplayData, 
-	ReplayEvent, 
-	GameState, 
-	GameId, 
+import {
+	ReplayData,
+	ReplayEvent,
+	GameState,
+	GameId,
 	PlayerId,
 	ReplayCheckpoint,
 	HandReplayData,
-	GamePhase
+	GamePhase,
 } from '@/domain/types';
 import { GameReplayRecorder } from '@/domain/replay/GameReplayRecorder';
 import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
@@ -29,18 +29,6 @@ export interface ReplayControls {
 	canStepBackward: boolean;
 	totalEvents: number;
 }
-
-// Re-export ReplayAnalysis from ReplayAnalyzer for backward compatibility
-export { ReplayAnalysis } from '@/domain/replay/ReplayAnalyzer';
-
-// Re-export interfaces from ReplayAnalyzer for backward compatibility
-export { 
-	HandAnalysisResult,
-	PlayerReplayStats,
-	GameFlowAnalysis,
-	KeyDecision,
-	InterestingMoment
-} from '@/domain/replay/ReplayAnalyzer';
 
 /**
  * ReplaySystem handles playback control and analysis of poker game replays
@@ -79,7 +67,7 @@ export class ReplaySystem {
 			this.replayData = replayData;
 			this.currentEventIndex = 0;
 			this.stop();
-			
+
 			this.log(`Loaded replay: ${replayData.gameId} (${replayData.events.length} events)`);
 			return true;
 		} catch (error) {
@@ -139,7 +127,10 @@ export class ReplaySystem {
 		try {
 			return await this.replayStorage.getHandReplay(gameId, handNumber);
 		} catch (error) {
-			this.logError(`Failed to get hand replay from MongoDB for game ${gameId}, hand ${handNumber}:`, error);
+			this.logError(
+				`Failed to get hand replay from MongoDB for game ${gameId}, hand ${handNumber}:`,
+				error
+			);
 			return null;
 		}
 	}
@@ -243,7 +234,7 @@ export class ReplaySystem {
 		if (!this.replayData) return false;
 
 		const handStartEvent = this.replayData.events.findIndex(
-			event => event.type === 'hand_started' && event.handNumber === handNumber
+			(event) => event.type === 'hand_started' && event.handNumber === handNumber
 		);
 
 		if (handStartEvent === -1) return false;
@@ -259,7 +250,7 @@ export class ReplaySystem {
 
 		// Find the latest checkpoint before the target event
 		const checkpoint = this.replayData.checkpoints
-			.filter(cp => cp.eventIndex <= eventIndex)
+			.filter((cp) => cp.eventIndex <= eventIndex)
 			.sort((a, b) => b.eventIndex - a.eventIndex)[0];
 
 		if (!checkpoint) return false;
@@ -272,7 +263,7 @@ export class ReplaySystem {
 	 */
 	setPlaybackSpeed(speed: number): void {
 		this.playbackSpeed = Math.max(0.25, Math.min(8.0, speed));
-		
+
 		// Restart playback with new speed if currently playing
 		if (this.isPlaying) {
 			this.pause();
@@ -290,7 +281,7 @@ export class ReplaySystem {
 			currentPosition: this.getCurrentPosition(),
 			canStepForward: this.canStepForward(),
 			canStepBackward: this.canStepBackward(),
-			totalEvents: this.replayData?.events.length || 0
+			totalEvents: this.replayData?.events.length || 0,
 		};
 	}
 
@@ -311,7 +302,11 @@ export class ReplaySystem {
 	 */
 	getHandReplay(handNumber: number): HandReplayData | undefined {
 		if (!this.replayData) return undefined;
-		return this.replayStorage.buildHandReplayData(this.replayData.gameId, handNumber, this.replayData.events);
+		return this.replayStorage.buildHandReplayData(
+			this.replayData.gameId,
+			handNumber,
+			this.replayData.events
+		);
 	}
 
 	/**
@@ -361,7 +356,7 @@ export class ReplaySystem {
 		const gameState = this.getCurrentGameState();
 
 		if (currentEvent && gameState) {
-			this.eventCallbacks.forEach(callback => {
+			this.eventCallbacks.forEach((callback) => {
 				try {
 					callback(currentEvent, gameState);
 				} catch (error) {
@@ -373,7 +368,7 @@ export class ReplaySystem {
 
 	private notifyPositionChange(): void {
 		const position = this.getCurrentPosition();
-		this.positionCallbacks.forEach(callback => {
+		this.positionCallbacks.forEach((callback) => {
 			try {
 				callback(position);
 			} catch (error) {
@@ -389,7 +384,7 @@ export class ReplaySystem {
 				sequenceId: 0,
 				handNumber: 0,
 				phase: GamePhase.PreFlop,
-				timestamp: this.replayData?.startTime.getTime() || 0
+				timestamp: this.replayData?.startTime.getTime() || 0,
 			};
 		}
 
@@ -401,7 +396,7 @@ export class ReplaySystem {
 			sequenceId: currentEvent.sequenceId,
 			handNumber: currentEvent.handNumber,
 			phase: gameState?.currentPhase || GamePhase.PreFlop,
-			timestamp: currentEvent.timestamp
+			timestamp: currentEvent.timestamp,
 		};
 	}
 
@@ -415,9 +410,6 @@ export class ReplaySystem {
 
 	// Analysis methods moved to ReplayAnalyzer class
 
-
-
-
 	/**
 	 * Helper method to convert MongoDB replay to ReplayData format
 	 */
@@ -426,7 +418,9 @@ export class ReplaySystem {
 		const replayData: ReplayData = {
 			gameId: mongoReplay.gameId,
 			startTime: new Date(mongoReplay.metadata.gameStartTime),
-			endTime: mongoReplay.metadata.gameEndTime ? new Date(mongoReplay.metadata.gameEndTime) : undefined,
+			endTime: mongoReplay.metadata.gameEndTime
+				? new Date(mongoReplay.metadata.gameEndTime)
+				: undefined,
 			events: mongoReplay.events.map((event: any, index: number) => ({
 				...event.data,
 				type: event.type,
@@ -438,9 +432,11 @@ export class ReplaySystem {
 				gameStateBefore: event.data.gameStateBefore,
 				gameStateAfter: event.data.gameStateAfter,
 				playerDecisionContext: event.data.playerDecisionContext,
-				eventDuration: event.data.eventDuration
+				eventDuration: event.data.eventDuration,
 			})),
-			initialGameState: mongoReplay.events[0]?.data?.initialGameState || mongoReplay.events[0]?.data?.gameState,
+			initialGameState:
+				mongoReplay.events[0]?.data?.initialGameState ||
+				mongoReplay.events[0]?.data?.gameState,
 			finalGameState: mongoReplay.events[mongoReplay.events.length - 1]?.data?.gameState,
 			metadata: {
 				gameConfig: {
@@ -448,7 +444,7 @@ export class ReplaySystem {
 					smallBlindAmount: mongoReplay.metadata.smallBlindAmount,
 					bigBlindAmount: mongoReplay.metadata.bigBlindAmount,
 					turnTimeLimit: mongoReplay.metadata.turnTimeLimit,
-					isTournament: mongoReplay.metadata.gameType === 'tournament'
+					isTournament: mongoReplay.metadata.gameType === 'tournament',
 				},
 				playerNames: mongoReplay.metadata.playerNames,
 				handCount: mongoReplay.metadata.totalHands,
@@ -459,9 +455,9 @@ export class ReplaySystem {
 				winners: mongoReplay.metadata.winners,
 				finalChipCounts: {},
 				createdAt: new Date(mongoReplay.createdAt),
-				version: mongoReplay.version || '1.0.0'
+				version: mongoReplay.version || '1.0.0',
 			},
-			checkpoints: [] // MongoDB doesn't store checkpoints, generate on demand if needed
+			checkpoints: [], // MongoDB doesn't store checkpoints, generate on demand if needed
 		};
 
 		return replayData;

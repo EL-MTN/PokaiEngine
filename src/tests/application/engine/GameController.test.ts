@@ -25,6 +25,11 @@ describe('GameController', () => {
 		gameController = new GameController();
 	});
 
+	afterEach(() => {
+		// Clean up the controller to prevent timer leaks
+		gameController.destroy();
+	});
+
 	// Helper to create a mocked game and add it to the controller
 	const setupMockGame = (gameId: string, config: GameConfig) => {
 		const game = new MockedGameEngine(gameId, config);

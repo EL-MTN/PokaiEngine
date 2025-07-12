@@ -9,9 +9,10 @@ describe('Graceful Game Cleanup', () => {
 		gameController = new GameController();
 	});
 
-	afterEach(() => {
+	afterEach(async () => {
 		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
+		gameController.destroy();
 	});
 
 	const createTestConfig = (): GameConfig => ({

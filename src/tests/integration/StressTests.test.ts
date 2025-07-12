@@ -54,8 +54,17 @@ describe('Stress Tests', () => {
 	jest.setTimeout(10000);
 
 	describe('Game Management', () => {
+		let gameController: GameController;
+
+		beforeEach(() => {
+			gameController = new GameController();
+		});
+
+		afterEach(async () => {
+			gameController.destroy();
+		});
+
 		it('handles multiple games efficiently', () => {
-			const gameController = new GameController();
 			const numberOfGames = 20;
 
 			const config: GameConfig = {
@@ -90,7 +99,6 @@ describe('Stress Tests', () => {
 
 		it('handles socket connections', () => {
 			const server = new MockSocketServer();
-			const gameController = new GameController();
 			const socketHandler = new SocketHandler(server, gameController);
 
 			const numberOfConnections = 20;
@@ -116,7 +124,6 @@ describe('Stress Tests', () => {
 
 		it('handles rapid connect/disconnect cycles', () => {
 			const server = new MockSocketServer();
-			const gameController = new GameController();
 			const socketHandler = new SocketHandler(server, gameController);
 
 			const gameId = 'rapid-test';
@@ -153,7 +160,6 @@ describe('Stress Tests', () => {
 		});
 
 		it('handles game with actions', () => {
-			const gameController = new GameController();
 			const gameId = 'action-test';
 
 			const config: GameConfig = {
@@ -190,7 +196,6 @@ describe('Stress Tests', () => {
 		});
 
 		it('measures basic performance', () => {
-			const gameController = new GameController();
 			const startTime = Date.now();
 			
 			// Create many games quickly
@@ -219,8 +224,17 @@ describe('Stress Tests', () => {
 	});
 
 	describe('Edge Cases', () => {
+		let gameController: GameController;
+
+		beforeEach(() => {
+			gameController = new GameController();
+		});
+
+		afterEach(async () => {
+			gameController.destroy();
+		});
+
 		it('handles tournament game creation stress', () => {
-			const gameController = new GameController();
 			
 			// Create multiple tournament games
 			for (let i = 0; i < 5; i++) {
@@ -242,8 +256,6 @@ describe('Stress Tests', () => {
 		});
 
 		it('handles cleanup operations', async () => {
-			const gameController = new GameController();
-			
 			// Create games with no players
 			for (let i = 0; i < 5; i++) {
 				gameController.createGame(`cleanup-game-${i}`, {
@@ -265,7 +277,6 @@ describe('Stress Tests', () => {
 
 		it('handles large number of socket events', () => {
 			const server = new MockSocketServer();
-			const gameController = new GameController();
 			const socketHandler = new SocketHandler(server, gameController);
 
 			const gameId = 'event-test';

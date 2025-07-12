@@ -16,6 +16,9 @@ describe('Replay Model', () => {
 	afterAll(async () => {
 		await mongoose.disconnect();
 		await mongoServer.stop();
+		// Clear any remaining model registrations
+		mongoose.models = {};
+		mongoose.modelSchemas = {};
 	});
 
 	beforeEach(async () => {
