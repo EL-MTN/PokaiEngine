@@ -10,14 +10,7 @@
 		"rootDir": "./src",
 		"baseUrl": "./src",
 		"paths": {
-			"@/*": ["*"],
-			"@core/*": ["core/*"],
-			"@engine/*": ["engine/*"],
-			"@communication/*": ["communication/*"],
-			"@logging/*": ["logging/*"],
-			"@server/*": ["server/*"],
-			"@types": ["types/index"],
-			"@tests/*": ["tests/*"]
+			"@/*": ["*"]
 		},
 		"strict": true,
 		"esModuleInterop": true,

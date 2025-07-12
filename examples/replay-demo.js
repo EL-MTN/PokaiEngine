@@ -12,12 +12,32 @@ const { EventEmitter } = require('events');
 
 const SERVER_URL = 'http://localhost:3000';
 
+// For localhost connections, we need to bypass any proxy settings
+// that might be set in the environment
+const axiosInstance = axios.create({
+	proxy: false, // Disable proxy for localhost
+	timeout: 10000,
+	baseURL: SERVER_URL
+});
+
+// Configure socket options for better connectivity
+const socketConfig = {
+	transports: ['websocket', 'polling'], // Try websocket first, fall back to polling
+	reconnection: true,
+	reconnectionAttempts: 5,
+	reconnectionDelay: 1000,
+	timeout: 10000,
+	forceNew: true // Force new connection for each bot
+};
+
+console.log('🔧 Configured for direct localhost connection (bypassing proxy)');
+
 class SimpleBot extends EventEmitter {
 	constructor(name) {
 		super();
 		this.name = name;
 		this.playerId = `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-		this.socket = io(SERVER_URL);
+		this.socket = io(SERVER_URL, socketConfig);
 		this.gameState = null;
 		this.setupSocketHandlers();
 	}
@@ -139,7 +159,7 @@ async function runReplayDemo() {
 	try {
 		// Create game
 		console.log('🎮 Creating game...');
-		await axios.post(`${SERVER_URL}/api/games`, {
+		await axiosInstance.post('/api/games', {
 			gameId: gameId,
 			maxPlayers: 2,
 			smallBlindAmount: 5,
@@ -209,7 +229,7 @@ async function runReplayDemo() {
 		// Get replay data
 		console.log('📊 Getting replay data...');
 		try {
-			const replayResponse = await axios.get(`${SERVER_URL}/api/replays/${gameId}`);
+			const replayResponse = await axiosInstance.get(`/api/replays/${gameId}`);
 			if (replayResponse.data.success) {
 				const replayData = replayResponse.data.data;
 				console.log(`✅ Replay data retrieved successfully`);
@@ -225,7 +245,7 @@ async function runReplayDemo() {
 		// Get replay analysis
 		console.log('🔍 Getting replay analysis...');
 		try {
-			const analysisResponse = await axios.get(`${SERVER_URL}/api/replays/${gameId}/analysis`);
+			const analysisResponse = await axiosInstance.get(`/api/replays/${gameId}/analysis`);
 			if (analysisResponse.data.success) {
 				const analysis = analysisResponse.data.data;
 				console.log('✅ Replay analysis completed');
@@ -250,7 +270,7 @@ async function runReplayDemo() {
 		// Test hand-specific replay
 		console.log('🎲 Getting hand replay data...');
 		try {
-			const handResponse = await axios.get(`${SERVER_URL}/api/replays/${gameId}/hands/1`);
+			const handResponse = await axiosInstance.get(`/api/replays/${gameId}/hands/1`);
 			if (handResponse.data.success) {
 				const handData = handResponse.data.data;
 				console.log(`✅ Hand 1 replay retrieved`);
@@ -265,7 +285,7 @@ async function runReplayDemo() {
 		// Save replay
 		console.log('💾 Saving replay to file...');
 		try {
-			const saveResponse = await axios.post(`${SERVER_URL}/api/replays/${gameId}/save`);
+			const saveResponse = await axiosInstance.post(`/api/replays/${gameId}/save`);
 			if (saveResponse.data.success) {
 				console.log('✅ Replay saved to file successfully');
 			}
@@ -275,7 +295,7 @@ async function runReplayDemo() {
 
 		// Delete game
 		console.log('🧹 Cleaning up...');
-		await axios.delete(`${SERVER_URL}/api/games/${gameId}`);
+		await axiosInstance.delete(`/api/games/${gameId}`);
 		console.log('✅ Game deleted');
 
 	} catch (error) {

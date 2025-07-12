@@ -1,6 +1,6 @@
-import { GameController } from '@engine/GameController';
-import { SocketHandler, Socket, SocketIOServer } from '@communication/SocketHandler';
-import { GameConfig, ActionType } from '@types';
+import { GameController } from '@/application/engine/GameController';
+import { SocketHandler, Socket, SocketIOServer } from '@/infrastructure/communication/SocketHandler';
+import { GameConfig, ActionType } from '@/domain/types';
 
 class MockSocket implements Socket {
 	public handlers: Record<string, ((data: any) => void)[]> = {};

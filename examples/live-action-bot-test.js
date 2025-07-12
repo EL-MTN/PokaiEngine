@@ -12,13 +12,33 @@ const { EventEmitter } = require('events');
 
 const SERVER_URL = 'http://localhost:3000';
 
+// For localhost connections, we need to bypass any proxy settings
+// that might be set in the environment
+const axiosInstance = axios.create({
+	proxy: false, // Disable proxy for localhost
+	timeout: 10000,
+	baseURL: SERVER_URL
+});
+
+// Configure socket options for better connectivity
+const socketConfig = {
+	transports: ['websocket', 'polling'], // Try websocket first, fall back to polling
+	reconnection: true,
+	reconnectionAttempts: 5,
+	reconnectionDelay: 1000,
+	timeout: 10000,
+	forceNew: true // Force new connection for each bot
+};
+
+console.log('🔧 Configured for direct localhost connection (bypassing proxy)');
+
 class ActionLoggingBot extends EventEmitter {
 	constructor(name, strategy) {
 		super();
 		this.name = name;
 		this.strategy = strategy;
 		this.playerId = `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-		this.socket = io(SERVER_URL);
+		this.socket = io(SERVER_URL, socketConfig);
 		this.gameState = null;
 		this.actionCount = 0;
 		this.handsPlayed = 0;
@@ -294,7 +314,7 @@ async function runLiveActionTest() {
 				try {
 					// Create game with shorter turn times for faster action
 					console.log('🎮 Creating game with fast turns...');
-					await axios.post(`${SERVER_URL}/api/games`, {
+					await axiosInstance.post('/api/games', {
 						gameId: gameId,
 						maxPlayers: 2,
 						smallBlindAmount: 10,
@@ -389,7 +409,7 @@ async function runLiveActionTest() {
 		// Clean up the game by deleting it
 		try {
 			console.log('\n🧹 Cleaning up game...');
-			await axios.delete(`${SERVER_URL}/api/games/${gameId}`);
+			await axiosInstance.delete(`/api/games/${gameId}`);
 			console.log('✅ Game deleted successfully');
 		} catch (cleanupError) {
 			console.log('⚠️  Failed to delete game (it may have been auto-cleaned):', cleanupError.response?.data?.message || cleanupError.message);
@@ -417,7 +437,7 @@ process.on('SIGINT', async () => {
 	if (currentGameId) {
 		try {
 			console.log('🧹 Cleaning up game...');
-			await axios.delete(`${SERVER_URL}/api/games/${currentGameId}`);
+			await axiosInstance.delete(`/api/games/${currentGameId}`);
 			console.log('✅ Game cleaned up');
 		} catch (error) {
 			console.log('⚠️  Failed to cleanup game:', error.message);
