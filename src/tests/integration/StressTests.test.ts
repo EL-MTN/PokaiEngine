@@ -241,7 +241,7 @@ describe('Stress Tests', () => {
 			expect(stats.totalGames).toBe(5);
 		});
 
-		it('handles cleanup operations', () => {
+		it('handles cleanup operations', async () => {
 			const gameController = new GameController();
 			
 			// Create games with no players
@@ -256,7 +256,7 @@ describe('Stress Tests', () => {
 			}
 			
 			// Run cleanup (this should remove empty games)
-			gameController.cleanupInactiveGames();
+			await gameController.cleanupInactiveGames();
 			
 			// Verify cleanup worked
 			const finalStats = gameController.getOverallStats();

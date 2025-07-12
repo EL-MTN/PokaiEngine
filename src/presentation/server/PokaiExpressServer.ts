@@ -281,10 +281,10 @@ export class PokaiExpressServer {
 			}
 		});
 
-		this.app.delete('/api/games/:gameId', (req: Request, res: Response) => {
+		this.app.delete('/api/games/:gameId', async (req: Request, res: Response) => {
 			try {
 				const gameId = req.params.gameId;
-				this.gameController.removeGame(gameId);
+				await this.gameController.removeGame(gameId);
 				res.json({
 					success: true,
 					message: `Game ${gameId} deleted successfully`
@@ -452,21 +452,26 @@ export class PokaiExpressServer {
 			}
 		});
 
-		this.app.post('/api/replays/:gameId/save', (req: Request, res: Response) => {
+		this.app.post('/api/replays/:gameId/save', async (req: Request, res: Response) => {
 			try {
 				const gameId = req.params.gameId;
-				const success = this.gameController.saveReplayToFile(gameId);
+				const result = await this.gameController.saveReplayToFile(gameId);
 				
-				if (success) {
+				if (result.fileSuccess || result.mongoSuccess) {
 					res.json({
 						success: true,
-						message: `Replay for game ${gameId} saved successfully`
+						message: `Replay for game ${gameId} saved successfully`,
+						details: {
+							fileSuccess: result.fileSuccess,
+							mongoSuccess: result.mongoSuccess,
+							filePath: result.filePath
+						}
 					});
 				} else {
 					res.status(400).json({
 						success: false,
 						error: 'Failed to save replay',
-						message: `Could not save replay for game ${gameId}`
+						message: result.error || `Could not save replay for game ${gameId}`
 					});
 				}
 			} catch (error) {

@@ -3,7 +3,8 @@ import { createServer } from 'http';
 import { IncomingMessage, ServerResponse } from 'http';
 import { GameController } from '@/application/engine/GameController';
 import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
-import { GameLogger } from '@/infrastructure/logging/GameLogger';
+import { EnhancedGameLogger } from '@/infrastructure/logging/EnhancedGameLogger';
+import { initializeDatabase } from '@/infrastructure/persistence/database/connection';
 import { GameConfig } from '@/domain/types';
 
 /**
@@ -15,8 +16,9 @@ class PokaiServer {
 	private io: Server;
 	private gameController: GameController;
 	private socketHandler: SocketHandler;
-	private gameLogger: GameLogger;
+	private gameLogger: EnhancedGameLogger;
 	private port: number;
+	private isInitialized: boolean = false;
 
 	constructor(port: number = 3000) {
 		this.port = port;
@@ -30,10 +32,39 @@ class PokaiServer {
 
 		// Initialize game components
 		this.gameController = new GameController();
-		this.gameLogger = new GameLogger();
+		this.gameLogger = new EnhancedGameLogger({
+			mongoEnabled: true,
+			autoSave: true
+		});
 		this.socketHandler = new SocketHandler(this.io, this.gameController);
 
 		this.setupRoutes();
+	}
+
+	/**
+	 * Initialize database connection and services
+	 */
+	async initialize(): Promise<void> {
+		if (this.isInitialized) {
+			return;
+		}
+
+		try {
+			console.log('🗄️  Initializing database connection...');
+			await initializeDatabase();
+			console.log('✅ Database connection established');
+			
+			// Give the enhanced game logger time to initialize its MongoDB service
+			await new Promise(resolve => setTimeout(resolve, 1000));
+			
+			const healthCheck = await this.gameLogger.healthCheck();
+			console.log(`📊 Logger health check - Memory: ${healthCheck.memory}, MongoDB: ${healthCheck.mongo}`);
+			
+			this.isInitialized = true;
+		} catch (error) {
+			console.warn('⚠️  Database initialization failed, continuing with file-based logging only:', error);
+			this.isInitialized = true; // Still allow server to start
+		}
 	}
 
 	/**
@@ -56,6 +87,7 @@ class PokaiServer {
 					connectedClients: this.io.engine.clientsCount,
 					totalGamesPlayed: this.gameLogger.getAllLogs().length,
 					serverUptime: process.uptime(),
+					mongoAvailable: this.gameLogger.isMongoAvailable(),
 				};
 				res.writeHead(200);
 				res.end(JSON.stringify(stats));
@@ -83,12 +115,20 @@ class PokaiServer {
 	/**
 	 * Starts the server
 	 */
-	start(): void {
+	async start(): Promise<void> {
+		// Initialize database first
+		await this.initialize();
+
 		this.httpServer.listen(this.port, () => {
 			console.log(`🚀 Pokai Poker Engine started on port ${this.port}`);
 			console.log(`📊 Health check: http://localhost:${this.port}/health`);
 			console.log(`📈 Stats: http://localhost:${this.port}/stats`);
 			console.log(`🎮 WebSocket: ws://localhost:${this.port}`);
+			if (this.gameLogger.isMongoAvailable()) {
+				console.log(`🗄️  MongoDB replay storage: Enabled`);
+			} else {
+				console.log(`📁 File-based replay storage: Enabled`);
+			}
 			console.log(`\n🃏 Ready for bot connections!`);
 		});
 	}
@@ -147,7 +187,11 @@ if (require.main === module) {
 		process.exit(0);
 	});
 
-	server.start();
+	// Start server with async initialization
+	server.start().catch(error => {
+		console.error('❌ Failed to start server:', error);
+		process.exit(1);
+	});
 }
 
 export default PokaiServer;

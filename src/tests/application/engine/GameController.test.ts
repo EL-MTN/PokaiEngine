@@ -57,15 +57,15 @@ describe('GameController', () => {
 			);
 		});
 
-		it('should remove a game', () => {
+		it('should remove a game', async () => {
 			const config = createConfig();
 			gameController.createGame('game1', config);
-			gameController.removeGame('game1');
+			await gameController.removeGame('game1');
 			expect(gameController.getGame('game1')).toBeUndefined();
 		});
 
-		it('should throw an error if removing a non-existent game', () => {
-			expect(() => gameController.removeGame('non-existent-game')).toThrow(
+		it('should throw an error if removing a non-existent game', async () => {
+			await expect(gameController.removeGame('non-existent-game')).rejects.toThrow(
 				'Game with ID non-existent-game not found'
 			);
 		});
@@ -78,7 +78,7 @@ describe('GameController', () => {
 			expect(games).toHaveLength(2);
 		});
 
-		it('should handle removing a game with players', () => {
+		it('should handle removing a game with players', async () => {
 			const config = createConfig();
 			const game = setupMockGame('game1', config);
 			(game.getGameState as jest.Mock).mockReturnValue({
@@ -92,7 +92,7 @@ describe('GameController', () => {
 			expect(gameController.getPlayerGameId('p1')).toBe('game1');
 			expect(gameController.getPlayerGameId('p2')).toBe('game1');
 
-			gameController.removeGame('game1');
+			await gameController.removeGame('game1');
 
 			expect(gameController.getGame('game1')).toBeUndefined();
 			expect(gameController.getPlayerGameId('p1')).toBeUndefined();
@@ -322,14 +322,14 @@ describe('GameController', () => {
 			expect(availableGames[0].id).toBe('game2');
 		});
 
-		it('should handle removing a game when other games have players', () => {
+		it('should handle removing a game when other games have players', async () => {
 			const game1 = setupMockGame('game1', createConfig());
 			gameController.addPlayerToGame('game1', 'p1', 'Alice', 1000);
 
 			const game2 = setupMockGame('game2', createConfig());
 			gameController.addPlayerToGame('game2', 'p2', 'Bob', 1000);
 
-			gameController.removeGame('game1');
+			await gameController.removeGame('game1');
 
 			expect(gameController.getPlayerGameId('p1')).toBeUndefined();
 			expect(gameController.getPlayerGameId('p2')).toBe('game2');
@@ -435,7 +435,7 @@ describe('GameController', () => {
 	});
 
 	describe('Coverage Tests - Cleanup inactive games', () => {
-		it('removes games with no active players', () => {
+		it('removes games with no active players', async () => {
 			const config = createConfig();
 
 			// Create games
@@ -460,7 +460,7 @@ describe('GameController', () => {
 			} as any);
 
 			// Run cleanup
-			gameController.cleanupInactiveGames();
+			await gameController.cleanupInactiveGames();
 
 			// game1 and game3 should be removed, game2 should remain
 			expect(gameController.getGame('game1')).toBeUndefined();
@@ -470,7 +470,7 @@ describe('GameController', () => {
 	});
 
 	describe('Coverage Tests - Remove game cleanup', () => {
-		it('properly cleans up when removing a game', () => {
+		it('properly cleans up when removing a game', async () => {
 			const gameId = 'game1';
 			const config = createConfig();
 
@@ -485,7 +485,7 @@ describe('GameController', () => {
 			gameController.subscribeToGame(gameId, callback);
 
 			// Remove the game (this tests the cleanup path)
-			gameController.removeGame(gameId);
+			await gameController.removeGame(gameId);
 
 			// Verify cleanup
 			expect(gameController.getGame(gameId)).toBeUndefined();

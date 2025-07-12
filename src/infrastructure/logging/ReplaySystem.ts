@@ -8,7 +8,10 @@ import {
 	HandReplayData,
 	GamePhase
 } from '@/domain/types';
-import { EnhancedGameLogger } from './EnhancedGameLogger';
+import { GameReplayRecorder } from '@/domain/replay/GameReplayRecorder';
+import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
+import { ReplayAnalyzer, ReplayAnalysis } from '@/domain/replay/ReplayAnalyzer';
+import { replayLogger } from './Logger';
 
 export interface ReplayPosition {
 	eventIndex: number;
@@ -27,60 +30,17 @@ export interface ReplayControls {
 	totalEvents: number;
 }
 
-export interface ReplayAnalysis {
-	handAnalysis: HandAnalysisResult[];
-	playerStatistics: Record<PlayerId, PlayerReplayStats>;
-	gameFlow: GameFlowAnalysis;
-	interestingMoments: InterestingMoment[];
-}
+// Re-export ReplayAnalysis from ReplayAnalyzer for backward compatibility
+export { ReplayAnalysis } from '@/domain/replay/ReplayAnalyzer';
 
-export interface HandAnalysisResult {
-	handNumber: number;
-	duration: number;
-	totalActions: number;
-	potSize: number;
-	players: PlayerId[];
-	winner?: PlayerId;
-	keyDecisions: KeyDecision[];
-	unusual: boolean; // Flag for unusual or interesting hands
-}
-
-export interface PlayerReplayStats {
-	playerId: PlayerId;
-	name: string;
-	handsPlayed: number;
-	actionsCount: number;
-	avgDecisionTime: number;
-	aggression: number; // Calculated aggression factor
-	tightness: number; // Calculated tightness factor
-	winRate: number;
-	chipStackProgression: { timestamp: number; chips: number }[];
-}
-
-export interface GameFlowAnalysis {
-	totalDuration: number;
-	avgHandDuration: number;
-	actionDistribution: Record<string, number>;
-	phaseDistribution: Record<GamePhase, number>;
-	potSizeProgression: { handNumber: number; potSize: number }[];
-}
-
-export interface KeyDecision {
-	eventIndex: number;
-	playerId: PlayerId;
-	actionTaken: string;
-	alternatives: string[];
-	potOdds?: number;
-	estimated: boolean; // Whether this was identified as a key decision
-}
-
-export interface InterestingMoment {
-	eventIndex: number;
-	handNumber: number;
-	type: 'big_pot' | 'unusual_play' | 'all_in' | 'bad_beat' | 'bluff_caught';
-	description: string;
-	players: PlayerId[];
-}
+// Re-export interfaces from ReplayAnalyzer for backward compatibility
+export { 
+	HandAnalysisResult,
+	PlayerReplayStats,
+	GameFlowAnalysis,
+	KeyDecision,
+	InterestingMoment
+} from '@/domain/replay/ReplayAnalyzer';
 
 /**
  * ReplaySystem handles playback control and analysis of poker game replays
@@ -93,8 +53,23 @@ export class ReplaySystem {
 	private playbackInterval: NodeJS.Timeout | null = null;
 	private eventCallbacks: ((event: ReplayEvent, gameState: GameState) => void)[] = [];
 	private positionCallbacks: ((position: ReplayPosition) => void)[] = [];
+	private replayStorage: ReplayStorage;
+	private replayAnalyzer: ReplayAnalyzer;
 
-	constructor(private logger?: EnhancedGameLogger) {}
+	constructor(private recorder?: GameReplayRecorder) {
+		this.replayStorage = new ReplayStorage();
+		this.replayAnalyzer = new ReplayAnalyzer();
+	}
+
+	private log(message: string): void {
+		replayLogger.info(message);
+	}
+
+	private logError(message: string, error?: any): void {
+		replayLogger.error(message, error);
+	}
+
+	// Removed initializeReplayService - now handled by ReplayStorage
 
 	/**
 	 * Loads a replay for playback
@@ -105,10 +80,10 @@ export class ReplaySystem {
 			this.currentEventIndex = 0;
 			this.stop();
 			
-			console.log(`[ReplaySystem] Loaded replay: ${replayData.gameId} (${replayData.events.length} events)`);
+			this.log(`Loaded replay: ${replayData.gameId} (${replayData.events.length} events)`);
 			return true;
 		} catch (error) {
-			console.error(`[ReplaySystem] Failed to load replay:`, error);
+			this.logError(`Failed to load replay:`, error);
 			return false;
 		}
 	}
@@ -117,17 +92,68 @@ export class ReplaySystem {
 	 * Loads a replay from file
 	 */
 	loadReplayFromFile(filepath: string): boolean {
-		if (!this.logger) {
-			console.error('[ReplaySystem] No logger available for file operations');
-			return false;
-		}
-
-		const replayData = this.logger.loadReplayFromFile(filepath);
+		const replayData = this.replayStorage.loadReplayFromFile(filepath);
 		if (!replayData) {
 			return false;
 		}
 
 		return this.loadReplay(replayData);
+	}
+
+	/**
+	 * Loads a replay from MongoDB by gameId
+	 */
+	async loadReplayFromMongo(gameId: GameId): Promise<boolean> {
+		try {
+			const mongoReplay = await this.replayStorage.loadReplayFromMongo(gameId);
+			if (!mongoReplay) {
+				this.logError(`No replay found for game ${gameId}`);
+				return false;
+			}
+
+			// Convert MongoDB replay to ReplayData format
+			const replayData = this.convertMongoReplayToReplayData(mongoReplay);
+			return this.loadReplay(replayData);
+		} catch (error) {
+			this.logError(`Failed to load replay from MongoDB for game ${gameId}:`, error);
+			return false;
+		}
+	}
+
+	/**
+	 * Gets replay analysis from MongoDB
+	 */
+	async getReplayAnalysisFromMongo(gameId: GameId): Promise<any | null> {
+		try {
+			return await this.replayStorage.getReplayAnalysis(gameId);
+		} catch (error) {
+			this.logError(`Failed to get replay analysis from MongoDB for game ${gameId}:`, error);
+			return null;
+		}
+	}
+
+	/**
+	 * Gets hand replay from MongoDB
+	 */
+	async getHandReplayFromMongo(gameId: GameId, handNumber: number): Promise<any | null> {
+		try {
+			return await this.replayStorage.getHandReplay(gameId, handNumber);
+		} catch (error) {
+			this.logError(`Failed to get hand replay from MongoDB for game ${gameId}, hand ${handNumber}:`, error);
+			return null;
+		}
+	}
+
+	/**
+	 * Lists available replays from MongoDB
+	 */
+	async listMongoReplays(limit: number = 50): Promise<any[]> {
+		try {
+			return await this.replayStorage.listRecentReplays(limit);
+		} catch (error) {
+			this.logError('Failed to list MongoDB replays:', error);
+			return [];
+		}
 	}
 
 	/**
@@ -145,7 +171,7 @@ export class ReplaySystem {
 			}
 		}, intervalMs);
 
-		console.log(`[ReplaySystem] Started playback at ${this.playbackSpeed}x speed`);
+		this.log(`Started playback at ${this.playbackSpeed}x speed`);
 	}
 
 	/**
@@ -284,8 +310,8 @@ export class ReplaySystem {
 	 * Gets replay data for a specific hand
 	 */
 	getHandReplay(handNumber: number): HandReplayData | undefined {
-		if (!this.logger || !this.replayData) return undefined;
-		return this.logger.getHandReplayData(this.replayData.gameId, handNumber);
+		if (!this.replayData) return undefined;
+		return this.replayStorage.buildHandReplayData(this.replayData.gameId, handNumber, this.replayData.events);
 	}
 
 	/**
@@ -294,17 +320,7 @@ export class ReplaySystem {
 	analyzeReplay(): ReplayAnalysis | null {
 		if (!this.replayData) return null;
 
-		const handAnalysis = this.analyzeHands();
-		const playerStatistics = this.calculatePlayerStatistics();
-		const gameFlow = this.analyzeGameFlow();
-		const interestingMoments = this.findInterestingMoments();
-
-		return {
-			handAnalysis,
-			playerStatistics,
-			gameFlow,
-			interestingMoments
-		};
+		return this.replayAnalyzer.analyzeReplay(this.replayData);
 	}
 
 	/**
@@ -349,7 +365,7 @@ export class ReplaySystem {
 				try {
 					callback(currentEvent, gameState);
 				} catch (error) {
-					console.error('[ReplaySystem] Error in event callback:', error);
+					this.logError('Error in event callback:', error);
 				}
 			});
 		}
@@ -361,7 +377,7 @@ export class ReplaySystem {
 			try {
 				callback(position);
 			} catch (error) {
-				console.error('[ReplaySystem] Error in position callback:', error);
+				this.logError('Error in position callback:', error);
 			}
 		});
 	}
@@ -397,192 +413,64 @@ export class ReplaySystem {
 		return this.currentEventIndex > 0;
 	}
 
-	private analyzeHands(): HandAnalysisResult[] {
-		if (!this.replayData) return [];
+	// Analysis methods moved to ReplayAnalyzer class
 
-		const results: HandAnalysisResult[] = [];
-		const handNumbers = new Set(this.replayData.events.map(e => e.handNumber));
 
-		for (const handNumber of handNumbers) {
-			if (handNumber === 0) continue; // Skip game start events
 
-			const handEvents = this.replayData.events.filter(e => e.handNumber === handNumber);
-			const startEvent = handEvents.find(e => e.type === 'hand_started');
-			const endEvent = handEvents.find(e => e.type === 'hand_complete');
 
-			if (!startEvent || !endEvent) continue;
-
-			const duration = endEvent.timestamp - startEvent.timestamp;
-			const actions = handEvents.filter(e => e.action).length;
-			const finalState = endEvent.gameStateAfter || endEvent.gameStateBefore;
-			const potSize = finalState ? finalState.pots.reduce((sum, pot) => sum + pot.amount, 0) : 0;
-
-			const players = new Set<PlayerId>();
-			handEvents.forEach(e => {
-				if (e.playerId) players.add(e.playerId);
-			});
-
-			results.push({
-				handNumber,
-				duration,
-				totalActions: actions,
-				potSize,
-				players: Array.from(players),
-				keyDecisions: [], // TODO: Implement key decision detection
-				unusual: potSize > 500 || duration > 60000 // Simple heuristic for unusual hands
-			});
-		}
-
-		return results;
-	}
-
-	private calculatePlayerStatistics(): Record<PlayerId, PlayerReplayStats> {
-		if (!this.replayData) return {};
-
-		const stats: Record<PlayerId, PlayerReplayStats> = {};
-
-		// Initialize stats for all players
-		Object.entries(this.replayData.metadata.playerNames).forEach(([playerId, name]) => {
-			stats[playerId] = {
-				playerId,
-				name,
-				handsPlayed: 0,
-				actionsCount: 0,
-				avgDecisionTime: 0,
-				aggression: 0,
-				tightness: 0,
-				winRate: 0,
-				chipStackProgression: []
-			};
-		});
-
-		// Calculate statistics from events
-		const decisionTimes: Record<PlayerId, number[]> = {};
-		Object.keys(stats).forEach(playerId => {
-			decisionTimes[playerId] = [];
-		});
-
-		this.replayData.events.forEach(event => {
-			if (event.playerId && stats[event.playerId]) {
-				const playerStats = stats[event.playerId];
-
-				if (event.action) {
-					playerStats.actionsCount++;
-					if (event.playerDecisionContext?.timeToDecide) {
-						decisionTimes[event.playerId].push(event.playerDecisionContext.timeToDecide);
-					}
-				}
-
-				if (event.type === 'hand_started') {
-					playerStats.handsPlayed++;
-				}
-
-				// Track chip progression
-				const gameState = event.gameStateAfter || event.gameStateBefore;
-				if (gameState) {
-					const player = gameState.players.find(p => p.id === event.playerId);
-					if (player) {
-						playerStats.chipStackProgression.push({
-							timestamp: event.timestamp,
-							chips: player.chipStack
-						});
-					}
-				}
-			}
-		});
-
-		// Calculate average decision times
-		Object.entries(decisionTimes).forEach(([playerId, times]) => {
-			if (times.length > 0) {
-				stats[playerId].avgDecisionTime = times.reduce((sum, time) => sum + time, 0) / times.length;
-			}
-		});
-
-		return stats;
-	}
-
-	private analyzeGameFlow(): GameFlowAnalysis {
-		if (!this.replayData) {
-			return {
-				totalDuration: 0,
-				avgHandDuration: 0,
-				actionDistribution: {},
-				phaseDistribution: {} as Record<GamePhase, number>,
-				potSizeProgression: []
-			};
-		}
-
-		const actionDistribution: Record<string, number> = {};
-		const phaseDistribution: Partial<Record<GamePhase, number>> = {};
-		const potSizeProgression: { handNumber: number; potSize: number }[] = [];
-
-		this.replayData.events.forEach(event => {
-			// Count action types
-			if (event.action) {
-				actionDistribution[event.action.type] = (actionDistribution[event.action.type] || 0) + 1;
-			}
-
-			// Count phases
-			if (event.phase) {
-				phaseDistribution[event.phase] = (phaseDistribution[event.phase] || 0) + 1;
-			}
-
-			// Track pot progression
-			if (event.type === 'hand_complete') {
-				const gameState = event.gameStateAfter || event.gameStateBefore;
-				if (gameState) {
-					const potSize = gameState.pots.reduce((sum, pot) => sum + pot.amount, 0);
-					potSizeProgression.push({
-						handNumber: event.handNumber,
-						potSize
-					});
-				}
-			}
-		});
-
-		return {
-			totalDuration: this.replayData.metadata.gameDuration,
-			avgHandDuration: this.replayData.metadata.avgHandDuration || 0,
-			actionDistribution,
-			phaseDistribution: phaseDistribution as Record<GamePhase, number>,
-			potSizeProgression
+	/**
+	 * Helper method to convert MongoDB replay to ReplayData format
+	 */
+	private convertMongoReplayToReplayData(mongoReplay: any): ReplayData {
+		// Convert MongoDB replay format to local ReplayData format
+		const replayData: ReplayData = {
+			gameId: mongoReplay.gameId,
+			startTime: new Date(mongoReplay.metadata.gameStartTime),
+			endTime: mongoReplay.metadata.gameEndTime ? new Date(mongoReplay.metadata.gameEndTime) : undefined,
+			events: mongoReplay.events.map((event: any, index: number) => ({
+				...event.data,
+				type: event.type,
+				timestamp: event.timestamp,
+				handNumber: event.handNumber || 0,
+				phase: event.phase,
+				playerId: event.playerId,
+				sequenceId: index + 1,
+				gameStateBefore: event.data.gameStateBefore,
+				gameStateAfter: event.data.gameStateAfter,
+				playerDecisionContext: event.data.playerDecisionContext,
+				eventDuration: event.data.eventDuration
+			})),
+			initialGameState: mongoReplay.events[0]?.data?.initialGameState || mongoReplay.events[0]?.data?.gameState,
+			finalGameState: mongoReplay.events[mongoReplay.events.length - 1]?.data?.gameState,
+			metadata: {
+				gameConfig: {
+					maxPlayers: mongoReplay.metadata.maxPlayers,
+					smallBlindAmount: mongoReplay.metadata.smallBlindAmount,
+					bigBlindAmount: mongoReplay.metadata.bigBlindAmount,
+					turnTimeLimit: mongoReplay.metadata.turnTimeLimit,
+					isTournament: mongoReplay.metadata.gameType === 'tournament'
+				},
+				playerNames: mongoReplay.metadata.playerNames,
+				handCount: mongoReplay.metadata.totalHands,
+				totalEvents: mongoReplay.analytics.totalEvents,
+				totalActions: mongoReplay.metadata.totalActions,
+				gameDuration: mongoReplay.metadata.gameDuration,
+				avgHandDuration: mongoReplay.analytics.avgHandDuration,
+				winners: mongoReplay.metadata.winners,
+				finalChipCounts: {},
+				createdAt: new Date(mongoReplay.createdAt),
+				version: mongoReplay.version || '1.0.0'
+			},
+			checkpoints: [] // MongoDB doesn't store checkpoints, generate on demand if needed
 		};
+
+		return replayData;
 	}
 
-	private findInterestingMoments(): InterestingMoment[] {
-		if (!this.replayData) return [];
-
-		const moments: InterestingMoment[] = [];
-
-		this.replayData.events.forEach((event, index) => {
-			const gameState = event.gameStateAfter || event.gameStateBefore;
-			if (!gameState) return;
-
-			const potSize = gameState.pots.reduce((sum, pot) => sum + pot.amount, 0);
-
-			// Big pot (over 500 chips)
-			if (potSize > 500 && event.type === 'hand_complete') {
-				moments.push({
-					eventIndex: index,
-					handNumber: event.handNumber,
-					type: 'big_pot',
-					description: `Big pot: ${potSize} chips`,
-					players: gameState.players.filter(p => p.isActive).map(p => p.id)
-				});
-			}
-
-			// All-in situations
-			if (event.action?.type === 'all_in') {
-				moments.push({
-					eventIndex: index,
-					handNumber: event.handNumber,
-					type: 'all_in',
-					description: `${event.playerId} went all-in`,
-					players: [event.playerId!]
-				});
-			}
-		});
-
-		return moments;
+	/**
+	 * Check if MongoDB service is available
+	 */
+	isMongoAvailable(): boolean {
+		return this.replayStorage.isMongoAvailable();
 	}
 }

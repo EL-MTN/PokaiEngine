@@ -1,20 +1,14 @@
-import { EnhancedGameLogger } from '@/infrastructure/logging/EnhancedGameLogger';
+import { ReplayManager } from '@/domain/replay/ReplayManager';
 import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
 import { GameConfig, GameState, GameEvent, GamePhase, ActionType } from '@/domain/types';
 
-describe('EnhancedGameLogger', () => {
-	let enhancedLogger: EnhancedGameLogger;
+describe('ReplayManager', () => {
+	let replayManager: ReplayManager;
 	let replaySystem: ReplaySystem;
 
 	beforeEach(() => {
-		enhancedLogger = new EnhancedGameLogger({
-			enabled: true,
-			directory: './test-replays',
-			autoSave: false,
-			maxReplaysInMemory: 10,
-			checkpointInterval: 10
-		});
-		replaySystem = new ReplaySystem(enhancedLogger);
+		replayManager = new ReplayManager();
+		replaySystem = new ReplaySystem();
 	});
 
 	const createMockGameConfig = (): GameConfig => ({
@@ -65,7 +59,7 @@ describe('EnhancedGameLogger', () => {
 		isComplete: false
 	});
 
-	it('should start and end game logging', () => {
+	it('should start and end game recording', async () => {
 		const gameId = 'test-game';
 		const config = createMockGameConfig();
 		const gameState = createMockGameState();
@@ -74,25 +68,25 @@ describe('EnhancedGameLogger', () => {
 			['player2', 'TestPlayer2']
 		]);
 
-		// Start logging
-		enhancedLogger.startGame(gameId, config, gameState, playerNames);
+		// Start recording
+		replayManager.startRecording(gameId, config, gameState, playerNames);
 
 		// Verify replay data was created
-		const replayData = enhancedLogger.getReplayData(gameId);
+		const replayData = replayManager.getReplayData(gameId);
 		expect(replayData).toBeDefined();
 		expect(replayData?.gameId).toBe(gameId);
 		expect(replayData?.metadata.playerNames['player1']).toBe('TestPlayer1');
 		expect(replayData?.metadata.playerNames['player2']).toBe('TestPlayer2');
 
-		// End logging
-		enhancedLogger.endGame(gameId, gameState);
+		// End recording
+		await replayManager.endRecording(gameId, gameState);
 
 		// Verify end time was set
-		const finalReplayData = enhancedLogger.getReplayData(gameId);
+		const finalReplayData = replayManager.getReplayData(gameId);
 		expect(finalReplayData?.endTime).toBeDefined();
 	});
 
-	it('should log events with sequence IDs', () => {
+	it('should record events with sequence IDs', async () => {
 		const gameId = 'test-game';
 		const config = createMockGameConfig();
 		const gameState = createMockGameState();
@@ -101,10 +95,10 @@ describe('EnhancedGameLogger', () => {
 			['player2', 'TestPlayer2']
 		]);
 
-		// Start logging
-		enhancedLogger.startGame(gameId, config, gameState, playerNames);
+		// Start recording
+		replayManager.startRecording(gameId, config, gameState, playerNames);
 
-		// Log some events
+		// Record some events
 		const event1: GameEvent = {
 			type: 'hand_started',
 			timestamp: Date.now(),
@@ -126,11 +120,11 @@ describe('EnhancedGameLogger', () => {
 			gameState
 		};
 
-		enhancedLogger.logEvent(gameId, event1);
-		enhancedLogger.logEvent(gameId, event2);
+		replayManager.recordEvent(gameId, event1);
+		replayManager.recordEvent(gameId, event2);
 
-		// Verify events were logged with sequence IDs
-		const replayData = enhancedLogger.getReplayData(gameId);
+		// Verify events were recorded with sequence IDs
+		const replayData = replayManager.getReplayData(gameId);
 		expect(replayData?.events).toHaveLength(3); // game_started + 2 events
 		expect(replayData?.events[1].sequenceId).toBe(2); // First manual event
 		expect(replayData?.events[2].sequenceId).toBe(3); // Second manual event
@@ -138,7 +132,7 @@ describe('EnhancedGameLogger', () => {
 		expect(replayData?.metadata.totalActions).toBe(1);
 	});
 
-	it('should create replay analysis', () => {
+	it('should create replay analysis', async () => {
 		const gameId = 'test-game';
 		const config = createMockGameConfig();
 		const gameState = createMockGameState();
@@ -147,10 +141,10 @@ describe('EnhancedGameLogger', () => {
 			['player2', 'TestPlayer2']
 		]);
 
-		// Start logging
-		enhancedLogger.startGame(gameId, config, gameState, playerNames);
+		// Start recording
+		replayManager.startRecording(gameId, config, gameState, playerNames);
 
-		// Log a complete hand
+		// Record a complete hand
 		const events: GameEvent[] = [
 			{
 				type: 'hand_started',
@@ -179,24 +173,20 @@ describe('EnhancedGameLogger', () => {
 			}
 		];
 
-		events.forEach(event => enhancedLogger.logEvent(gameId, event));
-		enhancedLogger.endGame(gameId, gameState);
+		for (const event of events) {
+			replayManager.recordEvent(gameId, event);
+		}
+		await replayManager.endRecording(gameId, gameState);
 
-		// Load replay into replay system and analyze
-		const replayData = enhancedLogger.getReplayData(gameId);
-		expect(replayData).toBeDefined();
-
-		const loaded = replaySystem.loadReplay(replayData!);
-		expect(loaded).toBe(true);
-
-		const analysis = replaySystem.analyzeReplay();
+		// Analyze recorded replay
+		const analysis = replayManager.analyzeRecordedGame(gameId);
 		expect(analysis).toBeDefined();
 		expect(analysis?.handAnalysis).toHaveLength(1);
 		expect(analysis?.playerStatistics['player1']).toBeDefined();
 		expect(analysis?.playerStatistics['player2']).toBeDefined();
 	});
 
-	it('should support replay playback controls', () => {
+	it('should support replay playback controls', async () => {
 		const gameId = 'test-game';
 		const config = createMockGameConfig();
 		const gameState = createMockGameState();
@@ -205,8 +195,8 @@ describe('EnhancedGameLogger', () => {
 			['player2', 'TestPlayer2']
 		]);
 
-		// Start logging and add events
-		enhancedLogger.startGame(gameId, config, gameState, playerNames);
+		// Start recording and add events
+		replayManager.startRecording(gameId, config, gameState, playerNames);
 		
 		const event1: GameEvent = {
 			type: 'hand_started',
@@ -222,11 +212,11 @@ describe('EnhancedGameLogger', () => {
 			gameState: { ...gameState, isComplete: true }
 		};
 
-		enhancedLogger.logEvent(gameId, event1);
-		enhancedLogger.logEvent(gameId, event2);
+		replayManager.recordEvent(gameId, event1);
+		replayManager.recordEvent(gameId, event2);
 
 		// Load into replay system
-		const replayData = enhancedLogger.getReplayData(gameId);
+		const replayData = replayManager.getReplayData(gameId);
 		const loaded = replaySystem.loadReplay(replayData!);
 		expect(loaded).toBe(true);
 

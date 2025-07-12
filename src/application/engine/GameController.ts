@@ -10,7 +10,7 @@ import {
 	StartCondition,
 } from '@/domain/types';
 import { GameEngine } from './GameEngine';
-import { EnhancedGameLogger } from '@/infrastructure/logging/EnhancedGameLogger';
+import { ReplayManager } from '@/domain/replay/ReplayManager';
 import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
 
 export interface GameInfo {
@@ -33,21 +33,15 @@ export class GameController {
 	private pendingUnseats: Map<GameId, Set<PlayerId>> = new Map();
 	/** Cleanup timers for empty games */
 	private cleanupTimers: Map<GameId, NodeJS.Timeout> = new Map();
-	/** Enhanced game logger for replay functionality */
-	private enhancedLogger: EnhancedGameLogger;
+	/** Replay manager for recording and storage */
+	private replayManager: ReplayManager;
 	/** Replay system for playback */
 	private replaySystem: ReplaySystem;
 
 	constructor(loggerConfig?: any) {
-		// Enable auto-save by default for replay files
-		const defaultConfig = {
-			autoSave: true,
-			enabled: true,
-			directory: './replays',
-			...loggerConfig
-		};
-		this.enhancedLogger = new EnhancedGameLogger(defaultConfig);
-		this.replaySystem = new ReplaySystem(this.enhancedLogger);
+		// Initialize replay management
+		this.replayManager = new ReplayManager();
+		this.replaySystem = new ReplaySystem();
 	}
 
 	/**
@@ -80,7 +74,7 @@ export class GameController {
 
 		// Only start logging if we have a valid game state
 		if (initialGameState) {
-			this.enhancedLogger.startGame(gameId, config, initialGameState, playerNames);
+			this.replayManager.startRecording(gameId, config, initialGameState, playerNames);
 		}
 
 		return game;
@@ -89,7 +83,7 @@ export class GameController {
 	/**
 	 * Removes a game
 	 */
-	removeGame(gameId: GameId): void {
+	async removeGame(gameId: GameId): Promise<void> {
 		const game = this.games.get(gameId);
 		if (!game) {
 			throw new Error(`Game with ID ${gameId} not found`);
@@ -97,7 +91,7 @@ export class GameController {
 
 		// End enhanced logging for the game
 		const finalGameState = game.getGameState();
-		this.enhancedLogger.endGame(gameId, finalGameState);
+		await this.replayManager.endRecording(gameId, finalGameState);
 
 		// Cancel any pending cleanup timer
 		const cleanupTimer = this.cleanupTimers.get(gameId);
@@ -333,7 +327,7 @@ export class GameController {
 		}
 
 		// Log event to enhanced logger for replay functionality
-		this.enhancedLogger.logEvent(gameId, event);
+		this.replayManager.recordEvent(gameId, event);
 
 		// Forward event to all subscribers
 		callbacks.forEach((cb) => {
@@ -517,7 +511,7 @@ export class GameController {
 	/**
 	 * Cleans up inactive games
 	 */
-	cleanupInactiveGames(): void {
+	async cleanupInactiveGames(): Promise<void> {
 		const gamesToRemove: GameId[] = [];
 
 		for (const [gameId, game] of this.games) {
@@ -530,9 +524,10 @@ export class GameController {
 			}
 		}
 
-		gamesToRemove.forEach((gameId) => {
-			this.removeGame(gameId);
-		});
+		// Remove games sequentially to avoid race conditions
+		for (const gameId of gamesToRemove) {
+			await this.removeGame(gameId);
+		}
 	}
 
 	/**
@@ -665,12 +660,12 @@ export class GameController {
 
 			// Schedule new cleanup after 5 seconds
 			console.log(`[GameController] Game ${gameId} is empty. Scheduling cleanup in 5 seconds.`);
-			const timer = setTimeout(() => {
+			const timer = setTimeout(async () => {
 				// Double-check game is still empty before removing
 				const game = this.games.get(gameId);
 				if (game && game.getGameState().getActivePlayers().length === 0) {
 					console.log(`[GameController] Removing empty game ${gameId}`);
-					this.removeGame(gameId);
+					await this.removeGame(gameId);
 				}
 				this.cleanupTimers.delete(gameId);
 			}, 5000);
@@ -689,35 +684,40 @@ export class GameController {
 	 * Gets replay data for a game
 	 */
 	getReplayData(gameId: GameId) {
-		return this.enhancedLogger.getReplayData(gameId);
+		return this.replayManager.getReplayData(gameId);
 	}
 
 	/**
 	 * Gets hand replay data for a specific hand
 	 */
 	getHandReplayData(gameId: GameId, handNumber: number) {
-		return this.enhancedLogger.getHandReplayData(gameId, handNumber);
+		// Hand replay data is now built on-demand from the recorded data
+		const replayData = this.replayManager.getReplayData(gameId);
+		if (!replayData) return undefined;
+		
+		// Use ReplaySystem to build hand replay data
+		return this.replaySystem.loadReplay(replayData) ? this.replaySystem.getHandReplay(handNumber) : undefined;
 	}
 
 	/**
 	 * Saves a game replay to file
 	 */
-	saveReplayToFile(gameId: GameId): boolean {
-		return this.enhancedLogger.saveReplayToFile(gameId);
+	async saveReplayToFile(gameId: GameId): Promise<{ fileSuccess: boolean; mongoSuccess: boolean; filePath?: string; error?: string }> {
+		return await this.replayManager.saveReplay(gameId);
 	}
 
 	/**
 	 * Loads a replay from file
 	 */
 	loadReplayFromFile(filepath: string) {
-		return this.enhancedLogger.loadReplayFromFile(filepath);
+		return this.replayManager.loadReplayFromFile(filepath);
 	}
 
 	/**
 	 * Lists all available replay files
 	 */
 	listAvailableReplays(): string[] {
-		return this.enhancedLogger.listAvailableReplays();
+		return this.replayManager.listAvailableReplays();
 	}
 
 	/**
@@ -731,6 +731,6 @@ export class GameController {
 	 * Exports a replay in various formats
 	 */
 	exportReplay(gameId: GameId, format: 'json' | 'compressed' = 'json') {
-		return this.enhancedLogger.exportReplay(gameId, format);
+		return this.replayManager.exportReplay(gameId, format);
 	}
 }

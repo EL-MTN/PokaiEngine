@@ -10,6 +10,7 @@ describe('Graceful Game Cleanup', () => {
 	});
 
 	afterEach(() => {
+		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
 	});
 
@@ -21,7 +22,7 @@ describe('Graceful Game Cleanup', () => {
 		isTournament: false,
 	});
 
-	it('should delete empty games after 5 seconds', () => {
+	it('should delete empty games after 5 seconds', async () => {
 		const gameId = 'test-game-1';
 		const config = createTestConfig();
 		
@@ -44,6 +45,7 @@ describe('Graceful Game Cleanup', () => {
 		
 		// Advance time by 0.2 seconds (total 5.1 seconds) - game should be deleted
 		jest.advanceTimersByTime(200);
+		await jest.runAllTimersAsync();
 		expect(gameController.getGame(gameId)).toBeUndefined();
 	});
 
@@ -72,7 +74,7 @@ describe('Graceful Game Cleanup', () => {
 		expect(gameController.getGameInfo(gameId)?.playerCount).toBe(1);
 	});
 
-	it('should handle multiple players leaving at different times', () => {
+	it('should handle multiple players leaving at different times', async () => {
 		const gameId = 'test-game-3';
 		const config = createTestConfig();
 		
@@ -102,10 +104,11 @@ describe('Graceful Game Cleanup', () => {
 		
 		// After 5 seconds from last removal, game should be deleted
 		jest.advanceTimersByTime(5100);
+		await jest.runAllTimersAsync();
 		expect(gameController.getGame(gameId)).toBeUndefined();
 	});
 
-	it('should reset cleanup timer if all players leave then rejoin', () => {
+	it('should reset cleanup timer if all players leave then rejoin', async () => {
 		const gameId = 'test-game-4';
 		const config = createTestConfig();
 		
@@ -133,6 +136,7 @@ describe('Graceful Game Cleanup', () => {
 		
 		// Wait 2 more seconds (total 6 seconds from second removal)
 		jest.advanceTimersByTime(2000);
+		await jest.runAllTimersAsync();
 		
 		// Game should now be deleted
 		expect(gameController.getGame(gameId)).toBeUndefined();
@@ -161,7 +165,7 @@ describe('Graceful Game Cleanup', () => {
 		expect(gameController.getGame(gameId)).toBeDefined();
 	});
 
-	it('should handle removeGame being called during cleanup timer', () => {
+	it('should handle removeGame being called during cleanup timer', async () => {
 		const gameId = 'test-game-6';
 		const config = createTestConfig();
 		
@@ -174,7 +178,7 @@ describe('Graceful Game Cleanup', () => {
 		jest.advanceTimersByTime(3000);
 		
 		// Manually remove game
-		gameController.removeGame(gameId);
+		await gameController.removeGame(gameId);
 		
 		// Advance time past cleanup timer
 		jest.advanceTimersByTime(3000);

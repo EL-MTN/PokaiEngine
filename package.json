@@ -4,10 +4,13 @@
   "description": "A **robust, production-ready Texas Hold'em poker engine** designed for bot battles and real-time poker tournaments. Built with TypeScript, featuring comprehensive game logic, Socket.io integration, and complete logging/replay capabilities.",
   "main": "dist/presentation/server/index.js",
   "dependencies": {
+    "@types/winston": "^2.4.4",
     "axios": "^1.10.0",
     "express": "^5.1.0",
+    "mongoose": "^8.8.3",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "winston": "^3.17.0"
   },
   "scripts": {
     "test": "jest",
@@ -33,6 +36,7 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^24.0.10",
     "@types/supertest": "^6.0.3",
     "jest": "^30.0.4",
