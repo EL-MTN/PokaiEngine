@@ -1,6 +1,7 @@
 import { GameController } from '@/application/engine/GameController';
 import { Action, GameEvent, GameId, PlayerId } from '@/domain/types';
 import { BotInterface } from './BotInterface';
+import { communicationLogger } from '@/infrastructure/logging/Logger';
 
 // Socket interface for compatibility
 export interface Socket {
@@ -170,7 +171,7 @@ export class SocketHandler {
 				
 				// Player is reconnecting to the same game - just update connection info
 				connection.gameId = data.gameId;
-				console.log(`[SocketHandler] Player ${connection.playerId} reconnected to game ${data.gameId}`);
+				communicationLogger.info(`Player ${connection.playerId} reconnected to game ${data.gameId}`);
 			} else {
 				// This is a new connection - check capacity and add player
 				const gameState = game.getGameState();
@@ -289,10 +290,7 @@ export class SocketHandler {
 					);
 				} catch (error) {
 					// Log error but don't prevent cleanup
-					console.error(
-						`Failed to unsubscribe from game events for player ${connection.playerId}:`,
-						error
-					);
+					communicationLogger.error(`Failed to unsubscribe from game events for player ${connection.playerId}:`, error);
 				}
 				// Clear the handler reference to prevent memory leaks
 				connection.eventHandler = undefined;
@@ -566,7 +564,7 @@ export class SocketHandler {
 			this.gameController.forcePlayerAction(connection.gameId, connection.playerId);
 		} catch (error) {
 			// Log error but don't crash - game should continue functioning
-			console.error(`Force action failed for player ${connection.playerId}:`, error);
+			communicationLogger.error(`Force action failed for player ${connection.playerId}:`, error);
 
 			// Notify the player that force action failed
 			connection.socket.emit('forceActionError', {
@@ -591,10 +589,7 @@ export class SocketHandler {
 				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
 			} catch (error) {
 				// Log error but don't prevent cleanup
-				console.error(
-					`Failed to unsubscribe from game events for player ${connection.playerId}:`,
-					error
-				);
+				communicationLogger.error(`Failed to unsubscribe from game events for player ${connection.playerId}:`, error);
 			}
 			// Clear the handler reference to prevent memory leaks
 			connection.eventHandler = undefined;
@@ -617,10 +612,10 @@ export class SocketHandler {
 		// Then remove player from game entirely
 		if (connection.gameId) {
 			try {
-				console.log(`[SocketHandler] Permanently removing player ${connection.playerId} from game ${connection.gameId} due to timeout`);
+				communicationLogger.info(`Permanently removing player ${connection.playerId} from game ${connection.gameId} due to timeout`);
 				this.gameController.removePlayerFromGame(connection.gameId, connection.playerId);
 			} catch (error) {
-				console.error(`Failed to remove player ${connection.playerId} from game:`, error);
+				communicationLogger.error(`Failed to remove player ${connection.playerId} from game:`, error);
 			}
 		}
 	}

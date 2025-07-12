@@ -82,5 +82,6 @@ export const gameLogger = createModuleLogger('Game');
 export const replayLogger = createModuleLogger('Replay');
 export const dbLogger = createModuleLogger('Database');
 export const serverLogger = createModuleLogger('Server');
+export const communicationLogger = createModuleLogger('Communication');
 
 export default Logger;

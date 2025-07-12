@@ -3,9 +3,10 @@ import { createServer } from 'http';
 import { IncomingMessage, ServerResponse } from 'http';
 import { GameController } from '@/application/engine/GameController';
 import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
-import { EnhancedGameLogger } from '@/infrastructure/logging/EnhancedGameLogger';
+import { GameLogger } from '@/infrastructure/logging/GameLogger';
 import { initializeDatabase } from '@/infrastructure/persistence/database/connection';
 import { GameConfig } from '@/domain/types';
+import { serverLogger } from '@/infrastructure/logging/Logger';
 
 /**
  * Main entry point for the Pokai Poker Engine
@@ -16,7 +17,7 @@ class PokaiServer {
 	private io: Server;
 	private gameController: GameController;
 	private socketHandler: SocketHandler;
-	private gameLogger: EnhancedGameLogger;
+	private gameLogger: GameLogger;
 	private port: number;
 	private isInitialized: boolean = false;
 
@@ -32,10 +33,7 @@ class PokaiServer {
 
 		// Initialize game components
 		this.gameController = new GameController();
-		this.gameLogger = new EnhancedGameLogger({
-			mongoEnabled: true,
-			autoSave: true
-		});
+		this.gameLogger = new GameLogger();
 		this.socketHandler = new SocketHandler(this.io, this.gameController);
 
 		this.setupRoutes();
@@ -50,19 +48,12 @@ class PokaiServer {
 		}
 
 		try {
-			console.log('🗄️  Initializing database connection...');
+			serverLogger.info('Initializing database connection...');
 			await initializeDatabase();
-			console.log('✅ Database connection established');
-			
-			// Give the enhanced game logger time to initialize its MongoDB service
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			
-			const healthCheck = await this.gameLogger.healthCheck();
-			console.log(`📊 Logger health check - Memory: ${healthCheck.memory}, MongoDB: ${healthCheck.mongo}`);
-			
+			serverLogger.info('Database connection established');
 			this.isInitialized = true;
 		} catch (error) {
-			console.warn('⚠️  Database initialization failed, continuing with file-based logging only:', error);
+			serverLogger.warn('Database initialization failed, continuing with basic logging only:', error);
 			this.isInitialized = true; // Still allow server to start
 		}
 	}
@@ -87,7 +78,6 @@ class PokaiServer {
 					connectedClients: this.io.engine.clientsCount,
 					totalGamesPlayed: this.gameLogger.getAllLogs().length,
 					serverUptime: process.uptime(),
-					mongoAvailable: this.gameLogger.isMongoAvailable(),
 				};
 				res.writeHead(200);
 				res.end(JSON.stringify(stats));
@@ -120,16 +110,12 @@ class PokaiServer {
 		await this.initialize();
 
 		this.httpServer.listen(this.port, () => {
-			console.log(`🚀 Pokai Poker Engine started on port ${this.port}`);
-			console.log(`📊 Health check: http://localhost:${this.port}/health`);
-			console.log(`📈 Stats: http://localhost:${this.port}/stats`);
-			console.log(`🎮 WebSocket: ws://localhost:${this.port}`);
-			if (this.gameLogger.isMongoAvailable()) {
-				console.log(`🗄️  MongoDB replay storage: Enabled`);
-			} else {
-				console.log(`📁 File-based replay storage: Enabled`);
-			}
-			console.log(`\n🃏 Ready for bot connections!`);
+			serverLogger.info(`🚀 Pokai Poker Engine started on port ${this.port}`);
+			serverLogger.info(`📊 Health check: http://localhost:${this.port}/health`);
+			serverLogger.info(`📈 Stats: http://localhost:${this.port}/stats`);
+			serverLogger.info(`🎮 WebSocket: ws://localhost:${this.port}`);
+			serverLogger.info(`📁 Replay storage: Enabled`);
+			serverLogger.info(`\n🃏 Ready for bot connections!`);
 		});
 	}
 
@@ -137,7 +123,7 @@ class PokaiServer {
 	 * Gracefully shuts down the server
 	 */
 	async shutdown(): Promise<void> {
-		console.log('🔄 Shutting down server...');
+		serverLogger.info('🔄 Shutting down server...');
 
 		// Close all socket connections
 		this.io.close();
@@ -145,7 +131,7 @@ class PokaiServer {
 		// Close HTTP server
 		this.httpServer.close();
 
-		console.log('✅ Server shutdown complete');
+		serverLogger.info('✅ Server shutdown complete');
 	}
 }
 
@@ -176,20 +162,20 @@ if (require.main === module) {
 
 	// Handle graceful shutdown
 	process.on('SIGINT', async () => {
-		console.log('\n🛑 Received SIGINT, shutting down gracefully...');
+		serverLogger.info('\n🛑 Received SIGINT, shutting down gracefully...');
 		await server.shutdown();
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', async () => {
-		console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
+		serverLogger.info('\n🛑 Received SIGTERM, shutting down gracefully...');
 		await server.shutdown();
 		process.exit(0);
 	});
 
 	// Start server with async initialization
 	server.start().catch(error => {
-		console.error('❌ Failed to start server:', error);
+		serverLogger.error('❌ Failed to start server:', error);
 		process.exit(1);
 	});
 }

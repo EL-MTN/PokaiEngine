@@ -1,0 +1,561 @@
+{"level":"info","message":"[EnhancedGameLogger] MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:03.318Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:10.166Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:24.857Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:29.620Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:38.183Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:43.079Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:47.115Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:51.630Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:13:55.885Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:00.392Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:04.896Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:10.562Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:14.466Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:19.655Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:24.217Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:28.659Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:33.594Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:49.385Z"}
+{"level":"info","message":"[ReplayService] Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:14:59.571Z"}
+{"level":"info","message":"[ReplayService] Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:14:59.578Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:14:59.578Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:03.762Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:03.768Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:03.769Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:07.825Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:07.832Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:07.833Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:16.165Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:16.171Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:16.172Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:20.785Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:20.791Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:20.792Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:25.617Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:25.624Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:25.624Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:29.713Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:29.720Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:29.720Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:35.412Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:35.418Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:35.419Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:46.690Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:46.697Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:46.697Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:51.682Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:15:51.689Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:15:51.689Z"}
+{"level":"info","message":"[Database] Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:01.724Z"}
+{"level":"info","message":"[Database] Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:01.735Z"}
+{"level":"info","message":"[Database] Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:01.738Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:01.738Z"}
+{"level":"info","message":"[Database] Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:01.744Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:01.744Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:01.744Z"}
+{"level":"info","message":"[Database] Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:06.409Z"}
+{"level":"info","message":"[Database] Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:06.420Z"}
+{"level":"info","message":"[Database] Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:06.423Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:06.423Z"}
+{"level":"info","message":"[Database] Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:06.428Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:06.428Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:06.429Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:22.113Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:22.124Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:22.126Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:22.127Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:22.132Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:22.132Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:22.132Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:34.372Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:34.383Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:34.385Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:34.386Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:34.391Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:34.391Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:34.391Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:43.974Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:43.985Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:43.988Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:43.988Z"}
+{"level":"info","message":"[ReplaySystem] MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:43.988Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:43.993Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:43.993Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:43.993Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:50.179Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:16:50.190Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:50.192Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:50.193Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:50.193Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:16:50.198Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:16:50.198Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:16:50.198Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:17:07.068Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:17:07.079Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:17:07.081Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:17:07.082Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:17:07.082Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:17:07.087Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:17:07.087Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:17:07.088Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:22:57.928Z"}
+{"level":"error","message":"Failed to initialize MongoDB replay service, using file-based only: ReplayService is not defined","module":"Replay","stack":"ReferenceError: ReplayService is not defined\n    at ReplaySystem.initializeReplayService (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/logging/ReplaySystem.ts:116:29)\n    at new ReplaySystem (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/logging/ReplaySystem.ts:103:8)\n    at new GameController (/Users/mastermind/Desktop/Programming/PokaiEngine/src/application/engine/GameController.ts:50:23)\n    at new PokaiExpressServer (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:39:25)\n    at express (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:637:17)\n    at Object.<anonymous> (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:654:16)\n    at Module._compile (node:internal/modules/cjs/loader:1546:14)\n    at Object.transformer (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)\n    at Module.load (node:internal/modules/cjs/loader:1318:32)\n    at Function._load (node:internal/modules/cjs/loader:1128:12)","timestamp":"2025-07-12T16:22:57.941Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:22:57.949Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:22:57.950Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:22:57.950Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:03.965Z"}
+{"level":"error","message":"Failed to initialize MongoDB replay service, using file-based only: ReplayService is not defined","module":"Replay","stack":"ReferenceError: ReplayService is not defined\n    at ReplaySystem.initializeReplayService (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/logging/ReplaySystem.ts:112:29)\n    at new ReplaySystem (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/logging/ReplaySystem.ts:99:8)\n    at new GameController (/Users/mastermind/Desktop/Programming/PokaiEngine/src/application/engine/GameController.ts:50:23)\n    at new PokaiExpressServer (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:39:25)\n    at express (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:637:17)\n    at Object.<anonymous> (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:654:16)\n    at Module._compile (node:internal/modules/cjs/loader:1546:14)\n    at Object.transformer (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)\n    at Module.load (node:internal/modules/cjs/loader:1318:32)\n    at Function._load (node:internal/modules/cjs/loader:1128:12)","timestamp":"2025-07-12T16:23:03.978Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:03.987Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:03.987Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:03.987Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:15.661Z"}
+{"level":"error","message":"Failed to initialize MongoDB replay service, using file-based only: ReplayService is not defined","module":"Replay","stack":"ReferenceError: ReplayService is not defined\n    at ReplaySystem.initializeReplayService (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/logging/ReplaySystem.ts:73:29)\n    at new ReplaySystem (/Users/mastermind/Desktop/Programming/PokaiEngine/src/infrastructure/logging/ReplaySystem.ts:60:8)\n    at new GameController (/Users/mastermind/Desktop/Programming/PokaiEngine/src/application/engine/GameController.ts:50:23)\n    at new PokaiExpressServer (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:39:25)\n    at express (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:637:17)\n    at Object.<anonymous> (/Users/mastermind/Desktop/Programming/PokaiEngine/src/presentation/server/PokaiExpressServer.ts:654:16)\n    at Module._compile (node:internal/modules/cjs/loader:1546:14)\n    at Object.transformer (/Users/mastermind/Desktop/Programming/PokaiEngine/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)\n    at Module.load (node:internal/modules/cjs/loader:1318:32)\n    at Function._load (node:internal/modules/cjs/loader:1128:12)","timestamp":"2025-07-12T16:23:15.675Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:15.683Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:15.683Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:15.683Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:25.818Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:25.829Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:25.832Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:25.832Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:23:25.832Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:25.837Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:25.838Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:25.838Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:32.832Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:32.843Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:32.846Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:32.846Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:23:32.846Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:32.852Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:32.852Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:32.852Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:38.864Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:38.876Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:38.878Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:38.878Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:23:38.878Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:38.884Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:38.884Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:38.884Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:48.095Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:48.107Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:48.110Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:48.110Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:23:48.110Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:48.116Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:48.116Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:48.116Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:55.542Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:23:55.553Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:55.556Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:55.556Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:23:55.556Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:23:55.561Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:23:55.561Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:23:55.562Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:02.666Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:02.677Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:02.679Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:02.679Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:02.679Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:02.685Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:02.685Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:02.685Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:09.389Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:09.400Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:09.402Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:09.402Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:09.402Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:09.412Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:09.412Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:09.412Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:17.893Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:17.904Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:17.906Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:17.906Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:17.906Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:17.912Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:17.912Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:17.912Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:24.476Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:24.487Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:24.489Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:24.489Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:24.489Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:24.494Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:24.495Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:24.495Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:30.508Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:30.519Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:30.521Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:30.521Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:30.522Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:30.528Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:30.529Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:30.529Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:47.674Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:47.685Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:47.687Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:47.687Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:47.688Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:47.693Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:47.693Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:47.693Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:58.874Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:24:58.885Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:58.888Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:58.888Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:24:58.888Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:24:58.893Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:24:58.894Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:24:58.894Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:25:09.721Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:25:09.733Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:25:09.735Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:25:09.736Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:25:09.736Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:25:09.741Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:25:09.741Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:25:09.741Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:25:18.149Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:25:18.161Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:25:18.163Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:25:18.164Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:25:18.164Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:25:18.169Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:25:18.170Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:25:18.170Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:27:21.538Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:27:21.549Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:27:21.551Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:27:21.552Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:27:21.552Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:27:21.558Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:27:21.559Z"}
+{"level":"info","message":"MongoDB replay service initialized","module":"Replay","timestamp":"2025-07-12T16:27:21.559Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:02.559Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:02.571Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:02.574Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:02.574Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:02.574Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:02.580Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:02.580Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:02.580Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:13.536Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:13.547Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:13.549Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:13.549Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:13.550Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:13.555Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:13.555Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:13.555Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:32.482Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:32.493Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:32.496Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:32.496Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:32.496Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:32.502Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:32.502Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:32.502Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:37.926Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:37.937Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:37.939Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:37.940Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:37.940Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:37.945Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:37.945Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:37.946Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:42.467Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:42.478Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:42.480Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:42.481Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:42.481Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:42.486Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:42.487Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:42.487Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:49.516Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:31:49.527Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:49.530Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:49.530Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:49.530Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:31:49.536Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:31:49.536Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:31:49.536Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:00.022Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:00.034Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:00.037Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:00.037Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:00.037Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:00.042Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:00.043Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:00.043Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:04.553Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:04.564Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:04.567Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:04.567Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:04.567Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:04.577Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:04.577Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:04.577Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:09.010Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:09.021Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:09.023Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:09.023Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:09.023Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:09.029Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:09.029Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:09.029Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:15.027Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:15.038Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:15.041Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:15.041Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:15.041Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:15.046Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:15.047Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:15.047Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:42.892Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:42.903Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:42.906Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:42.906Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:42.906Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:42.912Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:42.912Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:42.912Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:55.927Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:32:55.938Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:55.941Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:55.941Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:55.941Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:32:55.947Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:32:55.947Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:32:55.947Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:36:20.141Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:36:20.152Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:36:20.154Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:36:20.155Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:36:20.155Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:36:20.160Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:36:20.160Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:36:20.160Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:36:30.805Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:36:30.817Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:36:30.820Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:36:30.820Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:36:30.820Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:36:30.826Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:36:30.826Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:36:30.826Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:48:22.080Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:48:22.091Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:48:22.094Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:48:22.094Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:48:22.094Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:48:22.099Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:48:22.100Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:48:22.100Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:27.693Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:27.704Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:27.706Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:27.707Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:27.707Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:27.712Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:27.713Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:27.713Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:35.264Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:35.276Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:35.278Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:35.278Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:35.279Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:35.284Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:35.284Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:35.284Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:40.368Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:40.379Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:40.382Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:40.382Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:40.382Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:40.387Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:40.388Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:40.388Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:45.246Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:45.257Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:45.259Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:45.260Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:45.260Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:45.265Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:45.265Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:45.265Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:49.509Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:49.520Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:49.522Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:49.522Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:49.522Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:49.528Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:49.528Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:49.528Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:54.538Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:54.549Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:54.551Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:54.551Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:54.551Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:54.557Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:54.558Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:54.558Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:59.599Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:51:59.610Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:59.612Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:59.613Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:59.613Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:51:59.618Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:51:59.618Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:51:59.618Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:13.799Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:13.810Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:13.812Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:13.813Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:13.813Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:13.818Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:13.818Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:13.818Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:18.662Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:18.673Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:18.675Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:18.676Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:18.676Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:18.681Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:18.682Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:18.682Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:23.459Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:23.470Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:23.472Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:23.472Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:23.472Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:23.478Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:23.478Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:23.478Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:28.050Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:28.060Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:28.063Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:28.063Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:28.063Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:28.069Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:28.069Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:28.069Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:42.798Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:42.810Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:42.812Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:42.813Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:42.813Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:42.818Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:42.818Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:42.818Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:52.579Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:52:52.590Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:52.592Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:52.592Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:52.592Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:52:52.598Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:52:52.598Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:52:52.598Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:00.967Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:00.978Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:00.981Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:00.981Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:00.981Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:00.987Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:00.987Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:00.987Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:05.565Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:05.577Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:05.579Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:05.579Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:05.579Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:05.585Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:05.585Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:05.585Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:17.546Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:17.557Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:17.559Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:17.559Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:17.559Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:17.565Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:17.565Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:17.565Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:22.511Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:22.522Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:22.525Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:22.525Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:22.525Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:22.531Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:22.531Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:22.531Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:26.904Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:53:26.914Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:26.917Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:26.917Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:26.917Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:53:26.923Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:53:26.923Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:53:26.923Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:18.565Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:18.576Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:18.579Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:18.579Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:18.579Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:18.584Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:18.584Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:18.584Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:24.321Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:24.332Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:24.334Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:24.334Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:24.334Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:24.340Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:24.340Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:24.340Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:33.054Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:33.066Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:33.068Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:33.068Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:33.068Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T16:54:33.069Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T16:54:33.069Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T16:54:33.069Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T16:54:33.070Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T16:54:33.070Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T16:54:33.070Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T16:54:33.070Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:33.075Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:33.075Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:33.075Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:39.740Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:39.751Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:39.753Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:39.753Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:39.753Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T16:54:39.754Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T16:54:39.754Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T16:54:39.754Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T16:54:39.754Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T16:54:39.754Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T16:54:39.755Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T16:54:39.755Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:39.759Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:39.759Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:39.759Z"}
+{"level":"info","message":"🔄 Shutting down server...","module":"Server","timestamp":"2025-07-12T16:54:50.958Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:51.391Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T16:54:51.402Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:51.405Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:51.405Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:51.405Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T16:54:51.406Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:51.412Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:51.412Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:51.412Z"}

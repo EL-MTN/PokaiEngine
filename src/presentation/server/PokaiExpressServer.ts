@@ -7,6 +7,7 @@ import { BotInterface } from '@/infrastructure/communication/BotInterface';
 import { GameLogger } from '@/infrastructure/logging/GameLogger';
 import { GameConfig } from '@/domain/types';
 import * as path from 'path';
+import { serverLogger } from '@/infrastructure/logging/Logger';
 
 /**
  * Enhanced Pokai Server with Express REST API support
@@ -77,7 +78,7 @@ export class PokaiExpressServer {
 
 		// Request logging
 		this.app.use((req, res, next) => {
-			console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+			serverLogger.http(`${req.method} ${req.path}`);
 			next();
 		});
 	}
@@ -618,21 +619,21 @@ export class PokaiExpressServer {
 
 	start(): void {
 		this.httpServer.listen(this.port, () => {
-			console.log(`🚀 Pokai Poker Engine (Express) started on port ${this.port}`);
-			console.log(`📊 Health: http://localhost:${this.port}/health`);
-			console.log(`📈 Stats: http://localhost:${this.port}/stats`);
-			console.log(`🎮 WebSocket: ws://localhost:${this.port}`);
-			console.log(`📚 API Docs: http://localhost:${this.port}/docs`);
-			console.log(`🎛️  Admin Dashboard: http://localhost:${this.port}/dashboard`);
-			console.log(`\n🃏 Ready for bot connections!`);
+			serverLogger.info(`🚀 Pokai Poker Engine (Express) started on port ${this.port}`);
+			serverLogger.info(`📊 Health: http://localhost:${this.port}/health`);
+			serverLogger.info(`📈 Stats: http://localhost:${this.port}/stats`);
+			serverLogger.info(`🎮 WebSocket: ws://localhost:${this.port}`);
+			serverLogger.info(`📚 API Docs: http://localhost:${this.port}/docs`);
+			serverLogger.info(`🎛️  Admin Dashboard: http://localhost:${this.port}/dashboard`);
+			serverLogger.info(`\n🃏 Ready for bot connections!`);
 		});
 	}
 
 	async shutdown(): Promise<void> {
-		console.log('🔄 Shutting down server...');
+		serverLogger.info('🔄 Shutting down server...');
 		this.io.close();
 		this.httpServer.close();
-		console.log('✅ Server shutdown complete');
+		serverLogger.info('✅ Server shutdown complete');
 	}
 }
 
@@ -642,13 +643,13 @@ if (require.main === module) {
 	const server = new PokaiExpressServer(port);
 
 	process.on('SIGINT', async () => {
-		console.log('\n🛑 Shutting down gracefully...');
+		serverLogger.info('\n🛑 Shutting down gracefully...');
 		await server.shutdown();
 		process.exit(0);
 	});
 
 	process.on('SIGTERM', async () => {
-		console.log('\n🛑 Shutting down gracefully...');
+		serverLogger.info('\n🛑 Shutting down gracefully...');
 		await server.shutdown();
 		process.exit(0);
 	});

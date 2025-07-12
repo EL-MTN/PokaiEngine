@@ -12,6 +12,7 @@ import {
 import { GameEngine } from './GameEngine';
 import { ReplayManager } from '@/domain/replay/ReplayManager';
 import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
+import { gameLogger } from '@/infrastructure/logging/Logger';
 
 export interface GameInfo {
 	id: GameId;
@@ -334,7 +335,7 @@ export class GameController {
 			try {
 				cb(event);
 			} catch (error) {
-				console.error(`Error in event callback for game ${gameId}:`, error);
+				gameLogger.error(`Error in event callback for game ${gameId}:`, error);
 			}
 		});
 
@@ -347,7 +348,7 @@ export class GameController {
 					try {
 						this.removePlayerFromGame(gameId, pid);
 					} catch (err) {
-						console.error(`Error removing player ${pid} from game ${gameId}:`, err);
+						gameLogger.error(`Error removing player ${pid} from game ${gameId}:`, err);
 					}
 				});
 				this.pendingUnseats.delete(gameId);
@@ -359,12 +360,10 @@ export class GameController {
 				const game = this.games.get(gameId);
 				// Check if game still exists and has enough players to continue
 				if (game && game.getGameState().players.length >= 2) {
-					console.log(`[GameController] Automatically starting new hand for game: ${gameId}`);
+					gameLogger.info(`Automatically starting new hand for game: ${gameId}`);
 					this.startHand(gameId);
 				} else {
-					console.log(
-						`[GameController] Game ${gameId} ended or not enough players to continue.`
-					);
+					gameLogger.info(`Game ${gameId} ended or not enough players to continue.`);
 				}
 			}, handStartDelay);
 			timer.unref();
@@ -574,9 +573,7 @@ export class GameController {
 		// Default behavior: auto-start with 2 players (backward compatibility)
 		if (!startSettings) {
 			if (gameState.players.length >= 2) {
-				console.log(
-					`[GameController] Two or more players have joined game ${gameId}. Starting first hand.`
-				);
+				gameLogger.info(`Two or more players have joined game ${gameId}. Starting first hand.`);
 				this.startHand(gameId);
 			}
 			return;
@@ -587,9 +584,7 @@ export class GameController {
 			case 'minPlayers':
 				const minPlayers = startSettings.minPlayers || 2;
 				if (gameState.players.length >= minPlayers) {
-					console.log(
-						`[GameController] Minimum players (${minPlayers}) reached for game ${gameId}. Starting first hand.`
-					);
+					gameLogger.info(`Minimum players (${minPlayers}) reached for game ${gameId}. Starting first hand.`);
 					this.startHand(gameId);
 				}
 				break;
@@ -634,7 +629,7 @@ export class GameController {
 			throw new Error(`Need at least 2 players to start game ${gameId}`);
 		}
 
-		console.log(`[GameController] Manually starting game ${gameId}`);
+		gameLogger.info(`Manually starting game ${gameId}`);
 		this.startHand(gameId);
 	}
 
@@ -659,12 +654,12 @@ export class GameController {
 			}
 
 			// Schedule new cleanup after 5 seconds
-			console.log(`[GameController] Game ${gameId} is empty. Scheduling cleanup in 5 seconds.`);
+			gameLogger.info(`Game ${gameId} is empty. Scheduling cleanup in 5 seconds.`);
 			const timer = setTimeout(async () => {
 				// Double-check game is still empty before removing
 				const game = this.games.get(gameId);
 				if (game && game.getGameState().getActivePlayers().length === 0) {
-					console.log(`[GameController] Removing empty game ${gameId}`);
+					gameLogger.info(`Removing empty game ${gameId}`);
 					await this.removeGame(gameId);
 				}
 				this.cleanupTimers.delete(gameId);
