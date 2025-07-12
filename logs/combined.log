@@ -559,3 +559,18 @@
 {"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T16:54:51.412Z"}
 {"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T16:54:51.412Z"}
 {"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T16:54:51.412Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T17:18:50.221Z"}
+{"level":"info","message":"Attempting to connect to MongoDB (attempt 1/5)","module":"Database","timestamp":"2025-07-12T17:18:50.232Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:18:50.235Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:18:50.235Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:18:50.235Z"}
+{"level":"info","message":"🚀 Pokai Poker Engine (Express) started on port 3000","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"📊 Health: http://localhost:3000/health","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"📈 Stats: http://localhost:3000/stats","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"🎮 WebSocket: ws://localhost:3000","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"📚 API Docs: http://localhost:3000/docs","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"🎛️  Admin Dashboard: http://localhost:3000/dashboard","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"\n🃏 Ready for bot connections!","module":"Server","timestamp":"2025-07-12T17:18:50.236Z"}
+{"level":"info","message":"Successfully connected to MongoDB","module":"Database","timestamp":"2025-07-12T17:18:50.241Z"}
+{"level":"info","message":"Database connection initialized","module":"Replay","timestamp":"2025-07-12T17:18:50.241Z"}
+{"level":"info","message":"MongoDB replay service initialized for storage","module":"Replay","timestamp":"2025-07-12T17:18:50.242Z"}
