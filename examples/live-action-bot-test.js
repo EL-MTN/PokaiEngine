@@ -18,7 +18,7 @@ const SERVER_URL = 'http://localhost:3000';
 const axiosInstance = axios.create({
 	proxy: false, // Disable proxy for localhost
 	timeout: 10000,
-	baseURL: SERVER_URL
+	baseURL: SERVER_URL,
 });
 
 // Configure socket options for better connectivity
@@ -28,7 +28,7 @@ const socketConfig = {
 	reconnectionAttempts: 5,
 	reconnectionDelay: 1000,
 	timeout: 10000,
-	forceNew: true // Force new connection for each bot
+	forceNew: true, // Force new connection for each bot
 };
 
 console.log('🔧 Configured for direct localhost connection (bypassing proxy)');
@@ -54,7 +54,13 @@ class ActionLoggingBot extends EventEmitter {
 	log(message, type = 'info') {
 		const timestamp = new Date().toLocaleTimeString();
 		const prefix =
-			type === 'action' ? '🎯' : type === 'win' ? '🏆' : type === 'lose' ? '😞' : 'ℹ️';
+			type === 'action'
+				? '🎯'
+				: type === 'win'
+					? '🏆'
+					: type === 'lose'
+						? '😞'
+						: 'ℹ️';
 		console.log(`[${timestamp}] ${prefix} ${this.name}: ${message}`);
 	}
 
@@ -64,7 +70,7 @@ class ActionLoggingBot extends EventEmitter {
 			// Authenticate first before doing anything else
 			this.socket.emit('authenticate', {
 				botId: this.botId,
-				apiKey: this.apiKey
+				apiKey: this.apiKey,
 			});
 		});
 
@@ -83,7 +89,7 @@ class ActionLoggingBot extends EventEmitter {
 			// IMPORTANT: Use the server-provided player ID, not our custom one
 			this.playerId = data.playerId;
 			this.log(
-				`Joined game successfully (Server Player ID: ${this.playerId}, Chips: $${data.chipStack})`
+				`Joined game successfully (Server Player ID: ${this.playerId}, Chips: $${data.chipStack})`,
 			);
 		});
 
@@ -96,13 +102,16 @@ class ActionLoggingBot extends EventEmitter {
 				actualGameState.players &&
 				Array.isArray(actualGameState.players)
 			) {
-				const myPlayer = actualGameState.players.find((p) => p.id === this.playerId);
+				const myPlayer = actualGameState.players.find(
+					(p) => p.id === this.playerId,
+				);
 				if (myPlayer && actualGameState.playerCards) {
 					const cards = actualGameState.playerCards
 						.map((c) => this.formatCard(c))
 						.join(' ');
 					const communityCards =
-						actualGameState.communityCards && actualGameState.communityCards.length > 0
+						actualGameState.communityCards &&
+						actualGameState.communityCards.length > 0
 							? actualGameState.communityCards
 									.map((c) => this.formatCard(c))
 									.join(' ')
@@ -113,7 +122,7 @@ class ActionLoggingBot extends EventEmitter {
 							actualGameState.potSize
 						} | Chips: $${
 							myPlayer.chipStack
-						} | Hand: [${cards}] | Board: [${communityCards}]`
+						} | Hand: [${cards}] | Board: [${communityCards}]`,
 					);
 				}
 			}
@@ -145,7 +154,10 @@ class ActionLoggingBot extends EventEmitter {
 			const gameEvent = payload.event;
 
 			// Opponent action
-			if (gameEvent.type === 'action_taken' && gameEvent.action?.playerId !== this.playerId) {
+			if (
+				gameEvent.type === 'action_taken' &&
+				gameEvent.action?.playerId !== this.playerId
+			) {
 				const opponentAction = `${gameEvent.action.type.toUpperCase()}${
 					gameEvent.action.amount ? ` $${gameEvent.action.amount}` : ''
 				}`;
@@ -171,14 +183,14 @@ class ActionLoggingBot extends EventEmitter {
 						`🎉 WON HAND #${this.handsPlayed} with ${myWin.handDescription}! (W/L: ${
 							this.wins
 						}/${this.handsPlayed - this.wins})`,
-						'win'
+						'win',
 					);
 				} else {
 					this.log(
 						`💸 Lost hand #${this.handsPlayed}. (W/L: ${this.wins}/${
 							this.handsPlayed - this.wins
 						})`,
-						'lose'
+						'lose',
 					);
 				}
 
@@ -191,7 +203,7 @@ class ActionLoggingBot extends EventEmitter {
 					this.log(
 						`📋 Hand summary: ${handActions
 							.map((a) => a.action + (a.amount ? `($${a.amount})` : ''))
-							.join(' → ')}`
+							.join(' → ')}`,
 					);
 				}
 			}
@@ -254,7 +266,7 @@ class ActionLoggingBot extends EventEmitter {
 		}
 
 		this.log(
-			`🤔 Thinking... Available: [${actions.map((a) => a.type.toUpperCase()).join(', ')}]`
+			`🤔 Thinking... Available: [${actions.map((a) => a.type.toUpperCase()).join(', ')}]`,
 		);
 
 		let chosenAction;
@@ -292,7 +304,10 @@ class ActionLoggingBot extends EventEmitter {
 		const actionStr = `${action.type.toUpperCase()}${
 			action.amount ? ` $${action.amount}` : ''
 		}`;
-		this.log(`🎯 DECISION: ${actionStr} (Strategy: ${this.strategy})`, 'action');
+		this.log(
+			`🎯 DECISION: ${actionStr} (Strategy: ${this.strategy})`,
+			'action',
+		);
 
 		// Wrap action in data object as expected by server
 		this.socket.emit('action', { action: action });
@@ -303,9 +318,14 @@ class ActionLoggingBot extends EventEmitter {
 			hands: this.handsPlayed,
 			wins: this.wins,
 			actions: this.actionCount,
-			winRate: this.handsPlayed > 0 ? ((this.wins / this.handsPlayed) * 100).toFixed(1) : 0,
+			winRate:
+				this.handsPlayed > 0
+					? ((this.wins / this.handsPlayed) * 100).toFixed(1)
+					: 0,
 			actionsPerHand:
-				this.handsPlayed > 0 ? (this.actionCount / this.handsPlayed).toFixed(1) : 0,
+				this.handsPlayed > 0
+					? (this.actionCount / this.handsPlayed).toFixed(1)
+					: 0,
 		};
 	}
 }
@@ -330,7 +350,7 @@ async function runLiveActionTest() {
 	try {
 		await new Promise((resolve, reject) => {
 			let timeoutId;
-			
+
 			const onHandPlayed = () => {
 				handsPlayed++;
 				console.log(`🎯 Hand ${handsPlayed}/${handsToPlay} completed`);
@@ -341,7 +361,11 @@ async function runLiveActionTest() {
 			};
 
 			timeoutId = setTimeout(() => {
-				reject(new Error(`Test timed out after failing to complete ${handsToPlay} hands in 60 seconds.`));
+				reject(
+					new Error(
+						`Test timed out after failing to complete ${handsToPlay} hands in 60 seconds.`,
+					),
+				);
 			}, 60000); // 60-second timeout for 5 hands (increased for authentication)
 
 			const run = async () => {
@@ -357,56 +381,72 @@ async function runLiveActionTest() {
 						isTournament: false,
 						startSettings: {
 							condition: 'minPlayers', // Ensure auto-start
-							minPlayers: 2
-						}
+							minPlayers: 2,
+						},
 					});
 					console.log(`✅ Game created: ${gameId}\n`);
 
 					// Register test bots for authentication
 					console.log('🔐 Registering test bots...');
 					const timestamp = Date.now();
-					
+
 					try {
-						const aggressiveResponse = await axiosInstance.post('/api/bots/register', {
-							botName: `AggressiveBot-${timestamp}`,
-							developer: 'LiveActionTest',
-							email: 'test@example.com'
-						});
+						const aggressiveResponse = await axiosInstance.post(
+							'/api/bots/register',
+							{
+								botName: `AggressiveBot-${timestamp}`,
+								developer: 'LiveActionTest',
+								email: 'test@example.com',
+							},
+						);
 						aggressiveBotCredentials = aggressiveResponse.data.data;
-						console.log(`✅ AggressiveBot registered: ${aggressiveBotCredentials.botId}`);
+						console.log(
+							`✅ AggressiveBot registered: ${aggressiveBotCredentials.botId}`,
+						);
 					} catch (error) {
-						console.log('⚠️  AggressiveBot registration failed:', error.response?.data?.message || error.message);
+						console.log(
+							'⚠️  AggressiveBot registration failed:',
+							error.response?.data?.message || error.message,
+						);
 						throw error;
 					}
 
 					try {
-						const conservativeResponse = await axiosInstance.post('/api/bots/register', {
-							botName: `ConservativeBot-${timestamp}`,
-							developer: 'LiveActionTest',
-							email: 'test@example.com'
-						});
+						const conservativeResponse = await axiosInstance.post(
+							'/api/bots/register',
+							{
+								botName: `ConservativeBot-${timestamp}`,
+								developer: 'LiveActionTest',
+								email: 'test@example.com',
+							},
+						);
 						conservativeBotCredentials = conservativeResponse.data.data;
-						console.log(`✅ ConservativeBot registered: ${conservativeBotCredentials.botId}`);
+						console.log(
+							`✅ ConservativeBot registered: ${conservativeBotCredentials.botId}`,
+						);
 					} catch (error) {
-						console.log('⚠️  ConservativeBot registration failed:', error.response?.data?.message || error.message);
+						console.log(
+							'⚠️  ConservativeBot registration failed:',
+							error.response?.data?.message || error.message,
+						);
 						throw error;
 					}
 
 					// Create bots with authentication credentials
 					console.log('\n🤖 Creating authenticated bots...');
 					aggressiveBot = new ActionLoggingBot(
-						'AggressiveBot', 
+						'AggressiveBot',
 						'aggressive',
 						aggressiveBotCredentials.botId,
-						aggressiveBotCredentials.apiKey
+						aggressiveBotCredentials.apiKey,
 					);
 					conservativeBot = new ActionLoggingBot(
-						'ConservativeBot', 
+						'ConservativeBot',
 						'conservative',
 						conservativeBotCredentials.botId,
-						conservativeBotCredentials.apiKey
+						conservativeBotCredentials.apiKey,
 					);
-					
+
 					// Set global reference for cleanup
 					currentBots = [aggressiveBot, conservativeBot];
 
@@ -420,7 +460,7 @@ async function runLiveActionTest() {
 					// Join game
 					console.log('🔗 Connecting bots to game...');
 					aggressiveBot.joinGame(gameId);
-					
+
 					// Small delay between bot connections
 					await new Promise((resolve) => setTimeout(resolve, 500));
 					conservativeBot.joinGame(gameId);
@@ -439,7 +479,10 @@ async function runLiveActionTest() {
 
 		console.log(`\n🏁 Test complete after ${handsToPlay} hands.`);
 	} catch (error) {
-		console.error('\n❌ Test failed:', error.response?.data?.message || error.message);
+		console.error(
+			'\n❌ Test failed:',
+			error.response?.data?.message || error.message,
+		);
 	} finally {
 		console.log('\n' + '='.repeat(80));
 		console.log('📊 FINAL STATISTICS');
@@ -469,8 +512,12 @@ async function runLiveActionTest() {
 			const totalActions = aggStats.actions + conStats.actions;
 			console.log(`\n📈 Game Summary:`);
 			console.log(`   Total Actions: ${totalActions}`);
-			console.log(`   Total Hands: ${Math.max(aggStats.hands, conStats.hands)}`);
-			console.log(`   Average Game Speed: ${totalActions > 0 ? 'Active' : 'Inactive'}`);
+			console.log(
+				`   Total Hands: ${Math.max(aggStats.hands, conStats.hands)}`,
+			);
+			console.log(
+				`   Average Game Speed: ${totalActions > 0 ? 'Active' : 'Inactive'}`,
+			);
 
 			if (totalActions === 0) {
 				console.log('\n⚠️  WARNING: No actions detected! Check bot logic.');
@@ -487,27 +534,40 @@ async function runLiveActionTest() {
 			await axiosInstance.delete(`/api/games/${gameId}`);
 			console.log('✅ Game deleted successfully');
 		} catch (cleanupError) {
-			console.log('⚠️  Failed to delete game (it may have been auto-cleaned):', cleanupError.response?.data?.message || cleanupError.message);
+			console.log(
+				'⚠️  Failed to delete game (it may have been auto-cleaned):',
+				cleanupError.response?.data?.message || cleanupError.message,
+			);
 		}
 
 		// Clean up registered bots
 		if (aggressiveBotCredentials) {
 			try {
 				console.log('🧹 Cleaning up AggressiveBot...');
-				await axiosInstance.post(`/api/bots/${aggressiveBotCredentials.botId}/revoke`);
+				await axiosInstance.post(
+					`/api/bots/${aggressiveBotCredentials.botId}/revoke`,
+				);
 				console.log('✅ AggressiveBot revoked successfully');
 			} catch (cleanupError) {
-				console.log('⚠️  Failed to revoke AggressiveBot:', cleanupError.response?.data?.message || cleanupError.message);
+				console.log(
+					'⚠️  Failed to revoke AggressiveBot:',
+					cleanupError.response?.data?.message || cleanupError.message,
+				);
 			}
 		}
 
 		if (conservativeBotCredentials) {
 			try {
 				console.log('🧹 Cleaning up ConservativeBot...');
-				await axiosInstance.post(`/api/bots/${conservativeBotCredentials.botId}/revoke`);
+				await axiosInstance.post(
+					`/api/bots/${conservativeBotCredentials.botId}/revoke`,
+				);
 				console.log('✅ ConservativeBot revoked successfully');
 			} catch (cleanupError) {
-				console.log('⚠️  Failed to revoke ConservativeBot:', cleanupError.response?.data?.message || cleanupError.message);
+				console.log(
+					'⚠️  Failed to revoke ConservativeBot:',
+					cleanupError.response?.data?.message || cleanupError.message,
+				);
 			}
 		}
 	}
@@ -519,17 +579,17 @@ let currentBots = [];
 
 process.on('SIGINT', async () => {
 	console.log('\n\n🛑 Test interrupted by user');
-	
+
 	// Clean up bots and game
 	if (currentBots.length > 0) {
 		console.log('🔌 Disconnecting bots...');
-		currentBots.forEach(bot => {
+		currentBots.forEach((bot) => {
 			if (bot && bot.socket) {
 				bot.socket.disconnect();
 			}
 		});
 	}
-	
+
 	if (currentGameId) {
 		try {
 			console.log('🧹 Cleaning up game...');
@@ -539,7 +599,7 @@ process.on('SIGINT', async () => {
 			console.log('⚠️  Failed to cleanup game:', error.message);
 		}
 	}
-	
+
 	process.exit(0);
 });
 

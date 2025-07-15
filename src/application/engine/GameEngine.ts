@@ -35,7 +35,11 @@ export class GameEngine {
 
 	constructor(gameId: string, config: GameConfig) {
 		this.config = config;
-		this.gameState = new GameState(gameId, config.smallBlindAmount, config.bigBlindAmount);
+		this.gameState = new GameState(
+			gameId,
+			config.smallBlindAmount,
+			config.bigBlindAmount,
+		);
 		this.deck = new Deck();
 	}
 
@@ -158,7 +162,10 @@ export class GameEngine {
 			throw new GameStateError('Game is not running');
 		}
 
-		const forcedAction = ActionValidator.getForceAction(this.gameState, playerId);
+		const forcedAction = ActionValidator.getForceAction(
+			this.gameState,
+			playerId,
+		);
 
 		this.emitEvent({
 			type: 'player_timeout',
@@ -289,13 +296,16 @@ export class GameEngine {
 					// startShowdown() will eventually mark the hand complete
 					break;
 				default:
-					throw new GameStateError('Invalid game phase for betting round completion');
+					throw new GameStateError(
+						'Invalid game phase for betting round completion',
+					);
 			}
 
 			// 3. If after advancing there are still players able to act, stop auto-advance.
 			//    Otherwise, loop again to burn remaining streets.
 			const playersAbleToAct = this.gameState.getPlayersWhoCanAct();
-			shouldContinue = playersAbleToAct.length === 0 && !this.gameState.isHandComplete();
+			shouldContinue =
+				playersAbleToAct.length === 0 && !this.gameState.isHandComplete();
 		}
 	}
 
@@ -353,13 +363,13 @@ export class GameEngine {
 	private startShowdown(): void {
 		this.gameState.advancePhase();
 		this.evaluateHands();
-		
+
 		// Mark all remaining players as having shown cards (they're required to show)
 		const playersInShowdown = this.gameState.getPlayersInHand();
-		playersInShowdown.forEach(player => {
+		playersInShowdown.forEach((player) => {
 			this.gameState.playersWhoShowedCards.add(player.id);
 		});
-		
+
 		this.determineWinners();
 	}
 
@@ -373,7 +383,7 @@ export class GameEngine {
 			if (player.holeCards) {
 				const evaluation = HandEvaluator.evaluateHand(
 					player.holeCards,
-					this.gameState.communityCards
+					this.gameState.communityCards,
 				);
 				this.handEvaluations.set(player.id, evaluation);
 			}
@@ -430,9 +440,11 @@ export class GameEngine {
 		}
 
 		// Simulate pot distribution
-		const remainingPlayerIds = playersInShowdown.map(p => p.id);
-		const { distributions, totalDistributed } =
-			potManager.simulateDistribution(playerEvaluations, remainingPlayerIds);
+		const remainingPlayerIds = playersInShowdown.map((p) => p.id);
+		const { distributions, totalDistributed } = potManager.simulateDistribution(
+			playerEvaluations,
+			remainingPlayerIds,
+		);
 
 		// Distribute winnings to players
 		const winners: Array<{
@@ -445,7 +457,10 @@ export class GameEngine {
 
 		for (const distribution of distributions) {
 			const currentTotal = winnerTotals.get(distribution.playerId) || 0;
-			winnerTotals.set(distribution.playerId, currentTotal + distribution.amount);
+			winnerTotals.set(
+				distribution.playerId,
+				currentTotal + distribution.amount,
+			);
 		}
 
 		// Add chips to winners and create result
@@ -513,7 +528,11 @@ export class GameEngine {
 	 * Completes the current hand
 	 */
 	private completeHand(
-		winners: Array<{ playerId: string; winAmount: number; handDescription: string }>
+		winners: Array<{
+			playerId: string;
+			winAmount: number;
+			handDescription: string;
+		}>,
 	): void {
 		this.gameState.advancePhase();
 		this.gameRunning = false;
@@ -529,7 +548,9 @@ export class GameEngine {
 		// Eliminate players who have no chips left. This keeps the table free of
 		// bust-out seats and prevents zero-stack players from being dealt into
 		// the next hand.
-		const bustedPlayers = this.gameState.players.filter(p => p.chipStack <= 0);
+		const bustedPlayers = this.gameState.players.filter(
+			(p) => p.chipStack <= 0,
+		);
 		for (const player of bustedPlayers) {
 			this.removePlayer(player.id);
 		}
@@ -575,13 +596,18 @@ export class GameEngine {
 		// For showdown events, use visibility rules (spectator view)
 		if (eventType === 'showdown') {
 			// Use the GameState's visibility method if available
-			if (typeof (this.gameState as any).getStateWithVisibility === 'function') {
-				return (this.gameState as any).getStateWithVisibility('spectator', undefined);
+			if (
+				typeof (this.gameState as any).getStateWithVisibility === 'function'
+			) {
+				return (this.gameState as any).getStateWithVisibility(
+					'spectator',
+					undefined,
+				);
 			}
 			// Fallback to complete state for showdown
 			return this.gameState.getCompleteState();
 		}
-		
+
 		// For other events, use public state
 		return this.gameState.getPublicState();
 	}

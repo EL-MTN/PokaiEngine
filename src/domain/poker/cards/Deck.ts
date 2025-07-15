@@ -54,7 +54,9 @@ export class Deck {
 	 */
 	dealCards(count: number): Card[] {
 		if (count > this.cards.length) {
-			throw new Error(`Cannot deal ${count} cards, only ${this.cards.length} remaining`);
+			throw new Error(
+				`Cannot deal ${count} cards, only ${this.cards.length} remaining`,
+			);
 		}
 
 		const cards: Card[] = [];
@@ -70,7 +72,9 @@ export class Deck {
 	 */
 	dealHoleCards(playerCount: number): Card[][] {
 		if (playerCount * 2 > this.cards.length) {
-			throw new Error(`Cannot deal hole cards to ${playerCount} players, insufficient cards`);
+			throw new Error(
+				`Cannot deal hole cards to ${playerCount} players, insufficient cards`,
+			);
 		}
 
 		const holeCards: Card[][] = [];

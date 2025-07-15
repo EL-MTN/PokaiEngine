@@ -4,13 +4,13 @@ A **robust, production-ready Texas Hold'em poker engine** designed for bot battl
 
 ## 🚀 Features
 
--   **Complete Poker Engine**: Full Texas Hold'em implementation with all edge cases
--   **Real-time Bot Communication**: Socket.io integration with turn timers
--   **Advanced Game Management**: Multi-table support, side pots, complex betting scenarios
--   **Comprehensive Logging**: Full game history with replay functionality
--   **Production Ready**: Robust error handling, event system, and scalable architecture
--   **TypeScript**: Fully typed with comprehensive interfaces
--   **Testing Framework**: Jest setup with comprehensive test coverage
+- **Complete Poker Engine**: Full Texas Hold'em implementation with all edge cases
+- **Real-time Bot Communication**: Socket.io integration with turn timers
+- **Advanced Game Management**: Multi-table support, side pots, complex betting scenarios
+- **Comprehensive Logging**: Full game history with replay functionality
+- **Production Ready**: Robust error handling, event system, and scalable architecture
+- **TypeScript**: Fully typed with comprehensive interfaces
+- **Testing Framework**: Jest setup with comprehensive test coverage
 
 ## 📦 Installation
 
@@ -61,9 +61,9 @@ npm run dev
 
 The server will start on `http://localhost:3000` with the following endpoints:
 
--   **Health Check**: `GET /health`
--   **Server Stats**: `GET /stats`
--   **WebSocket**: `ws://localhost:3000`
+- **Health Check**: `GET /health`
+- **Server Stats**: `GET /stats`
+- **WebSocket**: `ws://localhost:3000`
 
 ### 2. Connect a Bot
 
@@ -164,12 +164,12 @@ src/
 
 ### Game Events
 
--   `hand_started` - New hand begins
--   `action_taken` - Player action processed
--   `phase_changed` - Game phase transition
--   `player_timeout` - Player timed out
--   `hand_complete` - Hand finished
--   `showdown_complete` - Showdown results
+- `hand_started` - New hand begins
+- `action_taken` - Player action processed
+- `phase_changed` - Game phase transition
+- `player_timeout` - Player timed out
+- `hand_complete` - Hand finished
+- `showdown_complete` - Showdown results
 
 ## 🎯 Usage Examples
 
@@ -237,11 +237,11 @@ replaySystem.jumpToHand(5); // Jump to specific hand
 
 The engine includes comprehensive tests covering:
 
--   Card and hand evaluation logic
--   Betting scenarios and edge cases
--   Game state transitions
--   Socket communication
--   Error handling
+- Card and hand evaluation logic
+- Betting scenarios and edge cases
+- Game state transitions
+- Socket communication
+- Error handling
 
 ```bash
 # Run all tests
@@ -258,17 +258,17 @@ npm run test:coverage
 
 The engine is optimized for:
 
--   **High Throughput**: Handles multiple concurrent games
--   **Low Latency**: Real-time action processing
--   **Memory Efficiency**: Proper cleanup and garbage collection
--   **Scalability**: Stateless game engine design
+- **High Throughput**: Handles multiple concurrent games
+- **Low Latency**: Real-time action processing
+- **Memory Efficiency**: Proper cleanup and garbage collection
+- **Scalability**: Stateless game engine design
 
 ## 🔧 Configuration
 
 Environment variables:
 
--   `PORT`: Server port (default: 3000)
--   `NODE_ENV`: Environment (development/production)
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment (development/production)
 
 ## 🤝 Contributing
 
@@ -286,17 +286,17 @@ MIT License - see LICENSE file for details
 
 The engine supports tournament features:
 
--   Blind level increases
--   Player elimination
--   Prize pool distribution
--   Multi-table management
+- Blind level increases
+- Player elimination
+- Prize pool distribution
+- Multi-table management
 
 ## 🔮 Future Enhancements
 
--   [ ] Tournament bracket management
--   [ ] Player statistics tracking
--   [ ] Advanced bot AI framework
--   [ ] Web dashboard for game monitoring
--   [ ] Database persistence layer
--   [ ] Spectator mode
--   [ ] Custom game variants
+- [ ] Tournament bracket management
+- [ ] Player statistics tracking
+- [ ] Advanced bot AI framework
+- [ ] Web dashboard for game monitoring
+- [ ] Database persistence layer
+- [ ] Spectator mode
+- [ ] Custom game variants

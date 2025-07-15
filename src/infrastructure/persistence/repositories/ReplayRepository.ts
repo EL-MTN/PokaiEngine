@@ -1,5 +1,11 @@
 import { Types } from 'mongoose';
-import { Replay, IReplay, IGameEvent, IGameMetadata, IReplayAnalytics } from '@/infrastructure/persistence/models/Replay';
+import {
+	Replay,
+	IReplay,
+	IGameEvent,
+	IGameMetadata,
+	IReplayAnalytics,
+} from '@/infrastructure/persistence/models/Replay';
 
 export interface ReplaySearchFilters {
 	gameType?: 'cash' | 'tournament';
@@ -30,7 +36,9 @@ export class ReplayRepository {
 			const replay = new Replay(replayData);
 			return await replay.save();
 		} catch (error) {
-			throw new Error(`Failed to create replay: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to create replay: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -41,7 +49,9 @@ export class ReplayRepository {
 			}
 			return await Replay.findById(id);
 		} catch (error) {
-			throw new Error(`Failed to find replay by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to find replay by ID: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -49,7 +59,9 @@ export class ReplayRepository {
 		try {
 			return await Replay.findOne({ gameId });
 		} catch (error) {
-			throw new Error(`Failed to find replay by game ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to find replay by game ID: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -85,12 +97,14 @@ export class ReplayRepository {
 			}
 
 			const results = await Replay.find(query)
-				.select('gameId metadata.gameName metadata.gameType metadata.actualPlayers metadata.gameDuration metadata.totalHands createdAt fileSize')
+				.select(
+					'gameId metadata.gameName metadata.gameType metadata.actualPlayers metadata.gameDuration metadata.totalHands createdAt fileSize',
+				)
 				.sort({ createdAt: -1 })
 				.limit(filters.limit || 50)
 				.skip(filters.offset || 0);
 
-			return results.map(replay => ({
+			return results.map((replay) => ({
 				id: String(replay._id),
 				gameId: replay.gameId,
 				gameName: replay.metadata.gameName,
@@ -99,21 +113,25 @@ export class ReplayRepository {
 				gameDuration: replay.metadata.gameDuration,
 				totalHands: replay.metadata.totalHands,
 				createdAt: replay.createdAt,
-				fileSizeMB: (replay.fileSize / (1024 * 1024)).toFixed(2)
+				fileSizeMB: (replay.fileSize / (1024 * 1024)).toFixed(2),
 			}));
 		} catch (error) {
-			throw new Error(`Failed to find replays: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to find replays: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
 	async getRecentReplays(limit: number = 10): Promise<ReplayListItem[]> {
 		try {
 			const results = await Replay.find()
-				.select('gameId metadata.gameName metadata.gameType metadata.actualPlayers metadata.gameDuration metadata.totalHands createdAt fileSize')
+				.select(
+					'gameId metadata.gameName metadata.gameType metadata.actualPlayers metadata.gameDuration metadata.totalHands createdAt fileSize',
+				)
 				.sort({ createdAt: -1 })
 				.limit(limit);
 
-			return results.map(replay => ({
+			return results.map((replay) => ({
 				id: String(replay._id),
 				gameId: replay.gameId,
 				gameName: replay.metadata.gameName,
@@ -122,14 +140,19 @@ export class ReplayRepository {
 				gameDuration: replay.metadata.gameDuration,
 				totalHands: replay.metadata.totalHands,
 				createdAt: replay.createdAt,
-				fileSizeMB: (replay.fileSize / (1024 * 1024)).toFixed(2)
+				fileSizeMB: (replay.fileSize / (1024 * 1024)).toFixed(2),
 			}));
 		} catch (error) {
-			throw new Error(`Failed to get recent replays: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to get recent replays: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
-	async getEventsByGameId(gameId: string, filters?: { handNumber?: number; phase?: string; eventType?: string }): Promise<IGameEvent[]> {
+	async getEventsByGameId(
+		gameId: string,
+		filters?: { handNumber?: number; phase?: string; eventType?: string },
+	): Promise<IGameEvent[]> {
 		try {
 			const replay = await Replay.findOne({ gameId }).select('events');
 			if (!replay) {
@@ -141,19 +164,23 @@ export class ReplayRepository {
 			// Apply filters
 			if (filters) {
 				if (filters.handNumber !== undefined) {
-					events = events.filter(event => event.handNumber === filters.handNumber);
+					events = events.filter(
+						(event) => event.handNumber === filters.handNumber,
+					);
 				}
 				if (filters.phase) {
-					events = events.filter(event => event.phase === filters.phase);
+					events = events.filter((event) => event.phase === filters.phase);
 				}
 				if (filters.eventType) {
-					events = events.filter(event => event.type === filters.eventType);
+					events = events.filter((event) => event.type === filters.eventType);
 				}
 			}
 
 			return events.sort((a, b) => a.timestamp - b.timestamp);
 		} catch (error) {
-			throw new Error(`Failed to get events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to get events: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -162,34 +189,46 @@ export class ReplayRepository {
 			const replay = await Replay.findOne({ gameId }).select('analytics');
 			return replay ? replay.analytics : null;
 		} catch (error) {
-			throw new Error(`Failed to get analytics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to get analytics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
-	async updateAnalytics(gameId: string, analytics: IReplayAnalytics): Promise<IReplay | null> {
+	async updateAnalytics(
+		gameId: string,
+		analytics: IReplayAnalytics,
+	): Promise<IReplay | null> {
 		try {
 			return await Replay.findOneAndUpdate(
 				{ gameId },
 				{ analytics, updatedAt: new Date() },
-				{ new: true }
+				{ new: true },
 			);
 		} catch (error) {
-			throw new Error(`Failed to update analytics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to update analytics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
-	async addEvents(gameId: string, events: IGameEvent[]): Promise<IReplay | null> {
+	async addEvents(
+		gameId: string,
+		events: IGameEvent[],
+	): Promise<IReplay | null> {
 		try {
 			return await Replay.findOneAndUpdate(
 				{ gameId },
-				{ 
+				{
 					$push: { events: { $each: events } },
-					updatedAt: new Date()
+					updatedAt: new Date(),
 				},
-				{ new: true }
+				{ new: true },
 			);
 		} catch (error) {
-			throw new Error(`Failed to add events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to add events: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -198,7 +237,9 @@ export class ReplayRepository {
 			const result = await Replay.deleteOne({ gameId });
 			return result.deletedCount === 1;
 		} catch (error) {
-			throw new Error(`Failed to delete replay: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to delete replay: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -210,7 +251,9 @@ export class ReplayRepository {
 			const result = await Replay.deleteOne({ _id: id });
 			return result.deletedCount === 1;
 		} catch (error) {
-			throw new Error(`Failed to delete replay by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to delete replay by ID: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -219,7 +262,9 @@ export class ReplayRepository {
 			const count = await Replay.countDocuments({ gameId });
 			return count > 0;
 		} catch (error) {
-			throw new Error(`Failed to check if replay exists: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to check if replay exists: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -252,7 +297,9 @@ export class ReplayRepository {
 
 			return await Replay.countDocuments(query);
 		} catch (error) {
-			throw new Error(`Failed to count replays: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to count replays: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -272,22 +319,27 @@ export class ReplayRepository {
 						totalReplays: { $sum: 1 },
 						totalSizeBytes: { $sum: '$fileSize' },
 						oldestReplay: { $min: '$createdAt' },
-						newestReplay: { $max: '$createdAt' }
-					}
-				}
+						newestReplay: { $max: '$createdAt' },
+					},
+				},
 			]);
 
 			const result = stats[0] || {
 				totalReplays: 0,
 				totalSizeBytes: 0,
 				oldestReplay: null,
-				newestReplay: null
+				newestReplay: null,
 			};
 
 			const totalSizeMB = (result.totalSizeBytes / (1024 * 1024)).toFixed(2);
-			const avgSizePerReplayMB = result.totalReplays > 0 
-				? ((result.totalSizeBytes / result.totalReplays) / (1024 * 1024)).toFixed(2)
-				: '0.00';
+			const avgSizePerReplayMB =
+				result.totalReplays > 0
+					? (
+							result.totalSizeBytes /
+							result.totalReplays /
+							(1024 * 1024)
+						).toFixed(2)
+					: '0.00';
 
 			return {
 				totalReplays: result.totalReplays,
@@ -295,10 +347,12 @@ export class ReplayRepository {
 				totalSizeMB,
 				avgSizePerReplayMB,
 				oldestReplay: result.oldestReplay,
-				newestReplay: result.newestReplay
+				newestReplay: result.newestReplay,
 			};
 		} catch (error) {
-			throw new Error(`Failed to get storage stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to get storage stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 }

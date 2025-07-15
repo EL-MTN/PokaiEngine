@@ -1,4 +1,9 @@
-import { Action, ActionType, InvalidActionError, PossibleAction } from '@/domain/types';
+import {
+	Action,
+	ActionType,
+	InvalidActionError,
+	PossibleAction,
+} from '@/domain/types';
 import { GameState } from '../game/GameState';
 import { Player } from '../game/Player';
 
@@ -41,7 +46,10 @@ export class ActionValidator {
 	/**
 	 * Gets all possible actions for a player
 	 */
-	static getPossibleActions(gameState: GameState, playerId: string): PossibleAction[] {
+	static getPossibleActions(
+		gameState: GameState,
+		playerId: string,
+	): PossibleAction[] {
 		const player = gameState.getPlayer(playerId);
 		if (!player || !player.canAct()) {
 			return [];
@@ -187,7 +195,11 @@ export class ActionValidator {
 	/**
 	 * Validates call action
 	 */
-	private static validateCall(gameState: GameState, player: Player, amount?: number): boolean {
+	private static validateCall(
+		gameState: GameState,
+		player: Player,
+		amount?: number,
+	): boolean {
 		const currentBet = gameState.getCurrentBet();
 		const callAmount = currentBet - player.currentBet;
 
@@ -209,7 +221,11 @@ export class ActionValidator {
 	/**
 	 * Validates bet action
 	 */
-	private static validateBet(gameState: GameState, player: Player, amount?: number): boolean {
+	private static validateBet(
+		gameState: GameState,
+		player: Player,
+		amount?: number,
+	): boolean {
 		const currentBet = gameState.getCurrentBet();
 
 		if (currentBet > 0) {
@@ -217,7 +233,9 @@ export class ActionValidator {
 		}
 
 		if (this.hasBettingOccurred(gameState)) {
-			throw new InvalidActionError('Cannot bet after betting has occurred this round');
+			throw new InvalidActionError(
+				'Cannot bet after betting has occurred this round',
+			);
 		}
 
 		if (amount === undefined) {
@@ -239,7 +257,11 @@ export class ActionValidator {
 	/**
 	 * Validates raise action
 	 */
-	private static validateRaise(gameState: GameState, player: Player, amount?: number): boolean {
+	private static validateRaise(
+		gameState: GameState,
+		player: Player,
+		amount?: number,
+	): boolean {
 		const currentBet = gameState.getCurrentBet();
 
 		if (currentBet === 0) {
@@ -298,11 +320,17 @@ export class ActionValidator {
 		}
 
 		// Post small blind
-		const smallBlindAmount = Math.min(gameState.smallBlindAmount, smallBlindPlayer.chipStack);
+		const smallBlindAmount = Math.min(
+			gameState.smallBlindAmount,
+			smallBlindPlayer.chipStack,
+		);
 		gameState.processBlind(smallBlindPlayer.id, smallBlindAmount);
 
 		// Post big blind
-		const bigBlindAmount = Math.min(gameState.bigBlindAmount, bigBlindPlayer.chipStack);
+		const bigBlindAmount = Math.min(
+			gameState.bigBlindAmount,
+			bigBlindPlayer.chipStack,
+		);
 		gameState.processBlind(bigBlindPlayer.id, bigBlindAmount);
 
 		// Set next player to act
@@ -342,7 +370,10 @@ export class ActionValidator {
 				gameState.processBet(action.playerId, action.amount);
 				// Track last aggressor
 				gameState.lastAggressor = action.playerId;
-				gameState.lastAggressorPerRound.set(gameState.currentPhase, action.playerId);
+				gameState.lastAggressorPerRound.set(
+					gameState.currentPhase,
+					action.playerId,
+				);
 				break;
 
 			case ActionType.Raise:
@@ -353,7 +384,10 @@ export class ActionValidator {
 				gameState.processBet(action.playerId, raiseAmount);
 				// Track last aggressor
 				gameState.lastAggressor = action.playerId;
-				gameState.lastAggressorPerRound.set(gameState.currentPhase, action.playerId);
+				gameState.lastAggressorPerRound.set(
+					gameState.currentPhase,
+					action.playerId,
+				);
 				break;
 
 			case ActionType.AllIn:
@@ -362,7 +396,10 @@ export class ActionValidator {
 				// Track last aggressor (all-in is considered aggressive if it's a raise)
 				if (player.totalBetThisHand > currentBetBeforeAllIn) {
 					gameState.lastAggressor = action.playerId;
-					gameState.lastAggressorPerRound.set(gameState.currentPhase, action.playerId);
+					gameState.lastAggressorPerRound.set(
+						gameState.currentPhase,
+						action.playerId,
+					);
 				}
 				break;
 

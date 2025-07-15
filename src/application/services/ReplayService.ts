@@ -1,6 +1,19 @@
-import { ReplayRepository, ReplaySearchFilters, ReplayListItem } from '@/infrastructure/persistence/repositories/ReplayRepository';
-import { IReplay, IGameEvent, IGameMetadata, IReplayAnalytics, IHandSummary } from '@/infrastructure/persistence/models/Replay';
-import { DatabaseConnection, getDefaultDatabaseConfig } from '@/infrastructure/persistence/database/connection';
+import {
+	ReplayRepository,
+	ReplaySearchFilters,
+	ReplayListItem,
+} from '@/infrastructure/persistence/repositories/ReplayRepository';
+import {
+	IReplay,
+	IGameEvent,
+	IGameMetadata,
+	IReplayAnalytics,
+	IHandSummary,
+} from '@/infrastructure/persistence/models/Replay';
+import {
+	DatabaseConnection,
+	getDefaultDatabaseConfig,
+} from '@/infrastructure/persistence/database/connection';
 import { replayLogger } from '@/infrastructure/logging/Logger';
 import path from 'path';
 import fs from 'fs/promises';
@@ -52,7 +65,9 @@ export class ReplayService {
 			}
 		} catch (error) {
 			this.logError('Failed to initialize database connection:', error);
-			throw new Error(`Failed to initialize ReplayService: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			throw new Error(
+				`Failed to initialize ReplayService: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			);
 		}
 	}
 
@@ -61,7 +76,10 @@ export class ReplayService {
 
 		try {
 			// Generate initial analytics
-			const analytics = this.generateInitialAnalytics(request.events || [], request.metadata);
+			const analytics = this.generateInitialAnalytics(
+				request.events || [],
+				request.metadata,
+			);
 
 			const replayData: Partial<IReplay> = {
 				gameId: request.gameId,
@@ -69,12 +87,15 @@ export class ReplayService {
 				events: request.events || [],
 				handSummaries: [],
 				analytics,
-				version: '1.0.0'
+				version: '1.0.0',
 			};
 
 			return await this.replayRepository.create(replayData);
 		} catch (error) {
-			this.logError(`Failed to create replay for game ${request.gameId}:`, error);
+			this.logError(
+				`Failed to create replay for game ${request.gameId}:`,
+				error,
+			);
 			throw error;
 		}
 	}
@@ -84,7 +105,9 @@ export class ReplayService {
 		return await this.replayRepository.findByGameId(gameId);
 	}
 
-	async getReplayList(filters: ReplaySearchFilters = {}): Promise<ReplayListItem[]> {
+	async getReplayList(
+		filters: ReplaySearchFilters = {},
+	): Promise<ReplayListItem[]> {
 		await this.ensureInitialized();
 		return await this.replayRepository.findAll(filters);
 	}
@@ -109,7 +132,10 @@ export class ReplayService {
 			// Update analytics with new events
 			const updatedReplay = await this.replayRepository.findByGameId(gameId);
 			if (updatedReplay) {
-				const newAnalytics = this.generateAnalytics(updatedReplay.events, updatedReplay.metadata);
+				const newAnalytics = this.generateAnalytics(
+					updatedReplay.events,
+					updatedReplay.metadata,
+				);
 				await this.replayRepository.updateAnalytics(gameId, newAnalytics);
 			}
 		} catch (error) {
@@ -134,7 +160,10 @@ export class ReplayService {
 		}
 	}
 
-	async getHandReplay(gameId: string, handNumber: number): Promise<{
+	async getHandReplay(
+		gameId: string,
+		handNumber: number,
+	): Promise<{
 		handNumber: number;
 		events: IGameEvent[];
 		playersInvolved: string[];
@@ -145,14 +174,18 @@ export class ReplayService {
 		await this.ensureInitialized();
 
 		try {
-			const events = await this.replayRepository.getEventsByGameId(gameId, { handNumber });
+			const events = await this.replayRepository.getEventsByGameId(gameId, {
+				handNumber,
+			});
 			if (events.length === 0) {
 				return null;
 			}
 
 			// Extract hand-specific data
-			const playersInvolved = [...new Set(events.filter(e => e.playerId).map(e => e.playerId!))];
-			
+			const playersInvolved = [
+				...new Set(events.filter((e) => e.playerId).map((e) => e.playerId!)),
+			];
+
 			let communityCards: any[] = [];
 			let potSize = 0;
 			let winner: string | undefined;
@@ -175,15 +208,20 @@ export class ReplayService {
 				playersInvolved,
 				communityCards,
 				potSize,
-				winner
+				winner,
 			};
 		} catch (error) {
-			this.logError(`Failed to get hand replay for game ${gameId}, hand ${handNumber}:`, error);
+			this.logError(
+				`Failed to get hand replay for game ${gameId}, hand ${handNumber}:`,
+				error,
+			);
 			throw error;
 		}
 	}
 
-	async saveReplayToFile(gameId: string): Promise<{ success: boolean; filePath?: string; error?: string }> {
+	async saveReplayToFile(
+		gameId: string,
+	): Promise<{ success: boolean; filePath?: string; error?: string }> {
 		await this.ensureInitialized();
 
 		try {
@@ -209,7 +247,7 @@ export class ReplayService {
 			const replayData = {
 				...replay.toObject(),
 				exportedAt: new Date().toISOString(),
-				version: replay.version
+				version: replay.version,
 			};
 
 			await fs.writeFile(filePath, JSON.stringify(replayData, null, 2));
@@ -217,9 +255,9 @@ export class ReplayService {
 			return { success: true, filePath };
 		} catch (error) {
 			this.logError(`Failed to save replay to file for game ${gameId}:`, error);
-			return { 
-				success: false, 
-				error: error instanceof Error ? error.message : 'Unknown error' 
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
 			};
 		}
 	}
@@ -258,7 +296,10 @@ export class ReplayService {
 		}
 	}
 
-	private generateInitialAnalytics(events: IGameEvent[], metadata: IGameMetadata): IReplayAnalytics {
+	private generateInitialAnalytics(
+		events: IGameEvent[],
+		metadata: IGameMetadata,
+	): IReplayAnalytics {
 		return {
 			totalEvents: events.length,
 			avgHandDuration: 0,
@@ -269,12 +310,15 @@ export class ReplayService {
 				peakPotSize: 0,
 				longestHand: 0,
 				shortestHand: 0,
-				mostActivePlayer: ''
-			}
+				mostActivePlayer: '',
+			},
 		};
 	}
 
-	private generateAnalytics(events: IGameEvent[], metadata: IGameMetadata): IReplayAnalytics {
+	private generateAnalytics(
+		events: IGameEvent[],
+		metadata: IGameMetadata,
+	): IReplayAnalytics {
 		const actionDistribution: Record<string, number> = {};
 		const phaseDistribution: Record<string, number> = {};
 		const playerActions: Record<string, number> = {};
@@ -289,18 +333,21 @@ export class ReplayService {
 			if (event.type === 'action_taken') {
 				const actionType = event.data.action?.type;
 				if (actionType) {
-					actionDistribution[actionType] = (actionDistribution[actionType] || 0) + 1;
+					actionDistribution[actionType] =
+						(actionDistribution[actionType] || 0) + 1;
 				}
 
 				// Count player actions
 				if (event.playerId) {
-					playerActions[event.playerId] = (playerActions[event.playerId] || 0) + 1;
+					playerActions[event.playerId] =
+						(playerActions[event.playerId] || 0) + 1;
 				}
 			}
 
 			// Count phases
 			if (event.phase) {
-				phaseDistribution[event.phase] = (phaseDistribution[event.phase] || 0) + 1;
+				phaseDistribution[event.phase] =
+					(phaseDistribution[event.phase] || 0) + 1;
 			}
 
 			// Track pot sizes
@@ -320,9 +367,10 @@ export class ReplayService {
 		}
 
 		// Calculate averages and find most active player
-		const avgHandDuration = handDurations.length > 0 
-			? handDurations.reduce((a, b) => a + b, 0) / handDurations.length 
-			: 0;
+		const avgHandDuration =
+			handDurations.length > 0
+				? handDurations.reduce((a, b) => a + b, 0) / handDurations.length
+				: 0;
 
 		let mostActivePlayer = '';
 		let maxActions = 0;
@@ -343,8 +391,8 @@ export class ReplayService {
 				peakPotSize,
 				longestHand: handDurations.length > 0 ? Math.max(...handDurations) : 0,
 				shortestHand: handDurations.length > 0 ? Math.min(...handDurations) : 0,
-				mostActivePlayer
-			}
+				mostActivePlayer,
+			},
 		};
 	}
 
@@ -366,13 +414,13 @@ export class ReplayService {
 
 		// Analyze each hand
 		for (const [handNumber, events] of handEvents.entries()) {
-			const handStart = events.find(e => e.type === 'hand_started');
-			const handEnd = events.find(e => e.type === 'hand_complete');
+			const handStart = events.find((e) => e.type === 'hand_started');
+			const handEnd = events.find((e) => e.type === 'hand_complete');
 
 			if (handStart && handEnd) {
 				const duration = handEnd.timestamp - handStart.timestamp;
-				const actions = events.filter(e => e.type === 'action_taken').length;
-				
+				const actions = events.filter((e) => e.type === 'action_taken').length;
+
 				handAnalysis.push({
 					handNumber,
 					startTimestamp: handStart.timestamp,
@@ -381,46 +429,52 @@ export class ReplayService {
 					winner: handEnd.data.winners?.[0]?.playerId || 'Unknown',
 					potSize: handEnd.data.potSize || 0,
 					communityCards: handEnd.data.communityCards || [],
-					actions
+					actions,
 				});
 
 				// Identify interesting moments
-				if (duration > 60000) { // Hand longer than 1 minute
+				if (duration > 60000) {
+					// Hand longer than 1 minute
 					interestingMoments.push({
 						type: 'long_hand',
 						handNumber,
 						duration,
-						description: `Hand ${handNumber} took ${Math.round(duration/1000)}s`
+						description: `Hand ${handNumber} took ${Math.round(duration / 1000)}s`,
 					});
 				}
 
-				if (handEnd.data.potSize > 1000) { // Large pot
+				if (handEnd.data.potSize > 1000) {
+					// Large pot
 					interestingMoments.push({
 						type: 'big_pot',
 						handNumber,
 						potSize: handEnd.data.potSize,
-						description: `Large pot of $${handEnd.data.potSize} in hand ${handNumber}`
+						description: `Large pot of $${handEnd.data.potSize} in hand ${handNumber}`,
 					});
 				}
 			}
 		}
 
 		// Calculate player statistics
-		for (const [playerId, playerName] of Object.entries(replay.metadata.playerNames)) {
-			const playerEvents = replay.events.filter(e => e.playerId === playerId);
-			const actions = playerEvents.filter(e => e.type === 'action_taken');
-			
+		for (const [playerId, playerName] of Object.entries(
+			replay.metadata.playerNames,
+		)) {
+			const playerEvents = replay.events.filter((e) => e.playerId === playerId);
+			const actions = playerEvents.filter((e) => e.type === 'action_taken');
+
 			playerStatistics[playerId] = {
 				name: playerName,
 				totalActions: actions.length,
-				handsPlayed: new Set(playerEvents.filter(e => e.handNumber).map(e => e.handNumber)).size,
+				handsPlayed: new Set(
+					playerEvents.filter((e) => e.handNumber).map((e) => e.handNumber),
+				).size,
 				actionTypes: actions.reduce((acc: Record<string, number>, event) => {
 					const actionType = event.data.action?.type;
 					if (actionType) {
 						acc[actionType] = (acc[actionType] || 0) + 1;
 					}
 					return acc;
-				}, {})
+				}, {}),
 			};
 		}
 
@@ -430,13 +484,19 @@ export class ReplayService {
 			interestingMoments,
 			gameFlow: {
 				avgHandDuration: replay.analytics.avgHandDuration,
-				actionDistribution: replay.analytics.actionDistribution as Record<string, number>,
-				phaseDistribution: replay.analytics.phaseDistribution as Record<string, number>,
+				actionDistribution: replay.analytics.actionDistribution as Record<
+					string,
+					number
+				>,
+				phaseDistribution: replay.analytics.phaseDistribution as Record<
+					string,
+					number
+				>,
 				peakPotSize: replay.analytics.gameFlow.peakPotSize,
 				longestHand: replay.analytics.gameFlow.longestHand,
 				shortestHand: replay.analytics.gameFlow.shortestHand,
-				mostActivePlayer: replay.analytics.gameFlow.mostActivePlayer
-			}
+				mostActivePlayer: replay.analytics.gameFlow.mostActivePlayer,
+			},
 		};
 	}
 }

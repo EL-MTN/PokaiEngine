@@ -1,15 +1,18 @@
-import { 
-	GameId, 
+import {
+	GameId,
 	ReplayData,
 	HandReplayData,
 	Card,
 	PlayerId,
 	HandEvaluation,
 	ReplayEvent,
-	GameState
+	GameState,
 } from '@/domain/types';
 import { ReplayService } from '@/application/services/ReplayService';
-import { IGameMetadata, IGameEvent } from '@/infrastructure/persistence/models/Replay';
+import {
+	IGameMetadata,
+	IGameEvent,
+} from '@/infrastructure/persistence/models/Replay';
 import { replayLogger } from '@/infrastructure/logging/Logger';
 import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
 import { Card as CardClass } from '@/domain/poker/cards/Card';
@@ -35,8 +38,10 @@ export class ReplayStorage {
 
 	constructor(config?: Partial<ReplayStorageConfig>) {
 		// Detect if we're in a test environment
-		const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
-		
+		const isTestEnvironment =
+			process.env.NODE_ENV === 'test' ||
+			process.env.JEST_WORKER_ID !== undefined;
+
 		// Default configuration with test environment adjustments
 		const defaults: ReplayStorageConfig = {
 			directory: './replays',
@@ -48,14 +53,14 @@ export class ReplayStorage {
 
 		this.config = {
 			...defaults,
-			...config
+			...config,
 		};
 
 		// Log configuration in development
 		if (process.env.NODE_ENV === 'development') {
 			replayLogger.debug('ReplayStorage configuration:', {
 				...this.config,
-				isTestEnvironment
+				isTestEnvironment,
 			});
 		}
 
@@ -73,7 +78,10 @@ export class ReplayStorage {
 	/**
 	 * Saves replay data to both file and MongoDB (if available)
 	 */
-	async saveReplay(replayData: ReplayData, compressed: boolean = false): Promise<{
+	async saveReplay(
+		replayData: ReplayData,
+		compressed: boolean = false,
+	): Promise<{
 		fileSuccess: boolean;
 		mongoSuccess: boolean;
 		filePath?: string;
@@ -83,7 +91,7 @@ export class ReplayStorage {
 			fileSuccess: false,
 			mongoSuccess: false,
 			filePath: undefined as string | undefined,
-			error: undefined as string | undefined
+			error: undefined as string | undefined,
 		};
 
 		// Ensure dates are proper Date objects (handle JSON serialization issue)
@@ -99,7 +107,8 @@ export class ReplayStorage {
 				}
 			} catch (error) {
 				replayLogger.error('Failed to save replay to file:', error);
-				results.error = error instanceof Error ? error.message : 'File save failed';
+				results.error =
+					error instanceof Error ? error.message : 'File save failed';
 			}
 		}
 
@@ -111,7 +120,8 @@ export class ReplayStorage {
 			} catch (error) {
 				replayLogger.error('Failed to save replay to MongoDB:', error);
 				if (!results.error) {
-					results.error = error instanceof Error ? error.message : 'MongoDB save failed';
+					results.error =
+						error instanceof Error ? error.message : 'MongoDB save failed';
 				}
 			}
 		}
@@ -132,16 +142,16 @@ export class ReplayStorage {
 			} else {
 				jsonData = fs.readFileSync(filepath, 'utf8');
 			}
-			
+
 			const replayData: ReplayData = JSON.parse(jsonData);
-			
+
 			// Convert date strings back to Date objects
 			replayData.startTime = new Date(replayData.startTime);
 			if (replayData.endTime) {
 				replayData.endTime = new Date(replayData.endTime);
 			}
 			replayData.metadata.createdAt = new Date(replayData.metadata.createdAt);
-			
+
 			return replayData;
 		} catch (error) {
 			replayLogger.error('Failed to load replay from file:', error);
@@ -160,7 +170,10 @@ export class ReplayStorage {
 		try {
 			return await this.replayService.getReplay(gameId);
 		} catch (error) {
-			replayLogger.error(`Failed to load replay from MongoDB for game ${gameId}:`, error);
+			replayLogger.error(
+				`Failed to load replay from MongoDB for game ${gameId}:`,
+				error,
+			);
 			return null;
 		}
 	}
@@ -174,9 +187,10 @@ export class ReplayStorage {
 		}
 
 		try {
-			return fs.readdirSync(this.config.directory)
-				.filter(file => file.endsWith('.json') || file.endsWith('.json.gz'))
-				.map(file => path.join(this.config.directory, file));
+			return fs
+				.readdirSync(this.config.directory)
+				.filter((file) => file.endsWith('.json') || file.endsWith('.json.gz'))
+				.map((file) => path.join(this.config.directory, file));
 		} catch (error) {
 			replayLogger.error('Failed to list replay files:', error);
 			return [];
@@ -210,7 +224,10 @@ export class ReplayStorage {
 		try {
 			return await this.replayService.getAnalysis(gameId);
 		} catch (error) {
-			replayLogger.error(`Failed to get replay analysis for game ${gameId}:`, error);
+			replayLogger.error(
+				`Failed to get replay analysis for game ${gameId}:`,
+				error,
+			);
 			return null;
 		}
 	}
@@ -226,7 +243,10 @@ export class ReplayStorage {
 		try {
 			return await this.replayService.getHandReplay(gameId, handNumber);
 		} catch (error) {
-			replayLogger.error(`Failed to get hand replay for game ${gameId}, hand ${handNumber}:`, error);
+			replayLogger.error(
+				`Failed to get hand replay for game ${gameId}, hand ${handNumber}:`,
+				error,
+			);
 			return null;
 		}
 	}
@@ -234,7 +254,9 @@ export class ReplayStorage {
 	/**
 	 * Saves replay to file from MongoDB
 	 */
-	async saveReplayToFileFromMongo(gameId: GameId): Promise<{ success: boolean; filePath?: string; error?: string }> {
+	async saveReplayToFileFromMongo(
+		gameId: GameId,
+	): Promise<{ success: boolean; filePath?: string; error?: string }> {
 		if (!this.replayService) {
 			return { success: false, error: 'MongoDB service not available' };
 		}
@@ -242,10 +264,13 @@ export class ReplayStorage {
 		try {
 			return await this.replayService.saveReplayToFile(gameId);
 		} catch (error) {
-			replayLogger.error(`Failed to save replay to file for game ${gameId}:`, error);
-			return { 
-				success: false, 
-				error: error instanceof Error ? error.message : 'Unknown error' 
+			replayLogger.error(
+				`Failed to save replay to file for game ${gameId}:`,
+				error,
+			);
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
 			};
 		}
 	}
@@ -259,7 +284,7 @@ export class ReplayStorage {
 	}> {
 		const stats = {
 			fileCount: this.listAvailableReplays().length,
-			mongoStats: undefined as any
+			mongoStats: undefined as any,
 		};
 
 		if (this.replayService) {
@@ -276,7 +301,9 @@ export class ReplayStorage {
 	/**
 	 * Deletes a replay
 	 */
-	async deleteReplay(gameId: GameId): Promise<{ fileDeleted: boolean; mongoDeleted: boolean }> {
+	async deleteReplay(
+		gameId: GameId,
+	): Promise<{ fileDeleted: boolean; mongoDeleted: boolean }> {
 		const results = { fileDeleted: false, mongoDeleted: false };
 
 		// Delete from MongoDB
@@ -284,7 +311,10 @@ export class ReplayStorage {
 			try {
 				results.mongoDeleted = await this.replayService.deleteReplay(gameId);
 			} catch (error) {
-				replayLogger.error(`Failed to delete replay from MongoDB for game ${gameId}:`, error);
+				replayLogger.error(
+					`Failed to delete replay from MongoDB for game ${gameId}:`,
+					error,
+				);
 			}
 		}
 
@@ -298,7 +328,10 @@ export class ReplayStorage {
 	/**
 	 * Exports replay in various formats
 	 */
-	exportReplay(replayData: ReplayData, format: 'json' | 'compressed' = 'json'): string | Buffer | undefined {
+	exportReplay(
+		replayData: ReplayData,
+		format: 'json' | 'compressed' = 'json',
+	): string | Buffer | undefined {
 		switch (format) {
 			case 'json':
 				return JSON.stringify(replayData, null, 2);
@@ -320,20 +353,24 @@ export class ReplayStorage {
 	/**
 	 * Builds hand replay data from events
 	 */
-	buildHandReplayData(gameId: GameId, handNumber: number, events: ReplayEvent[]): HandReplayData | undefined {
-		const handEvents = events.filter(e => e.handNumber === handNumber);
+	buildHandReplayData(
+		gameId: GameId,
+		handNumber: number,
+		events: ReplayEvent[],
+	): HandReplayData | undefined {
+		const handEvents = events.filter((e) => e.handNumber === handNumber);
 		if (handEvents.length === 0) return undefined;
 
-		const startEvent = handEvents.find(e => e.type === 'hand_started');
-		const endEvent = handEvents.find(e => e.type === 'hand_complete');
-		
+		const startEvent = handEvents.find((e) => e.type === 'hand_started');
+		const endEvent = handEvents.find((e) => e.type === 'hand_complete');
+
 		if (!startEvent || !endEvent) return undefined;
 
 		const playersInvolved = new Set<PlayerId>();
-		handEvents.forEach(e => {
+		handEvents.forEach((e) => {
 			if (e.playerId) playersInvolved.add(e.playerId);
 			if (e.gameStateAfter) {
-				e.gameStateAfter.players.forEach(p => playersInvolved.add(p.id));
+				e.gameStateAfter.players.forEach((p) => playersInvolved.add(p.id));
 			}
 		});
 
@@ -352,7 +389,7 @@ export class ReplayStorage {
 			communityCards: finalBoard,
 			winners,
 			potSize,
-			showdownResults: this.extractShowdownResults(handEvents)
+			showdownResults: this.extractShowdownResults(handEvents),
 		};
 	}
 
@@ -368,7 +405,7 @@ export class ReplayStorage {
 	 */
 	async healthCheck(): Promise<{ file: boolean; mongo: boolean }> {
 		const fileCheck = fs.existsSync(this.config.directory);
-		
+
 		let mongoCheck = false;
 		if (this.replayService) {
 			try {
@@ -390,12 +427,18 @@ export class ReplayStorage {
 			await this.replayService.initialize();
 			replayLogger.info('MongoDB replay service initialized for storage');
 		} catch (error) {
-			replayLogger.error('Failed to initialize MongoDB replay service for storage:', error);
+			replayLogger.error(
+				'Failed to initialize MongoDB replay service for storage:',
+				error,
+			);
 			this.replayService = null;
 		}
 	}
 
-	private saveReplayToFile(replayData: ReplayData, compressed: boolean = false): string | null {
+	private saveReplayToFile(
+		replayData: ReplayData,
+		compressed: boolean = false,
+	): string | null {
 		if (!this.config.directory) return null;
 
 		try {
@@ -404,7 +447,7 @@ export class ReplayStorage {
 			const randomSuffix = Math.random().toString(36).substring(2, 8);
 			const filename = `${replayData.gameId}_${replayData.startTime.toISOString().replace(/[:.]/g, '-')}_${randomSuffix}${extension}`;
 			const filepath = path.join(this.config.directory, filename);
-			
+
 			if (compressed) {
 				const jsonData = JSON.stringify(replayData, null, 2);
 				const compressedData = zlib.gzipSync(jsonData);
@@ -413,8 +456,10 @@ export class ReplayStorage {
 				const jsonData = JSON.stringify(replayData, null, 2);
 				fs.writeFileSync(filepath, jsonData);
 			}
-			
-			replayLogger.info(`Saved replay to file: ${filepath}${compressed ? ' (compressed)' : ''}`);
+
+			replayLogger.info(
+				`Saved replay to file: ${filepath}${compressed ? ' (compressed)' : ''}`,
+			);
 			return filepath;
 		} catch (error) {
 			replayLogger.error('Failed to save replay to file:', error);
@@ -430,7 +475,9 @@ export class ReplayStorage {
 		// Convert ReplayData to MongoDB format
 		const mongoMetadata: IGameMetadata = {
 			gameId: replayData.gameId,
-			gameType: replayData.metadata.gameConfig.isTournament ? 'tournament' : 'cash',
+			gameType: replayData.metadata.gameConfig.isTournament
+				? 'tournament'
+				: 'cash',
 			maxPlayers: replayData.metadata.gameConfig.maxPlayers,
 			actualPlayers: Object.keys(replayData.metadata.playerNames).length,
 			smallBlindAmount: replayData.metadata.gameConfig.smallBlindAmount,
@@ -442,10 +489,10 @@ export class ReplayStorage {
 			totalHands: replayData.metadata.handCount,
 			totalActions: replayData.metadata.totalActions,
 			playerNames: replayData.metadata.playerNames,
-			winners: []
+			winners: [],
 		};
 
-		const mongoEvents: IGameEvent[] = replayData.events.map(event => ({
+		const mongoEvents: IGameEvent[] = replayData.events.map((event) => ({
 			type: event.type,
 			timestamp: event.timestamp,
 			data: {
@@ -455,16 +502,18 @@ export class ReplayStorage {
 				gameStateAfter: event.gameStateAfter,
 				playerDecisionContext: event.playerDecisionContext,
 				eventDuration: event.eventDuration,
-				...event
+				...event,
 			},
 			phase: event.phase?.toString(),
 			handNumber: event.handNumber,
-			playerId: event.playerId
+			playerId: event.playerId,
 		}));
 
 		// Check if replay already exists
-		const existingReplay = await this.replayService.getReplay(replayData.gameId);
-		
+		const existingReplay = await this.replayService.getReplay(
+			replayData.gameId,
+		);
+
 		if (existingReplay) {
 			// Update existing replay with new events
 			await this.replayService.addEvents(replayData.gameId, mongoEvents);
@@ -473,7 +522,7 @@ export class ReplayStorage {
 			await this.replayService.createReplay({
 				gameId: replayData.gameId,
 				metadata: mongoMetadata,
-				events: mongoEvents
+				events: mongoEvents,
 			});
 		}
 
@@ -483,7 +532,7 @@ export class ReplayStorage {
 	private ensureDatesAreValid(replayData: ReplayData): ReplayData {
 		// Deep clone to avoid modifying the original
 		const processed = JSON.parse(JSON.stringify(replayData));
-		
+
 		// Convert date strings back to Date objects
 		processed.startTime = new Date(processed.startTime);
 		if (processed.endTime) {
@@ -492,7 +541,7 @@ export class ReplayStorage {
 		if (processed.metadata.createdAt) {
 			processed.metadata.createdAt = new Date(processed.metadata.createdAt);
 		}
-		
+
 		return processed;
 	}
 
@@ -505,27 +554,36 @@ export class ReplayStorage {
 	private getFinalBoard(events: ReplayEvent[]): Card[] {
 		for (let i = events.length - 1; i >= 0; i--) {
 			const event = events[i];
-			if (event.gameStateAfter && event.gameStateAfter.communityCards.length > 0) {
+			if (
+				event.gameStateAfter &&
+				event.gameStateAfter.communityCards.length > 0
+			) {
 				return event.gameStateAfter.communityCards;
 			}
 		}
 		return [];
 	}
 
-	private extractWinners(events: ReplayEvent[]): { playerId: PlayerId; handDescription?: string; winAmount: number }[] {
+	private extractWinners(
+		events: ReplayEvent[],
+	): { playerId: PlayerId; handDescription?: string; winAmount: number }[] {
 		// Look for hand_complete event which contains winner information
-		const handCompleteEvent = events.find(e => e.type === 'hand_complete');
+		const handCompleteEvent = events.find((e) => e.type === 'hand_complete');
 		if (handCompleteEvent && 'winners' in handCompleteEvent) {
 			// The hand_complete event contains a winners array
 			return (handCompleteEvent as any).winners || [];
 		}
 
 		// Fallback: look for showdown_complete event
-		const showdownEvent = events.find(e => e.type === 'showdown_complete');
+		const showdownEvent = events.find((e) => e.type === 'showdown_complete');
 		if (showdownEvent && showdownEvent.gameStateAfter) {
 			// Try to extract winners from chip stack changes
-			const winners: { playerId: PlayerId; handDescription?: string; winAmount: number }[] = [];
-			
+			const winners: {
+				playerId: PlayerId;
+				handDescription?: string;
+				winAmount: number;
+			}[] = [];
+
 			// Find the last action event before showdown to get chip states
 			let preShowdownState: GameState | undefined;
 			for (let i = events.length - 1; i >= 0; i--) {
@@ -537,13 +595,15 @@ export class ReplayStorage {
 
 			if (preShowdownState && showdownEvent.gameStateAfter) {
 				// Compare chip stacks to find winners
-				showdownEvent.gameStateAfter.players.forEach(player => {
-					const priorPlayer = preShowdownState!.players.find((p: any) => p.id === player.id);
+				showdownEvent.gameStateAfter.players.forEach((player) => {
+					const priorPlayer = preShowdownState!.players.find(
+						(p: any) => p.id === player.id,
+					);
 					if (priorPlayer && player.chipStack > priorPlayer.chipStack) {
 						winners.push({
 							playerId: player.id,
 							winAmount: player.chipStack - priorPlayer.chipStack,
-							handDescription: undefined
+							handDescription: undefined,
 						});
 					}
 				});
@@ -559,25 +619,30 @@ export class ReplayStorage {
 		for (let i = events.length - 1; i >= 0; i--) {
 			const event = events[i];
 			if (event.gameStateAfter) {
-				return event.gameStateAfter.pots.reduce((sum, pot) => sum + pot.amount, 0);
+				return event.gameStateAfter.pots.reduce(
+					(sum, pot) => sum + pot.amount,
+					0,
+				);
 			}
 		}
 		return 0;
 	}
 
-	private extractShowdownResults(events: ReplayEvent[]): Record<PlayerId, HandEvaluation> | undefined {
+	private extractShowdownResults(
+		events: ReplayEvent[],
+	): Record<PlayerId, HandEvaluation> | undefined {
 		// Look for showdown_complete event
-		const showdownEvent = events.find(e => e.type === 'showdown_complete');
+		const showdownEvent = events.find((e) => e.type === 'showdown_complete');
 		if (!showdownEvent || !showdownEvent.gameStateAfter) {
 			return undefined;
 		}
 
 		const results: Record<PlayerId, HandEvaluation> = {};
-		
+
 		// Extract hand evaluations from the game state
 		// The showdown_complete event should have player information with their hands revealed
-		const playersInShowdown = showdownEvent.gameStateAfter.players.filter((p: any) => 
-			!p.isFolded && p.holeCards && p.holeCards.length === 2
+		const playersInShowdown = showdownEvent.gameStateAfter.players.filter(
+			(p: any) => !p.isFolded && p.holeCards && p.holeCards.length === 2,
 		);
 
 		// If we can't get hand evaluations from the event, we need to calculate them
@@ -585,14 +650,18 @@ export class ReplayStorage {
 			playersInShowdown.forEach((player: any) => {
 				if (player.holeCards) {
 					// Convert Card interfaces to Card class instances
-					const holeCards = player.holeCards.map((card: Card) => 
-						new CardClass(card.suit, card.rank)
+					const holeCards = player.holeCards.map(
+						(card: Card) => new CardClass(card.suit, card.rank),
 					);
-					const communityCards = showdownEvent.gameStateAfter!.communityCards.map((card: Card) =>
-						new CardClass(card.suit, card.rank)
+					const communityCards =
+						showdownEvent.gameStateAfter!.communityCards.map(
+							(card: Card) => new CardClass(card.suit, card.rank),
+						);
+
+					const evaluation = HandEvaluator.evaluateHand(
+						holeCards,
+						communityCards,
 					);
-					
-					const evaluation = HandEvaluator.evaluateHand(holeCards, communityCards);
 					results[player.id] = evaluation;
 				}
 			});

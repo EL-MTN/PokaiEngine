@@ -1,488 +1,549 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokai Admin Dashboard</title>
-    <link rel="stylesheet" href="dashboard.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <div id="app">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <div class="header-content">
-                <h1><i class="fas fa-crown"></i> Pokai Admin Dashboard</h1>
-                <div class="server-status">
-                    <span id="connection-status" class="status-indicator">
-                        <i class="fas fa-circle"></i> Connecting...
-                    </span>
-                    <span id="server-uptime">Uptime: --</span>
-                </div>
-            </div>
-        </header>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Pokai Admin Dashboard</title>
+		<link rel="stylesheet" href="dashboard.css" />
+		<link
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<div id="app">
+			<!-- Header -->
+			<header class="dashboard-header">
+				<div class="header-content">
+					<h1><i class="fas fa-crown"></i> Pokai Admin Dashboard</h1>
+					<div class="server-status">
+						<span id="connection-status" class="status-indicator">
+							<i class="fas fa-circle"></i> Connecting...
+						</span>
+						<span id="server-uptime">Uptime: --</span>
+					</div>
+				</div>
+			</header>
 
-        <!-- Main Dashboard Grid -->
-        <main class="dashboard-main">
-            <!-- Statistics Cards -->
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-gamepad"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Active Games</h3>
-                        <span id="active-games-count" class="stat-number">0</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Connected Players</h3>
-                        <span id="connected-players-count" class="stat-number">0</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-hand-paper"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Hands Played</h3>
-                        <span id="total-hands-count" class="stat-number">0</span>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-server"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Server Load</h3>
-                        <span id="server-load" class="stat-number">--</span>
-                    </div>
-                </div>
-            </section>
+			<!-- Main Dashboard Grid -->
+			<main class="dashboard-main">
+				<!-- Statistics Cards -->
+				<section class="stats-grid">
+					<div class="stat-card">
+						<div class="stat-icon">
+							<i class="fas fa-gamepad"></i>
+						</div>
+						<div class="stat-content">
+							<h3>Active Games</h3>
+							<span id="active-games-count" class="stat-number">0</span>
+						</div>
+					</div>
 
-            <!-- Bot Management Panel -->
-            <section class="panel bot-management">
-                <div class="panel-header">
-                    <h2><i class="fas fa-robot"></i> Bot Management</h2>
-                    <div class="bot-controls">
-                        <input type="text" id="bot-search" class="search-input" placeholder="Search bots...">
-                        <select id="bot-status-filter" class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
-                            <option value="revoked">Revoked</option>
-                        </select>
-                        <button id="refresh-bots-btn" class="btn btn-secondary">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="panel-content">
-                    <div id="bots-table-container">
-                        <!-- Bots table will be populated here -->
-                    </div>
-                </div>
-            </section>
+					<div class="stat-card">
+						<div class="stat-icon">
+							<i class="fas fa-users"></i>
+						</div>
+						<div class="stat-content">
+							<h3>Connected Players</h3>
+							<span id="connected-players-count" class="stat-number">0</span>
+						</div>
+					</div>
 
-            <!-- Game Management Panel -->
-            <section class="panel game-management">
-                <div class="panel-header">
-                    <h2><i class="fas fa-cogs"></i> Game Management</h2>
-                    <button id="create-game-btn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create Game
-                    </button>
-                </div>
-                <div class="panel-content">
-                    <div id="games-table-container">
-                        <!-- Games table will be populated here -->
-                    </div>
-                </div>
-            </section>
+					<div class="stat-card">
+						<div class="stat-icon">
+							<i class="fas fa-hand-paper"></i>
+						</div>
+						<div class="stat-content">
+							<h3>Hands Played</h3>
+							<span id="total-hands-count" class="stat-number">0</span>
+						</div>
+					</div>
 
-            <!-- Active Games Monitor -->
-            <section class="panel active-games">
-                <div class="panel-header">
-                    <h2><i class="fas fa-eye"></i> Live Games Monitor</h2>
-                    <div class="refresh-controls">
-                        <label>
-                            <input type="checkbox" id="auto-refresh" checked> Auto Refresh
-                        </label>
-                        <button id="refresh-btn" class="btn btn-secondary">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="panel-content">
-                    <div id="active-games-list">
-                        <!-- Active games will be populated here -->
-                    </div>
-                </div>
-            </section>
+					<div class="stat-card">
+						<div class="stat-icon">
+							<i class="fas fa-server"></i>
+						</div>
+						<div class="stat-content">
+							<h3>Server Load</h3>
+							<span id="server-load" class="stat-number">--</span>
+						</div>
+					</div>
+				</section>
 
-            <!-- Replay System -->
-            <section class="panel replay-system">
-                <div class="panel-header">
-                    <h2><i class="fas fa-play-circle"></i> Game Replays</h2>
-                    <div class="replay-controls">
-                        <button id="refresh-replays-btn" class="btn btn-secondary">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
-                </div>
-                <div class="panel-content">
-                    <div id="replays-list">
-                        <!-- Replays will be populated here -->
-                    </div>
-                </div>
-            </section>
+				<!-- Bot Management Panel -->
+				<section class="panel bot-management">
+					<div class="panel-header">
+						<h2><i class="fas fa-robot"></i> Bot Management</h2>
+						<div class="bot-controls">
+							<input
+								type="text"
+								id="bot-search"
+								class="search-input"
+								placeholder="Search bots..."
+							/>
+							<select id="bot-status-filter" class="filter-select">
+								<option value="">All Status</option>
+								<option value="active">Active</option>
+								<option value="suspended">Suspended</option>
+								<option value="revoked">Revoked</option>
+							</select>
+							<button id="refresh-bots-btn" class="btn btn-secondary">
+								<i class="fas fa-sync-alt"></i>
+							</button>
+						</div>
+					</div>
+					<div class="panel-content">
+						<div id="bots-table-container">
+							<!-- Bots table will be populated here -->
+						</div>
+					</div>
+				</section>
 
-            <!-- Player Activity -->
-            <section class="panel player-activity">
-                <div class="panel-header">
-                    <h2><i class="fas fa-chart-line"></i> Player Activity</h2>
-                </div>
-                <div class="panel-content">
-                    <div id="player-activity-chart">
-                        <!-- Activity chart will be here -->
-                    </div>
-                </div>
-            </section>
+				<!-- Game Management Panel -->
+				<section class="panel game-management">
+					<div class="panel-header">
+						<h2><i class="fas fa-cogs"></i> Game Management</h2>
+						<button id="create-game-btn" class="btn btn-primary">
+							<i class="fas fa-plus"></i> Create Game
+						</button>
+					</div>
+					<div class="panel-content">
+						<div id="games-table-container">
+							<!-- Games table will be populated here -->
+						</div>
+					</div>
+				</section>
 
-            <!-- System Logs -->
-            <section class="panel system-logs">
-                <div class="panel-header">
-                    <h2><i class="fas fa-terminal"></i> System Logs</h2>
-                    <div class="log-controls">
-                        <select id="log-level">
-                            <option value="all">All Levels</option>
-                            <option value="info">Info</option>
-                            <option value="warn">Warning</option>
-                            <option value="error">Error</option>
-                        </select>
-                        <button id="clear-logs-btn" class="btn btn-warning">
-                            <i class="fas fa-trash"></i> Clear
-                        </button>
-                    </div>
-                </div>
-                <div class="panel-content">
-                    <div id="system-logs-list">
-                        <!-- System logs will be populated here -->
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+				<!-- Active Games Monitor -->
+				<section class="panel active-games">
+					<div class="panel-header">
+						<h2><i class="fas fa-eye"></i> Live Games Monitor</h2>
+						<div class="refresh-controls">
+							<label>
+								<input type="checkbox" id="auto-refresh" checked /> Auto Refresh
+							</label>
+							<button id="refresh-btn" class="btn btn-secondary">
+								<i class="fas fa-sync-alt"></i>
+							</button>
+						</div>
+					</div>
+					<div class="panel-content">
+						<div id="active-games-list">
+							<!-- Active games will be populated here -->
+						</div>
+					</div>
+				</section>
 
-    <!-- Create Game Modal -->
-    <div id="create-game-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Game</h3>
-                <button class="modal-close" id="close-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="create-game-form">
-                    <div class="form-group">
-                        <label for="game-id">Game ID:</label>
-                        <input type="text" id="game-id" name="gameId" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="max-players">Max Players:</label>
-                        <select id="max-players" name="maxPlayers">
-                            <option value="2">2</option>
-                            <option value="4">4</option>
-                            <option value="6" selected>6</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="small-blind">Small Blind:</label>
-                            <input type="number" id="small-blind" name="smallBlindAmount" value="10" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="big-blind">Big Blind:</label>
-                            <input type="number" id="big-blind" name="bigBlindAmount" value="20" min="2">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="turn-time-limit">Turn Time Limit (seconds):</label>
-                            <input type="number" id="turn-time-limit" name="turnTimeLimit" value="30" min="5" max="300">
-                        </div>
-                        <div class="form-group">
-                            <label for="hand-start-delay">Hand Start Delay (ms):</label>
-                            <input type="number" id="hand-start-delay" name="handStartDelay" value="2000" min="0" max="10000">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="start-condition">Start Condition:</label>
-                        <select id="start-condition" name="startCondition">
-                            <option value="minPlayers" selected>Min Players (2)</option>
-                            <option value="manual">Manual Start</option>
-                            <option value="scheduled">Scheduled Start</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="is-tournament" name="isTournament">
-                            Tournament Game
-                        </label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancel-create">Cancel</button>
-                <button type="submit" form="create-game-form" class="btn btn-primary">Create Game</button>
-            </div>
-        </div>
-    </div>
+				<!-- Replay System -->
+				<section class="panel replay-system">
+					<div class="panel-header">
+						<h2><i class="fas fa-play-circle"></i> Game Replays</h2>
+						<div class="replay-controls">
+							<button id="refresh-replays-btn" class="btn btn-secondary">
+								<i class="fas fa-sync-alt"></i> Refresh
+							</button>
+						</div>
+					</div>
+					<div class="panel-content">
+						<div id="replays-list">
+							<!-- Replays will be populated here -->
+						</div>
+					</div>
+				</section>
 
-    <!-- Game Details Modal -->
-    <div id="game-details-modal" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3 id="game-details-title">Game Details</h3>
-                <button class="modal-close" id="close-details-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="game-details-content">
-                    <!-- Game details will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
+				<!-- Player Activity -->
+				<section class="panel player-activity">
+					<div class="panel-header">
+						<h2><i class="fas fa-chart-line"></i> Player Activity</h2>
+					</div>
+					<div class="panel-content">
+						<div id="player-activity-chart">
+							<!-- Activity chart will be here -->
+						</div>
+					</div>
+				</section>
 
-    <!-- Bot Details Modal -->
-    <div id="bot-details-modal" class="modal">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h3 id="bot-details-title">Bot Details</h3>
-                <button class="modal-close" id="close-bot-details-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="bot-details-content">
-                    <!-- Bot details will be populated here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-warning" id="bot-suspend-btn">
-                    <i class="fas fa-pause"></i> Suspend
-                </button>
-                <button class="btn btn-success" id="bot-reactivate-btn" style="display: none;">
-                    <i class="fas fa-play"></i> Reactivate
-                </button>
-                <button class="btn btn-danger" id="bot-revoke-btn">
-                    <i class="fas fa-ban"></i> Revoke
-                </button>
-                <button class="btn btn-primary" id="bot-regenerate-key-btn">
-                    <i class="fas fa-key"></i> Regenerate API Key
-                </button>
-            </div>
-        </div>
-    </div>
+				<!-- System Logs -->
+				<section class="panel system-logs">
+					<div class="panel-header">
+						<h2><i class="fas fa-terminal"></i> System Logs</h2>
+						<div class="log-controls">
+							<select id="log-level">
+								<option value="all">All Levels</option>
+								<option value="info">Info</option>
+								<option value="warn">Warning</option>
+								<option value="error">Error</option>
+							</select>
+							<button id="clear-logs-btn" class="btn btn-warning">
+								<i class="fas fa-trash"></i> Clear
+							</button>
+						</div>
+					</div>
+					<div class="panel-content">
+						<div id="system-logs-list">
+							<!-- System logs will be populated here -->
+						</div>
+					</div>
+				</section>
+			</main>
+		</div>
 
-    <!-- Replay Viewer Modal -->
-    <div id="replay-viewer-modal" class="modal">
-        <div class="modal-content extra-large">
-            <div class="modal-header">
-                <h3 id="replay-viewer-title">Game Replay</h3>
-                <button class="modal-close" id="close-replay-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="replay-viewer-content">
-                    <!-- Replay viewer interface -->
-                    <div class="replay-interface">
-                        <!-- Replay Controls -->
-                        <div class="replay-controls">
-                            <div class="playback-controls">
-                                <button id="replay-play-pause" class="btn btn-primary">
-                                    <i class="fas fa-play"></i>
-                                </button>
-                                <button id="replay-step-back" class="btn btn-secondary">
-                                    <i class="fas fa-step-backward"></i>
-                                </button>
-                                <button id="replay-step-forward" class="btn btn-secondary">
-                                    <i class="fas fa-step-forward"></i>
-                                </button>
-                                <button id="replay-restart" class="btn btn-secondary">
-                                    <i class="fas fa-undo"></i>
-                                </button>
-                                <div class="speed-control">
-                                    <label for="replay-speed">Speed:</label>
-                                    <select id="replay-speed">
-                                        <option value="0.25">0.25x</option>
-                                        <option value="0.5">0.5x</option>
-                                        <option value="1" selected>1x</option>
-                                        <option value="2">2x</option>
-                                        <option value="4">4x</option>
-                                        <option value="8">8x</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="progress-control">
-                                <div class="progress-info">
-                                    <span id="current-event">0</span> / <span id="total-events">0</span> events
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div id="progress-bar" class="progress-bar"></div>
-                                    <input id="progress-slider" type="range" min="0" max="100" value="0" class="progress-slider">
-                                </div>
-                            </div>
-                        </div>
+		<!-- Create Game Modal -->
+		<div id="create-game-modal" class="modal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>Create New Game</h3>
+					<button class="modal-close" id="close-modal">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="modal-body">
+					<form id="create-game-form">
+						<div class="form-group">
+							<label for="game-id">Game ID:</label>
+							<input type="text" id="game-id" name="gameId" required />
+						</div>
 
-                        <!-- Game State Display -->
-                        <div class="game-state-display">
-                            <div class="poker-table">
-                                <div class="table-info">
-                                    <div class="hand-info">
-                                        <span>Hand #<span id="current-hand">1</span></span>
-                                        <span>Phase: <span id="current-phase">Pre-Flop</span></span>
-                                        <span>Pot: $<span id="current-pot">0</span></span>
-                                    </div>
-                                    <div class="community-cards" id="community-cards">
-                                        <!-- Community cards will be displayed here -->
-                                    </div>
-                                </div>
-                                <div class="players-display" id="players-display">
-                                    <!-- Players will be displayed here -->
-                                </div>
-                            </div>
-                            <div class="action-history">
-                                <h4>Action History</h4>
-                                <div id="action-log" class="action-log">
-                                    <!-- Action history will be displayed here -->
-                                </div>
-                            </div>
-                        </div>
+						<div class="form-group">
+							<label for="max-players">Max Players:</label>
+							<select id="max-players" name="maxPlayers">
+								<option value="2">2</option>
+								<option value="4">4</option>
+								<option value="6" selected>6</option>
+								<option value="8">8</option>
+								<option value="9">9</option>
+							</select>
+						</div>
 
-                        <!-- Replay Analysis -->
-                        <div class="replay-analysis">
-                            <div class="analysis-tabs">
-                                <button class="tab-button active" data-tab="overview">Overview</button>
-                                <button class="tab-button" data-tab="hands">Hands</button>
-                                <button class="tab-button" data-tab="players">Players</button>
-                                <button class="tab-button" data-tab="decisions">Decisions</button>
-                            </div>
-                            <div class="tab-content">
-                                <div id="analysis-overview" class="tab-pane active">
-                                    <div id="game-overview">
-                                        <!-- Game overview will be populated here -->
-                                    </div>
-                                </div>
-                                <div id="analysis-hands" class="tab-pane">
-                                    <div id="hands-breakdown">
-                                        <!-- Hands breakdown will be populated here -->
-                                    </div>
-                                </div>
-                                <div id="analysis-players" class="tab-pane">
-                                    <div id="player-stats">
-                                        <!-- Player statistics will be populated here -->
-                                    </div>
-                                </div>
-                                <div id="analysis-decisions" class="tab-pane">
-                                    <div id="decision-analysis">
-                                        <!-- Decision analysis will be populated here -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="small-blind">Small Blind:</label>
+								<input
+									type="number"
+									id="small-blind"
+									name="smallBlindAmount"
+									value="10"
+									min="1"
+								/>
+							</div>
+							<div class="form-group">
+								<label for="big-blind">Big Blind:</label>
+								<input
+									type="number"
+									id="big-blind"
+									name="bigBlindAmount"
+									value="20"
+									min="2"
+								/>
+							</div>
+						</div>
 
-    <!-- Live Game Viewer Modal -->
-    <div id="live-game-modal" class="modal">
-        <div class="modal-content extra-large">
-            <div class="modal-header">
-                <h3><i class="fas fa-broadcast-tower"></i> Live Game Viewer - <span id="live-game-id"></span></h3>
-                <button class="modal-close" id="close-live-game-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="live-game-container">
-                    <div class="live-game-main">
-                        <!-- Poker Table View -->
-                        <div class="poker-table">
-                            <div class="table-center">
-                                <div class="community-cards" id="live-community-cards">
-                                    <!-- Community cards -->
-                                </div>
-                                <div class="pot-info">
-                                    <div class="pot-amount">Pot: $<span id="live-pot-amount">0</span></div>
-                                </div>
-                            </div>
-                            <div class="players-positions" id="live-players-positions">
-                                <!-- Player positions will be dynamically generated -->
-                            </div>
-                        </div>
-                        
-                        <!-- Game Info Panel -->
-                        <div class="game-info-panel">
-                            <div class="game-stats">
-                                <div class="stat-item">
-                                    <span class="stat-label">Hand #</span>
-                                    <span class="stat-value" id="live-hand-number">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Phase</span>
-                                    <span class="stat-value" id="live-game-phase">-</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Blinds</span>
-                                    <span class="stat-value" id="live-blinds">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Side Panel -->
-                    <div class="live-game-sidebar">
-                        <!-- Action Log -->
-                        <div class="action-log-panel">
-                            <h4>Action Log</h4>
-                            <div class="action-log" id="live-action-log">
-                                <!-- Live actions will appear here -->
-                            </div>
-                        </div>
-                        
-                        <!-- Controls -->
-                        <div class="spectator-controls">
-                            <button id="stop-spectating-btn" class="btn btn-secondary">
-                                <i class="fas fa-stop"></i> Stop Watching
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+						<div class="form-row">
+							<div class="form-group">
+								<label for="turn-time-limit">Turn Time Limit (seconds):</label>
+								<input
+									type="number"
+									id="turn-time-limit"
+									name="turnTimeLimit"
+									value="30"
+									min="5"
+									max="300"
+								/>
+							</div>
+							<div class="form-group">
+								<label for="hand-start-delay">Hand Start Delay (ms):</label>
+								<input
+									type="number"
+									id="hand-start-delay"
+									name="handStartDelay"
+									value="2000"
+									min="0"
+									max="10000"
+								/>
+							</div>
+						</div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="dashboard.js"></script>
-</body>
+						<div class="form-group">
+							<label for="start-condition">Start Condition:</label>
+							<select id="start-condition" name="startCondition">
+								<option value="minPlayers" selected>Min Players (2)</option>
+								<option value="manual">Manual Start</option>
+								<option value="scheduled">Scheduled Start</option>
+							</select>
+						</div>
+
+						<div class="form-group">
+							<label>
+								<input type="checkbox" id="is-tournament" name="isTournament" />
+								Tournament Game
+							</label>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" id="cancel-create">
+						Cancel
+					</button>
+					<button type="submit" form="create-game-form" class="btn btn-primary">
+						Create Game
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Game Details Modal -->
+		<div id="game-details-modal" class="modal">
+			<div class="modal-content large">
+				<div class="modal-header">
+					<h3 id="game-details-title">Game Details</h3>
+					<button class="modal-close" id="close-details-modal">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div id="game-details-content">
+						<!-- Game details will be populated here -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Bot Details Modal -->
+		<div id="bot-details-modal" class="modal">
+			<div class="modal-content large">
+				<div class="modal-header">
+					<h3 id="bot-details-title">Bot Details</h3>
+					<button class="modal-close" id="close-bot-details-modal">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div id="bot-details-content">
+						<!-- Bot details will be populated here -->
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-warning" id="bot-suspend-btn">
+						<i class="fas fa-pause"></i> Suspend
+					</button>
+					<button
+						class="btn btn-success"
+						id="bot-reactivate-btn"
+						style="display: none"
+					>
+						<i class="fas fa-play"></i> Reactivate
+					</button>
+					<button class="btn btn-danger" id="bot-revoke-btn">
+						<i class="fas fa-ban"></i> Revoke
+					</button>
+					<button class="btn btn-primary" id="bot-regenerate-key-btn">
+						<i class="fas fa-key"></i> Regenerate API Key
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Replay Viewer Modal -->
+		<div id="replay-viewer-modal" class="modal">
+			<div class="modal-content extra-large">
+				<div class="modal-header">
+					<h3 id="replay-viewer-title">Game Replay</h3>
+					<button class="modal-close" id="close-replay-modal">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div id="replay-viewer-content">
+						<!-- Replay viewer interface -->
+						<div class="replay-interface">
+							<!-- Replay Controls -->
+							<div class="replay-controls">
+								<div class="playback-controls">
+									<button id="replay-play-pause" class="btn btn-primary">
+										<i class="fas fa-play"></i>
+									</button>
+									<button id="replay-step-back" class="btn btn-secondary">
+										<i class="fas fa-step-backward"></i>
+									</button>
+									<button id="replay-step-forward" class="btn btn-secondary">
+										<i class="fas fa-step-forward"></i>
+									</button>
+									<button id="replay-restart" class="btn btn-secondary">
+										<i class="fas fa-undo"></i>
+									</button>
+									<div class="speed-control">
+										<label for="replay-speed">Speed:</label>
+										<select id="replay-speed">
+											<option value="0.25">0.25x</option>
+											<option value="0.5">0.5x</option>
+											<option value="1" selected>1x</option>
+											<option value="2">2x</option>
+											<option value="4">4x</option>
+											<option value="8">8x</option>
+										</select>
+									</div>
+								</div>
+								<div class="progress-control">
+									<div class="progress-info">
+										<span id="current-event">0</span> /
+										<span id="total-events">0</span> events
+									</div>
+									<div class="progress-bar-container">
+										<div id="progress-bar" class="progress-bar"></div>
+										<input
+											id="progress-slider"
+											type="range"
+											min="0"
+											max="100"
+											value="0"
+											class="progress-slider"
+										/>
+									</div>
+								</div>
+							</div>
+
+							<!-- Game State Display -->
+							<div class="game-state-display">
+								<div class="poker-table">
+									<div class="table-info">
+										<div class="hand-info">
+											<span>Hand #<span id="current-hand">1</span></span>
+											<span
+												>Phase: <span id="current-phase">Pre-Flop</span></span
+											>
+											<span>Pot: $<span id="current-pot">0</span></span>
+										</div>
+										<div class="community-cards" id="community-cards">
+											<!-- Community cards will be displayed here -->
+										</div>
+									</div>
+									<div class="players-display" id="players-display">
+										<!-- Players will be displayed here -->
+									</div>
+								</div>
+								<div class="action-history">
+									<h4>Action History</h4>
+									<div id="action-log" class="action-log">
+										<!-- Action history will be displayed here -->
+									</div>
+								</div>
+							</div>
+
+							<!-- Replay Analysis -->
+							<div class="replay-analysis">
+								<div class="analysis-tabs">
+									<button class="tab-button active" data-tab="overview">
+										Overview
+									</button>
+									<button class="tab-button" data-tab="hands">Hands</button>
+									<button class="tab-button" data-tab="players">Players</button>
+									<button class="tab-button" data-tab="decisions">
+										Decisions
+									</button>
+								</div>
+								<div class="tab-content">
+									<div id="analysis-overview" class="tab-pane active">
+										<div id="game-overview">
+											<!-- Game overview will be populated here -->
+										</div>
+									</div>
+									<div id="analysis-hands" class="tab-pane">
+										<div id="hands-breakdown">
+											<!-- Hands breakdown will be populated here -->
+										</div>
+									</div>
+									<div id="analysis-players" class="tab-pane">
+										<div id="player-stats">
+											<!-- Player statistics will be populated here -->
+										</div>
+									</div>
+									<div id="analysis-decisions" class="tab-pane">
+										<div id="decision-analysis">
+											<!-- Decision analysis will be populated here -->
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Live Game Viewer Modal -->
+		<div id="live-game-modal" class="modal">
+			<div class="modal-content extra-large">
+				<div class="modal-header">
+					<h3>
+						<i class="fas fa-broadcast-tower"></i> Live Game Viewer -
+						<span id="live-game-id"></span>
+					</h3>
+					<button class="modal-close" id="close-live-game-modal">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="live-game-container">
+						<div class="live-game-main">
+							<!-- Poker Table View -->
+							<div class="poker-table">
+								<div class="table-center">
+									<div class="community-cards" id="live-community-cards">
+										<!-- Community cards -->
+									</div>
+									<div class="pot-info">
+										<div class="pot-amount">
+											Pot: $<span id="live-pot-amount">0</span>
+										</div>
+									</div>
+								</div>
+								<div class="players-positions" id="live-players-positions">
+									<!-- Player positions will be dynamically generated -->
+								</div>
+							</div>
+
+							<!-- Game Info Panel -->
+							<div class="game-info-panel">
+								<div class="game-stats">
+									<div class="stat-item">
+										<span class="stat-label">Hand #</span>
+										<span class="stat-value" id="live-hand-number">0</span>
+									</div>
+									<div class="stat-item">
+										<span class="stat-label">Phase</span>
+										<span class="stat-value" id="live-game-phase">-</span>
+									</div>
+									<div class="stat-item">
+										<span class="stat-label">Blinds</span>
+										<span class="stat-value" id="live-blinds">-</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Side Panel -->
+						<div class="live-game-sidebar">
+							<!-- Action Log -->
+							<div class="action-log-panel">
+								<h4>Action Log</h4>
+								<div class="action-log" id="live-action-log">
+									<!-- Live actions will appear here -->
+								</div>
+							</div>
+
+							<!-- Controls -->
+							<div class="spectator-controls">
+								<button id="stop-spectating-btn" class="btn btn-secondary">
+									<i class="fas fa-stop"></i> Stop Watching
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="dashboard.js"></script>
+	</body>
 </html>

@@ -19,7 +19,12 @@ export class Player implements PlayerInfo {
 	public totalWinnings: number;
 	public handsPlayed: number;
 
-	constructor(id: string, name: string, chipStack: number, timeBank: number = 30) {
+	constructor(
+		id: string,
+		name: string,
+		chipStack: number,
+		timeBank: number = 30,
+	) {
 		this.id = id;
 		this.name = name;
 		this.chipStack = chipStack;
@@ -154,7 +159,9 @@ export class Player implements PlayerInfo {
 	 * Checks if the player can act (not folded, not all-in, has chips)
 	 */
 	canAct(): boolean {
-		return this.isActive && !this.isFolded && !this.isAllIn && this.chipStack > 0;
+		return (
+			this.isActive && !this.isFolded && !this.isAllIn && this.chipStack > 0
+		);
 	}
 
 	/**
@@ -247,7 +254,12 @@ export class Player implements PlayerInfo {
 	 * Creates a copy of the player
 	 */
 	clone(): Player {
-		const cloned = new Player(this.id, this.name, this.chipStack, this.timeBank);
+		const cloned = new Player(
+			this.id,
+			this.name,
+			this.chipStack,
+			this.timeBank,
+		);
 		cloned.position = this.position;
 		cloned.isActive = this.isActive;
 		cloned.hasActed = this.hasActed;

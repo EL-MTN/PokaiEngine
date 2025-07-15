@@ -23,7 +23,7 @@ class AuthenticatedBot {
 			const response = await axios.post(`${this.serverUrl}/api/bots/register`, {
 				botName,
 				developer,
-				email
+				email,
 			});
 
 			if (response.data.success) {
@@ -31,11 +31,16 @@ class AuthenticatedBot {
 				console.log('✅ Bot registered successfully!');
 				console.log('Bot ID:', this.credentials.botId);
 				console.log('API Key:', this.credentials.apiKey);
-				console.log('⚠️  Save your API key securely - it won\'t be shown again!');
+				console.log(
+					"⚠️  Save your API key securely - it won't be shown again!",
+				);
 				return this.credentials;
 			}
 		} catch (error) {
-			console.error('❌ Registration failed:', error.response?.data?.message || error.message);
+			console.error(
+				'❌ Registration failed:',
+				error.response?.data?.message || error.message,
+			);
 			throw error;
 		}
 	}
@@ -87,7 +92,9 @@ class AuthenticatedBot {
 			this.socket.on('error', (data) => {
 				console.error('❌ Error:', data.message);
 				if (data.code === 'AUTH_REQUIRED') {
-					console.log('⚠️  You must authenticate before performing this action');
+					console.log(
+						'⚠️  You must authenticate before performing this action',
+					);
 				}
 			});
 
@@ -122,7 +129,7 @@ class AuthenticatedBot {
 		console.log('🔐 Authenticating with bot ID:', this.credentials.botId);
 		this.socket.emit('authenticate', {
 			botId: this.credentials.botId,
-			apiKey: this.credentials.apiKey
+			apiKey: this.credentials.apiKey,
 		});
 	}
 
@@ -139,7 +146,7 @@ class AuthenticatedBot {
 		this.socket.emit('identify', {
 			botName: this.credentials?.botName || 'AuthBot',
 			gameId: gameId,
-			chipStack: chipStack
+			chipStack: chipStack,
 		});
 	}
 
@@ -152,7 +159,7 @@ class AuthenticatedBot {
 			return;
 		}
 
-		console.log('🤔 It\'s my turn!');
+		console.log("🤔 It's my turn!");
 		console.log('   My cards:', gameState.playerCards);
 		console.log('   Community cards:', gameState.communityCards);
 		console.log('   Pot size:', gameState.potSize);
@@ -160,9 +167,11 @@ class AuthenticatedBot {
 
 		// Simple decision logic - you can make this more sophisticated
 		const decision = this.makeDecision(gameState);
-		
+
 		if (decision) {
-			console.log(`📤 Taking action: ${decision.type}${decision.amount ? ` $${decision.amount}` : ''}`);
+			console.log(
+				`📤 Taking action: ${decision.type}${decision.amount ? ` $${decision.amount}` : ''}`,
+			);
 			this.socket.emit('action', { action: decision });
 		}
 	}
@@ -172,13 +181,13 @@ class AuthenticatedBot {
 	 */
 	makeDecision(gameState) {
 		const actions = gameState.possibleActions;
-		
+
 		// Find available actions
-		const canCheck = actions.some(a => a.type === 'check');
-		const canCall = actions.some(a => a.type === 'call');
-		const canBet = actions.some(a => a.type === 'bet');
-		const canRaise = actions.some(a => a.type === 'raise');
-		const canFold = actions.some(a => a.type === 'fold');
+		const canCheck = actions.some((a) => a.type === 'check');
+		const canCall = actions.some((a) => a.type === 'call');
+		const canBet = actions.some((a) => a.type === 'bet');
+		const canRaise = actions.some((a) => a.type === 'raise');
+		const canFold = actions.some((a) => a.type === 'fold');
 
 		// Very simple logic - you should implement better decision making
 		const random = Math.random();
@@ -186,37 +195,41 @@ class AuthenticatedBot {
 		// 70% of the time, play conservatively
 		if (random < 0.7) {
 			if (canCheck) {
-				return { type: 'check', playerId: this.playerId, timestamp: Date.now() };
+				return {
+					type: 'check',
+					playerId: this.playerId,
+					timestamp: Date.now(),
+				};
 			} else if (canCall) {
-				const callAction = actions.find(a => a.type === 'call');
-				return { 
-					type: 'call', 
+				const callAction = actions.find((a) => a.type === 'call');
+				return {
+					type: 'call',
 					amount: callAction.amount,
-					playerId: this.playerId, 
-					timestamp: Date.now() 
+					playerId: this.playerId,
+					timestamp: Date.now(),
 				};
 			}
 		}
-		
+
 		// 20% of the time, be aggressive
 		if (random < 0.9) {
 			if (canBet) {
-				const betAction = actions.find(a => a.type === 'bet');
+				const betAction = actions.find((a) => a.type === 'bet');
 				const betAmount = betAction.minAmount + Math.floor(Math.random() * 50);
-				return { 
-					type: 'bet', 
+				return {
+					type: 'bet',
 					amount: Math.min(betAmount, betAction.maxAmount),
-					playerId: this.playerId, 
-					timestamp: Date.now() 
+					playerId: this.playerId,
+					timestamp: Date.now(),
 				};
 			} else if (canRaise) {
-				const raiseAction = actions.find(a => a.type === 'raise');
+				const raiseAction = actions.find((a) => a.type === 'raise');
 				const raiseAmount = raiseAction.minAmount;
-				return { 
-					type: 'raise', 
+				return {
+					type: 'raise',
 					amount: raiseAmount,
-					playerId: this.playerId, 
-					timestamp: Date.now() 
+					playerId: this.playerId,
+					timestamp: Date.now(),
 				};
 			}
 		}
@@ -264,9 +277,9 @@ async function main() {
 	if (process.argv[2] === 'register') {
 		try {
 			await bot.register(
-				'ExampleBot',           // Bot name
-				'John Developer',       // Developer name
-				'john@example.com'     // Email
+				'ExampleBot', // Bot name
+				'John Developer', // Developer name
+				'john@example.com', // Email
 			);
 			console.log('\n💾 Save these credentials securely!');
 		} catch (error) {
@@ -301,7 +314,6 @@ async function main() {
 			bot.disconnect();
 			process.exit();
 		});
-
 	} catch (error) {
 		console.error('Failed to connect:', error.message);
 		process.exit(1);

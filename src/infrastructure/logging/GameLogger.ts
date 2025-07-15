@@ -1,4 +1,12 @@
-import { Action, Card, GameEvent, GameId, GameState, HandEvaluation, PlayerId } from '@/domain/types';
+import {
+	Action,
+	Card,
+	GameEvent,
+	GameId,
+	GameState,
+	HandEvaluation,
+	PlayerId,
+} from '@/domain/types';
 
 export interface GameLog {
 	gameId: GameId;
@@ -38,7 +46,7 @@ export class GameLogger {
 	startGame(
 		gameId: GameId,
 		initialGameState: GameState,
-		playerNames: Map<PlayerId, string>
+		playerNames: Map<PlayerId, string>,
 	): void {
 		const gameLog: GameLog = {
 			gameId,
@@ -158,7 +166,9 @@ export class GameLogger {
 		};
 
 		// Try to determine winner from showdown event
-		const showdownEvent = handEvents.find((e) => e.type === 'showdown_complete');
+		const showdownEvent = handEvents.find(
+			(e) => e.type === 'showdown_complete',
+		);
 		if (showdownEvent && showdownEvent.gameState) {
 			// In a real implementation, you'd extract winner info from the game state
 			// For now, we'll leave it undefined
@@ -177,7 +187,11 @@ export class GameLogger {
 		}
 
 		const summaries: HandSummary[] = [];
-		for (let handNumber = 1; handNumber <= gameLog.metadata.handCount; handNumber++) {
+		for (
+			let handNumber = 1;
+			handNumber <= gameLog.metadata.handCount;
+			handNumber++
+		) {
 			const summary = this.getHandSummary(gameId, handNumber);
 			if (summary) {
 				summaries.push(summary);

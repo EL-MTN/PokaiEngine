@@ -63,7 +63,7 @@ export class BotAuthService {
 				apiKey: hashedApiKey,
 				botName: data.botName,
 				developer: data.developer,
-				email: data.email
+				email: data.email,
 			});
 
 			await bot.save();
@@ -76,7 +76,7 @@ export class BotAuthService {
 				apiKey, // Plain text - must be saved by developer
 				botName: data.botName,
 				developer: data.developer,
-				email: data.email
+				email: data.email,
 			};
 		} catch (error) {
 			authLogger.error('Failed to register bot:', error);
@@ -107,14 +107,21 @@ export class BotAuthService {
 
 			// Validate API key
 			const isValid = bot.validateApiKey(apiKey);
-			
+
 			if (isValid) {
 				// Update last used timestamp asynchronously
-				bot.updateLastUsed().catch(err => 
-					authLogger.error(`Failed to update last used for bot ${botId}:`, err)
-				);
+				bot
+					.updateLastUsed()
+					.catch((err) =>
+						authLogger.error(
+							`Failed to update last used for bot ${botId}:`,
+							err,
+						),
+					);
 			} else {
-				authLogger.warn(`Bot validation failed: Invalid API key for bot ${botId}`);
+				authLogger.warn(
+					`Bot validation failed: Invalid API key for bot ${botId}`,
+				);
 			}
 
 			return isValid;
@@ -238,7 +245,7 @@ export class BotAuthService {
 			this.clearCache(botId);
 
 			authLogger.info(`API key regenerated for bot ${botId}`);
-			
+
 			return newApiKey; // Return plain text key
 		} catch (error) {
 			authLogger.error(`Failed to regenerate API key for bot ${botId}:`, error);
@@ -263,7 +270,7 @@ export class BotAuthService {
 				handsPlayed: bot.stats.handsPlayed,
 				totalWinnings: bot.stats.totalWinnings,
 				lastGameAt: bot.stats.lastGameAt,
-				status: bot.status
+				status: bot.status,
 			};
 		} catch (error) {
 			authLogger.error(`Failed to get stats for bot ${botId}:`, error);
@@ -274,14 +281,17 @@ export class BotAuthService {
 	/**
 	 * List all bots (for admin dashboard)
 	 */
-	async listBots(filter?: { status?: string; developer?: string }): Promise<IBot[]> {
+	async listBots(filter?: {
+		status?: string;
+		developer?: string;
+	}): Promise<IBot[]> {
 		try {
 			const query: any = {};
-			
+
 			if (filter?.status) {
 				query.status = filter.status;
 			}
-			
+
 			if (filter?.developer) {
 				query.developer = new RegExp(filter.developer, 'i');
 			}
@@ -300,10 +310,10 @@ export class BotAuthService {
 	 * Update bot statistics (called after games)
 	 */
 	async updateBotStats(
-		botId: string, 
-		gamesPlayed: number = 0, 
-		handsPlayed: number = 0, 
-		winnings: number = 0
+		botId: string,
+		gamesPlayed: number = 0,
+		handsPlayed: number = 0,
+		winnings: number = 0,
 	): Promise<void> {
 		try {
 			const bot = await Bot.findOne({ botId });
@@ -339,16 +349,16 @@ export class BotAuthService {
 	private getCachedBot(botId: string): IBot | null {
 		const cached = this.botCache.get(botId);
 		const timestamp = this.cacheTimestamps.get(botId);
-		
+
 		if (cached && timestamp && Date.now() - timestamp < this.CACHE_TTL) {
 			return cached;
 		}
-		
+
 		// Cache expired
 		if (cached) {
 			this.clearCache(botId);
 		}
-		
+
 		return null;
 	}
 

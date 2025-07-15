@@ -197,7 +197,10 @@ export interface GameConfig {
 
 // Error types
 export class PokerEngineError extends Error {
-	constructor(message: string, public code: string) {
+	constructor(
+		message: string,
+		public code: string,
+	) {
 		super(message);
 		this.name = 'PokerEngineError';
 	}
@@ -219,7 +222,7 @@ export class GameStateError extends PokerEngineError {
 export interface ReplayEvent extends GameEvent {
 	sequenceId: number;
 	gameStateBefore?: GameState; // State before this event
-	gameStateAfter?: GameState;  // State after this event
+	gameStateAfter?: GameState; // State after this event
 	playerDecisionContext?: PlayerDecisionContext;
 	eventDuration?: number; // Time taken for this event (ms)
 }
@@ -229,7 +232,7 @@ export interface PlayerDecisionContext {
 	possibleActions: PossibleAction[];
 	timeToDecide: number; // Time taken to make decision (ms)
 	equityBefore?: number; // Hand equity before action (if calculated)
-	equityAfter?: number;  // Hand equity after action (if calculated)
+	equityAfter?: number; // Hand equity after action (if calculated)
 	position: Position;
 	chipStack: number;
 	potOdds?: number;
@@ -279,7 +282,11 @@ export interface HandReplayData {
 	initialState: GameState;
 	finalState: GameState;
 	communityCards: Card[];
-	winners: { playerId: PlayerId; handDescription?: string; winAmount: number }[];
+	winners: {
+		playerId: PlayerId;
+		handDescription?: string;
+		winAmount: number;
+	}[];
 	potSize: number;
 	showdownResults?: Record<PlayerId, HandEvaluation>;
 }

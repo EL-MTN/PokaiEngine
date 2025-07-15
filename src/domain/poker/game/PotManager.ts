@@ -97,12 +97,12 @@ export class PotManager {
 
 			// Find players eligible for this pot level (only non-folded players)
 			const eligibleForThisPot = eligiblePlayers.filter(
-				(player) => player.totalBetThisHand >= currentAmount
+				(player) => player.totalBetThisHand >= currentAmount,
 			);
 
 			// Count ALL players (including folded) who contributed to this level
 			const contributingPlayers = players.filter(
-				(player) => player.totalBetThisHand >= currentAmount
+				(player) => player.totalBetThisHand >= currentAmount,
 			);
 
 			if (contributingPlayers.length > 0) {
@@ -123,22 +123,29 @@ export class PotManager {
 	/**
 	 * Rebuilds the main pot with correct eligibility (keeps all money, but only eligible players can win)
 	 */
-	private rebuildMainPotWithCorrectEligibility(allPlayers: Player[], eligiblePlayers: Player[]): void {
+	private rebuildMainPotWithCorrectEligibility(
+		allPlayers: Player[],
+		eligiblePlayers: Player[],
+	): void {
 		// Keep all the money that was bet (including from folded players)
 		// but only eligible players can win it
 		const totalAmount = this.getTotalPotAmount();
-		
-		this.pots = [{
-			amount: totalAmount,
-			eligiblePlayers: eligiblePlayers.map((p) => p.id),
-			isMainPot: true,
-		}];
+
+		this.pots = [
+			{
+				amount: totalAmount,
+				eligiblePlayers: eligiblePlayers.map((p) => p.id),
+				isMainPot: true,
+			},
+		];
 	}
 
 	/**
 	 * Distributes pots to winners
 	 */
-	distributePots(winners: { playerId: string; potIndices: number[] }[]): PotDistribution[] {
+	distributePots(
+		winners: { playerId: string; potIndices: number[] }[],
+	): PotDistribution[] {
 		const distributions: PotDistribution[] = [];
 
 		for (let i = 0; i < this.pots.length; i++) {
@@ -171,7 +178,7 @@ export class PotManager {
 	 * Distributes pots to winners with position-based odd chip distribution
 	 */
 	distributePotsWithPosition(
-		winners: { playerId: string; potIndices: number[]; position: number }[]
+		winners: { playerId: string; potIndices: number[]; position: number }[],
 	): PotDistribution[] {
 		const distributions: PotDistribution[] = [];
 
@@ -189,7 +196,9 @@ export class PotManager {
 			const remainder = pot.amount % winnerCount;
 
 			// Sort winners by position (worst position first for odd chips)
-			const sortedWinners = [...eligibleWinners].sort((a, b) => b.position - a.position);
+			const sortedWinners = [...eligibleWinners].sort(
+				(a, b) => b.position - a.position,
+			);
 
 			sortedWinners.forEach((winner, index) => {
 				const amount = baseAmount + (index < remainder ? 1 : 0);
@@ -268,7 +277,10 @@ export class PotManager {
 	/**
 	 * Simulates pot distribution for display purposes
 	 */
-	simulateDistribution(winners: { playerId: string; handStrength: number }[], remainingPlayers?: string[]): {
+	simulateDistribution(
+		winners: { playerId: string; handStrength: number }[],
+		remainingPlayers?: string[],
+	): {
 		distributions: PotDistribution[];
 		totalDistributed: number;
 	} {
@@ -282,7 +294,9 @@ export class PotManager {
 		});
 
 		// Sort groups by hand strength (highest first)
-		const sortedGroups = Array.from(winnerGroups.entries()).sort((a, b) => b[0] - a[0]);
+		const sortedGroups = Array.from(winnerGroups.entries()).sort(
+			(a, b) => b[0] - a[0],
+		);
 
 		const distributions: PotDistribution[] = [];
 		let totalDistributed = 0;
@@ -295,7 +309,7 @@ export class PotManager {
 			// Find the best hand among eligible players for this pot
 			for (const [handStrength, playerIds] of sortedGroups) {
 				const eligibleWinners = playerIds.filter((playerId) =>
-					pot.eligiblePlayers.includes(playerId)
+					pot.eligiblePlayers.includes(playerId),
 				);
 
 				if (eligibleWinners.length > 0) {
@@ -322,8 +336,8 @@ export class PotManager {
 			if (!potDistributed && pot.amount > 0) {
 				// Fallback: distribute to any remaining eligible players
 				if (remainingPlayers) {
-					const remainingEligible = pot.eligiblePlayers.filter(playerId => 
-						remainingPlayers.includes(playerId)
+					const remainingEligible = pot.eligiblePlayers.filter((playerId) =>
+						remainingPlayers.includes(playerId),
 					);
 
 					if (remainingEligible.length > 0) {
@@ -347,7 +361,9 @@ export class PotManager {
 
 				// Only throw if truly no one can receive the pot
 				if (!potDistributed) {
-					throw new Error(`Pot ${potIndex} with amount ${pot.amount} has no eligible recipients`);
+					throw new Error(
+						`Pot ${potIndex} with amount ${pot.amount} has no eligible recipients`,
+					);
 				}
 			}
 		}
@@ -358,12 +374,17 @@ export class PotManager {
 	/**
 	 * Simulates pot distribution with position-based odd chip distribution
 	 */
-	simulateDistributionWithPosition(winners: { playerId: string; handStrength: number; position: number }[]): {
+	simulateDistributionWithPosition(
+		winners: { playerId: string; handStrength: number; position: number }[],
+	): {
 		distributions: PotDistribution[];
 		totalDistributed: number;
 	} {
 		// Group winners by hand strength
-		const winnerGroups = new Map<number, { playerId: string; position: number }[]>();
+		const winnerGroups = new Map<
+			number,
+			{ playerId: string; position: number }[]
+		>();
 
 		winners.forEach((winner) => {
 			const group = winnerGroups.get(winner.handStrength) || [];
@@ -372,7 +393,9 @@ export class PotManager {
 		});
 
 		// Sort groups by hand strength (highest first)
-		const sortedGroups = Array.from(winnerGroups.entries()).sort((a, b) => b[0] - a[0]);
+		const sortedGroups = Array.from(winnerGroups.entries()).sort(
+			(a, b) => b[0] - a[0],
+		);
 
 		const distributions: PotDistribution[] = [];
 		let totalDistributed = 0;
@@ -385,7 +408,7 @@ export class PotManager {
 			// Find the best hand among eligible players for this pot
 			for (const [handStrength, players] of sortedGroups) {
 				const eligibleWinners = players.filter((player) =>
-					pot.eligiblePlayers.includes(player.playerId)
+					pot.eligiblePlayers.includes(player.playerId),
 				);
 
 				if (eligibleWinners.length > 0) {
@@ -395,7 +418,9 @@ export class PotManager {
 					const remainder = pot.amount % winnerCount;
 
 					// Sort winners by position (worst position first for odd chips)
-					const sortedWinners = [...eligibleWinners].sort((a, b) => b.position - a.position);
+					const sortedWinners = [...eligibleWinners].sort(
+						(a, b) => b.position - a.position,
+					);
 
 					sortedWinners.forEach((winner, index) => {
 						const amount = baseAmount + (index < remainder ? 1 : 0);
@@ -414,7 +439,9 @@ export class PotManager {
 
 			if (!potDistributed && pot.amount > 0) {
 				// This shouldn't happen in normal play, but handle it gracefully
-				throw new Error(`Pot ${potIndex} with amount ${pot.amount} was not distributed`);
+				throw new Error(
+					`Pot ${potIndex} with amount ${pot.amount} was not distributed`,
+				);
 			}
 		}
 

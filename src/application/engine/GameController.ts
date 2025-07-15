@@ -29,7 +29,8 @@ export interface GameInfo {
 export class GameController {
 	private games: Map<GameId, GameEngine> = new Map();
 	private playerGameMap: Map<PlayerId, GameId> = new Map();
-	private eventCallbacks: Map<GameId, ((event: GameEvent) => void)[]> = new Map();
+	private eventCallbacks: Map<GameId, ((event: GameEvent) => void)[]> =
+		new Map();
 	/** Players who have requested to leave after the current hand finishes */
 	private pendingUnseats: Map<GameId, Set<PlayerId>> = new Map();
 	/** Cleanup timers for empty games */
@@ -67,17 +68,22 @@ export class GameController {
 		// Start enhanced logging for the game
 		const initialGameState = game.getGameState();
 		const playerNames = new Map<PlayerId, string>();
-		
+
 		// Extract player names from initial state (if any players exist)
 		if (initialGameState && initialGameState.players) {
-			initialGameState.players.forEach(player => {
+			initialGameState.players.forEach((player) => {
 				playerNames.set(player.id, player.name);
 			});
 		}
 
 		// Only start logging if we have a valid game state
 		if (initialGameState) {
-			this.replayManager.startRecording(gameId, config, initialGameState, playerNames);
+			this.replayManager.startRecording(
+				gameId,
+				config,
+				initialGameState,
+				playerNames,
+			);
 		}
 
 		return game;
@@ -204,7 +210,7 @@ export class GameController {
 		gameId: GameId,
 		playerId: PlayerId,
 		playerName: string,
-		chipStack: number
+		chipStack: number,
 	): void {
 		const game = this.games.get(gameId);
 		if (!game) {
@@ -256,8 +262,11 @@ export class GameController {
 		}
 
 		// Before starting a new hand, purge any players who have busted.
-		const busted = game.getGameState().players.filter(p => p.chipStack <= 0).map(p => p.id);
-		busted.forEach(pid => {
+		const busted = game
+			.getGameState()
+			.players.filter((p) => p.chipStack <= 0)
+			.map((p) => p.id);
+		busted.forEach((pid) => {
 			try {
 				game.removePlayer(pid);
 			} catch {}
@@ -341,7 +350,10 @@ export class GameController {
 	/**
 	 * Unsubscribes from events for a specific game
 	 */
-	unsubscribeFromGame(gameId: GameId, callback: (event: GameEvent) => void): void {
+	unsubscribeFromGame(
+		gameId: GameId,
+		callback: (event: GameEvent) => void,
+	): void {
 		const callbacks = this.eventCallbacks.get(gameId);
 		if (!callbacks) {
 			return;
@@ -383,28 +395,35 @@ export class GameController {
 					try {
 						this.removePlayerFromGame(gameId, pid);
 					} catch (err) {
-						gameLogger.error(`Error removing player ${pid} from game ${gameId}:`, err);
+						gameLogger.error(
+							`Error removing player ${pid} from game ${gameId}:`,
+							err,
+						);
 					}
 				});
 				this.pendingUnseats.delete(gameId);
 			}
 			const game = this.games.get(gameId);
 			const handStartDelay = game?.getConfig().handStartDelay ?? 2000; // Default to 2 seconds if not specified
-			
+
 			// Clear any existing hand start timer for this game
 			const existingTimer = this.handStartTimers.get(gameId);
 			if (existingTimer) {
 				clearTimeout(existingTimer);
 			}
-			
+
 			const timer = setTimeout(() => {
 				const game = this.games.get(gameId);
 				// Check if game still exists and has enough players to continue
 				if (game && game.getGameState().players.length >= 2) {
-					gameLogger.info(`Automatically starting new hand for game: ${gameId}`);
+					gameLogger.info(
+						`Automatically starting new hand for game: ${gameId}`,
+					);
 					this.startHand(gameId);
 				} else {
-					gameLogger.info(`Game ${gameId} ended or not enough players to continue.`);
+					gameLogger.info(
+						`Game ${gameId} ended or not enough players to continue.`,
+					);
 				}
 				// Remove timer from tracking
 				this.handStartTimers.delete(gameId);
@@ -423,7 +442,7 @@ export class GameController {
 		bigBlind: number,
 		maxPlayers: number = 9,
 		turnTimeLimit: number = 30,
-		minPlayersToStart: number = 2
+		minPlayersToStart: number = 2,
 	): GameEngine {
 		const config: GameConfig = {
 			maxPlayers,
@@ -450,7 +469,7 @@ export class GameController {
 		initialBigBlind: number,
 		maxPlayers: number = 9,
 		turnTimeLimit: number = 30,
-		creatorId?: string
+		creatorId?: string,
 	): GameEngine {
 		const config: GameConfig = {
 			maxPlayers,
@@ -508,7 +527,8 @@ export class GameController {
 		const totalPlayers = games.reduce((sum, game) => {
 			return sum + game.getGameState().getActivePlayers().length;
 		}, 0);
-		const averagePlayersPerGame = totalGames > 0 ? totalPlayers / totalGames : 0;
+		const averagePlayersPerGame =
+			totalGames > 0 ? totalPlayers / totalGames : 0;
 
 		return {
 			totalGames,
@@ -617,7 +637,9 @@ export class GameController {
 		// Default behavior: auto-start with 2 players (backward compatibility)
 		if (!startSettings) {
 			if (gameState.players.length >= 2) {
-				gameLogger.info(`Two or more players have joined game ${gameId}. Starting first hand.`);
+				gameLogger.info(
+					`Two or more players have joined game ${gameId}. Starting first hand.`,
+				);
 				this.startHand(gameId);
 			}
 			return;
@@ -628,7 +650,9 @@ export class GameController {
 			case 'minPlayers':
 				const minPlayers = startSettings.minPlayers || 2;
 				if (gameState.players.length >= minPlayers) {
-					gameLogger.info(`Minimum players (${minPlayers}) reached for game ${gameId}. Starting first hand.`);
+					gameLogger.info(
+						`Minimum players (${minPlayers}) reached for game ${gameId}. Starting first hand.`,
+					);
 					this.startHand(gameId);
 				}
 				break;
@@ -663,7 +687,11 @@ export class GameController {
 		// Check if manual start is allowed
 		if (startSettings && startSettings.condition === 'manual') {
 			// If creatorId is specified, verify the requester
-			if (startSettings.creatorId && requesterId && startSettings.creatorId !== requesterId) {
+			if (
+				startSettings.creatorId &&
+				requesterId &&
+				startSettings.creatorId !== requesterId
+			) {
 				throw new Error(`Only the game creator can start game ${gameId}`);
 			}
 		}
@@ -698,7 +726,9 @@ export class GameController {
 			}
 
 			// Schedule new cleanup after 5 seconds
-			gameLogger.info(`Game ${gameId} is empty. Scheduling cleanup in 5 seconds.`);
+			gameLogger.info(
+				`Game ${gameId} is empty. Scheduling cleanup in 5 seconds.`,
+			);
 			const timer = setTimeout(async () => {
 				// Double-check game is still empty before removing
 				const game = this.games.get(gameId);
@@ -742,26 +772,30 @@ export class GameController {
 			if (mongoReplay) {
 				// Convert MongoDB format to ReplayData format
 				// MongoDB events have their properties wrapped in a 'data' field, so we need to unwrap them
-				const convertedEvents = (mongoReplay.events || []).map((mongoEvent: any) => {
-					if (mongoEvent.data) {
-						// Unwrap the data field and merge with top-level properties
-						return {
-							type: mongoEvent.type,
-							timestamp: mongoEvent.timestamp,
-							phase: mongoEvent.phase,
-							handNumber: mongoEvent.handNumber,
-							playerId: mongoEvent.playerId,
-							...mongoEvent.data
-						};
-					}
-					// If no data field, return as-is (shouldn't happen but safety first)
-					return mongoEvent;
-				});
+				const convertedEvents = (mongoReplay.events || []).map(
+					(mongoEvent: any) => {
+						if (mongoEvent.data) {
+							// Unwrap the data field and merge with top-level properties
+							return {
+								type: mongoEvent.type,
+								timestamp: mongoEvent.timestamp,
+								phase: mongoEvent.phase,
+								handNumber: mongoEvent.handNumber,
+								playerId: mongoEvent.playerId,
+								...mongoEvent.data,
+							};
+						}
+						// If no data field, return as-is (shouldn't happen but safety first)
+						return mongoEvent;
+					},
+				);
 
 				return {
 					gameId: mongoReplay.gameId,
 					startTime: new Date(mongoReplay.metadata.gameStartTime),
-					endTime: mongoReplay.metadata.gameEndTime ? new Date(mongoReplay.metadata.gameEndTime) : undefined,
+					endTime: mongoReplay.metadata.gameEndTime
+						? new Date(mongoReplay.metadata.gameEndTime)
+						: undefined,
 					events: convertedEvents,
 					metadata: {
 						gameConfig: {
@@ -769,15 +803,15 @@ export class GameController {
 							smallBlindAmount: mongoReplay.metadata.smallBlindAmount,
 							bigBlindAmount: mongoReplay.metadata.bigBlindAmount,
 							turnTimeLimit: mongoReplay.metadata.turnTimeLimit,
-							isTournament: mongoReplay.metadata.gameType === 'tournament'
+							isTournament: mongoReplay.metadata.gameType === 'tournament',
 						},
 						playerNames: mongoReplay.metadata.playerNames || {},
 						handCount: mongoReplay.metadata.totalHands || 0,
 						totalEvents: convertedEvents.length,
 						totalActions: this.countPlayerActions(convertedEvents),
 						gameDuration: mongoReplay.metadata.gameDuration || 0,
-						createdAt: new Date(mongoReplay.createdAt || Date.now())
-					}
+						createdAt: new Date(mongoReplay.createdAt || Date.now()),
+					},
 				};
 			}
 		} catch (error) {
@@ -787,7 +821,9 @@ export class GameController {
 		// Try file system as last resort
 		try {
 			const fileReplays = this.listAvailableReplays();
-			const matchingFile = fileReplays.find(filepath => filepath.includes(gameId));
+			const matchingFile = fileReplays.find((filepath) =>
+				filepath.includes(gameId),
+			);
 			if (matchingFile) {
 				return this.loadReplayFromFile(matchingFile);
 			}
@@ -802,10 +838,11 @@ export class GameController {
 	 * Helper method to count player actions in events
 	 */
 	private countPlayerActions(events: any[]): number {
-		return events.filter(event => 
-			event.type === 'action_taken' || 
-			event.type === 'player_action' ||
-			(event.data && event.data.action)
+		return events.filter(
+			(event) =>
+				event.type === 'action_taken' ||
+				event.type === 'player_action' ||
+				(event.data && event.data.action),
 		).length;
 	}
 
@@ -816,15 +853,22 @@ export class GameController {
 		// Hand replay data is now built on-demand from the recorded data
 		const replayData = this.replayManager.getReplayData(gameId);
 		if (!replayData) return undefined;
-		
+
 		// Use ReplaySystem to build hand replay data
-		return this.replaySystem.loadReplay(replayData) ? this.replaySystem.getHandReplay(handNumber) : undefined;
+		return this.replaySystem.loadReplay(replayData)
+			? this.replaySystem.getHandReplay(handNumber)
+			: undefined;
 	}
 
 	/**
 	 * Saves a game replay to file
 	 */
-	async saveReplayToFile(gameId: GameId): Promise<{ fileSuccess: boolean; mongoSuccess: boolean; filePath?: string; error?: string }> {
+	async saveReplayToFile(gameId: GameId): Promise<{
+		fileSuccess: boolean;
+		mongoSuccess: boolean;
+		filePath?: string;
+		error?: string;
+	}> {
 		return await this.replayManager.saveReplay(gameId);
 	}
 
@@ -856,13 +900,13 @@ export class GameController {
 		fileReplays: { filename: string; path: string }[];
 		mongoReplays: any[];
 	}> {
-		const fileReplays = this.listAvailableReplays().map(filepath => ({
+		const fileReplays = this.listAvailableReplays().map((filepath) => ({
 			filename: filepath.split('/').pop() || filepath,
-			path: filepath
+			path: filepath,
 		}));
-		
+
 		const mongoReplays = await this.listRecentReplays(limit);
-		
+
 		return { fileReplays, mongoReplays };
 	}
 

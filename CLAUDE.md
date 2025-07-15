@@ -5,16 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Common Commands
 
 ### Development
+
 - `npm run dev` - Run socket server with hot reload
 - `npm run dev:express` - Run Express server with hot reload
 - `npm start` - Start socket server in production mode
 - `npm run start:express` - Start Express server in production mode
 
 ### Building
+
 - `npm run build` - Compile TypeScript and resolve path aliases
 - `npm run clean` - Remove dist folder
 
 ### Testing
+
 - `npm test` - Run all tests
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Generate coverage report
@@ -26,6 +29,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 PokaiEngine is a production-ready Texas Hold'em poker engine built with TypeScript following clean architecture principles:
 
 ### Layer Structure
+
 1. **Domain Layer** (`src/domain/`) - Core business logic, pure TypeScript with no external dependencies
    - `poker/` - Game rules, card evaluation, betting logic
    - `replay/` - Replay functionality domain logic
@@ -47,13 +51,16 @@ PokaiEngine is a production-ready Texas Hold'em poker engine built with TypeScri
    - `dashboard/` - Web dashboard for game monitoring
 
 ### Key Patterns
+
 - **Repository Pattern**: All database access through repositories
 - **Factory Pattern**: Used for creating game instances and players
 - **Event-Driven**: Socket.IO events for real-time updates
 - **Command Pattern**: Player actions as commands
 
 ### Path Aliases
+
 The project uses TypeScript path aliases (configured in tsconfig.json):
+
 - `@/` - src/
 - `@core/` - src/domain/
 - `@engine/` - src/application/engine/
@@ -63,17 +70,20 @@ The project uses TypeScript path aliases (configured in tsconfig.json):
 - `@utils/` - src/utils/
 
 ## Bot Integration Points
+
 - **WebSocket**: Connect to `ws://localhost:3001` with authentication token
 - **REST API**: Available at `http://localhost:3000/api`
 - **Authentication**: Token-based system, see `docs/BOT_AUTHENTICATION.md`
 - **Examples**: Check `examples/` directory for working bot implementations
 
 ## Database
+
 - Uses MongoDB with Mongoose ODM
 - MongoDB Memory Server for testing (automatically handled)
 - Connection managed in `src/infrastructure/persistence/database/`
 
 ## Testing Strategy
+
 - Unit tests for domain logic
 - Integration tests for API endpoints
 - Stress tests for performance validation
@@ -81,6 +91,7 @@ The project uses TypeScript path aliases (configured in tsconfig.json):
 - Mock factories for testing in various test directories
 
 ## Important Notes
+
 - Always run tests before committing changes
 - The project uses strict TypeScript configuration
 - Logging is configured with Winston (logs to files and console)

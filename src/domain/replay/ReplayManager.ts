@@ -1,12 +1,12 @@
-import { 
-	GameId, 
+import {
+	GameId,
 	GameConfig,
 	GameState,
 	PlayerId,
 	ReplayData,
 	Action,
 	PossibleAction,
-	PlayerDecisionContext
+	PlayerDecisionContext,
 } from '@/domain/types';
 import { GameReplayRecorder } from './GameReplayRecorder';
 import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
@@ -33,9 +33,14 @@ export class ReplayManager {
 		gameId: GameId,
 		gameConfig: GameConfig,
 		initialGameState: GameState,
-		playerNames: Map<PlayerId, string>
+		playerNames: Map<PlayerId, string>,
 	): void {
-		this.recorder.startRecording(gameId, gameConfig, initialGameState, playerNames);
+		this.recorder.startRecording(
+			gameId,
+			gameConfig,
+			initialGameState,
+			playerNames,
+		);
 	}
 
 	recordEvent(
@@ -43,9 +48,15 @@ export class ReplayManager {
 		event: any,
 		gameStateBefore?: GameState,
 		gameStateAfter?: GameState,
-		playerDecisionContext?: PlayerDecisionContext
+		playerDecisionContext?: PlayerDecisionContext,
 	): void {
-		this.recorder.recordEvent(gameId, event, gameStateBefore, gameStateAfter, playerDecisionContext);
+		this.recorder.recordEvent(
+			gameId,
+			event,
+			gameStateBefore,
+			gameStateAfter,
+			playerDecisionContext,
+		);
 	}
 
 	recordPlayerDecision(
@@ -56,11 +67,17 @@ export class ReplayManager {
 		gameStateBefore: GameState,
 		gameStateAfter: GameState,
 		timeToDecide: number,
-		equity?: { before: number; after: number }
+		equity?: { before: number; after: number },
 	): void {
 		this.recorder.recordPlayerDecision(
-			gameId, playerId, action, possibleActions,
-			gameStateBefore, gameStateAfter, timeToDecide, equity
+			gameId,
+			playerId,
+			action,
+			possibleActions,
+			gameStateBefore,
+			gameStateAfter,
+			timeToDecide,
+			equity,
 		);
 	}
 
@@ -72,7 +89,9 @@ export class ReplayManager {
 		if (replayData) {
 			try {
 				const results = await this.storage.saveReplay(replayData);
-				replayLogger.info(`Saved replay ${gameId} - File: ${results.fileSuccess}, Mongo: ${results.mongoSuccess}`);
+				replayLogger.info(
+					`Saved replay ${gameId} - File: ${results.fileSuccess}, Mongo: ${results.mongoSuccess}`,
+				);
 			} catch (error) {
 				replayLogger.error(`Failed to save replay ${gameId}:`, error);
 			}
@@ -80,10 +99,19 @@ export class ReplayManager {
 	}
 
 	// Storage methods
-	async saveReplay(gameId: GameId): Promise<{ fileSuccess: boolean; mongoSuccess: boolean; filePath?: string; error?: string }> {
+	async saveReplay(gameId: GameId): Promise<{
+		fileSuccess: boolean;
+		mongoSuccess: boolean;
+		filePath?: string;
+		error?: string;
+	}> {
 		const replayData = this.recorder.getReplayData(gameId);
 		if (!replayData) {
-			return { fileSuccess: false, mongoSuccess: false, error: 'No replay data found' };
+			return {
+				fileSuccess: false,
+				mongoSuccess: false,
+				error: 'No replay data found',
+			};
 		}
 
 		return await this.storage.saveReplay(replayData);
@@ -117,7 +145,11 @@ export class ReplayManager {
 		return this.analyzer.analyzeReplay(replayData);
 	}
 
-	comparePlayerStats(replayData: ReplayData, playerId1: PlayerId, playerId2: PlayerId) {
+	comparePlayerStats(
+		replayData: ReplayData,
+		playerId1: PlayerId,
+		playerId2: PlayerId,
+	) {
 		return this.analyzer.comparePlayerStats(replayData, playerId1, playerId2);
 	}
 
@@ -159,7 +191,10 @@ export class ReplayManager {
 		return await this.storage.deleteReplay(gameId);
 	}
 
-	exportReplay(gameId: GameId, format: 'json' | 'compressed' = 'json'): string | Buffer | undefined {
+	exportReplay(
+		gameId: GameId,
+		format: 'json' | 'compressed' = 'json',
+	): string | Buffer | undefined {
 		const replayData = this.recorder.getReplayData(gameId);
 		if (!replayData) return undefined;
 

@@ -19,52 +19,56 @@ export interface IBot extends Document {
 	// Methods
 	validateApiKey(apiKey: string): boolean;
 	updateLastUsed(): Promise<void>;
-	incrementStats(gamesPlayed?: number, handsPlayed?: number, winnings?: number): Promise<void>;
+	incrementStats(
+		gamesPlayed?: number,
+		handsPlayed?: number,
+		winnings?: number,
+	): Promise<void>;
 }
 
 const BotSchema = new Schema<IBot>({
-	botId: { 
-		type: String, 
-		unique: true, 
+	botId: {
+		type: String,
+		unique: true,
 		required: true,
-		index: true 
+		index: true,
 	},
-	apiKey: { 
-		type: String, 
-		required: true 
+	apiKey: {
+		type: String,
+		required: true,
 	}, // Stores hashed API key
-	botName: { 
-		type: String, 
+	botName: {
+		type: String,
 		required: true,
-		trim: true 
+		trim: true,
 	},
-	developer: { 
-		type: String, 
+	developer: {
+		type: String,
 		required: true,
-		trim: true 
+		trim: true,
 	},
-	email: { 
-		type: String, 
+	email: {
+		type: String,
 		required: true,
 		lowercase: true,
-		trim: true 
+		trim: true,
 	},
-	createdAt: { 
-		type: Date, 
-		default: Date.now 
+	createdAt: {
+		type: Date,
+		default: Date.now,
 	},
 	lastUsed: Date,
-	status: { 
-		type: String, 
+	status: {
+		type: String,
 		enum: ['active', 'suspended', 'revoked'],
-		default: 'active'
+		default: 'active',
 	},
 	stats: {
 		gamesPlayed: { type: Number, default: 0 },
 		handsPlayed: { type: Number, default: 0 },
 		totalWinnings: { type: Number, default: 0 },
-		lastGameAt: Date
-	}
+		lastGameAt: Date,
+	},
 });
 
 // Indexes for performance
@@ -72,7 +76,7 @@ BotSchema.index({ email: 1 });
 BotSchema.index({ status: 1, lastUsed: -1 });
 
 // Instance methods
-BotSchema.methods.validateApiKey = function(apiKey: string): boolean {
+BotSchema.methods.validateApiKey = function (apiKey: string): boolean {
 	if (this.status !== 'active') {
 		return false;
 	}
@@ -81,15 +85,15 @@ BotSchema.methods.validateApiKey = function(apiKey: string): boolean {
 	return this.apiKey === hashedKey;
 };
 
-BotSchema.methods.updateLastUsed = async function(): Promise<void> {
+BotSchema.methods.updateLastUsed = async function (): Promise<void> {
 	this.lastUsed = new Date();
 	await this.save();
 };
 
-BotSchema.methods.incrementStats = async function(
-	gamesPlayed: number = 0, 
-	handsPlayed: number = 0, 
-	winnings: number = 0
+BotSchema.methods.incrementStats = async function (
+	gamesPlayed: number = 0,
+	handsPlayed: number = 0,
+	winnings: number = 0,
 ): Promise<void> {
 	this.stats.gamesPlayed += gamesPlayed;
 	this.stats.handsPlayed += handsPlayed;
@@ -99,11 +103,11 @@ BotSchema.methods.incrementStats = async function(
 };
 
 // Static methods
-BotSchema.statics.hashApiKey = function(apiKey: string): string {
+BotSchema.statics.hashApiKey = function (apiKey: string): string {
 	return crypto.createHash('sha256').update(apiKey).digest('hex');
 };
 
-BotSchema.statics.generateApiKey = function(): string {
+BotSchema.statics.generateApiKey = function (): string {
 	// Generate a secure random API key
 	return crypto.randomBytes(32).toString('hex');
 };

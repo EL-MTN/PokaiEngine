@@ -53,11 +53,11 @@ export class Card implements CardInterface {
 	 * Reverse mapping for parsing from string
 	 */
 	private static readonly SHORT_STRING_TO_RANK = {
-		'A': Rank.Ace,
-		'K': Rank.King,
-		'Q': Rank.Queen,
-		'J': Rank.Jack,
-		'T': Rank.Ten,
+		A: Rank.Ace,
+		K: Rank.King,
+		Q: Rank.Queen,
+		J: Rank.Jack,
+		T: Rank.Ten,
 		'9': Rank.Nine,
 		'8': Rank.Eight,
 		'7': Rank.Seven,
@@ -72,13 +72,16 @@ export class Card implements CardInterface {
 	 * Reverse mapping for parsing suit from string
 	 */
 	private static readonly SHORT_STRING_TO_SUIT = {
-		'H': Suit.Hearts,
-		'D': Suit.Diamonds,
-		'C': Suit.Clubs,
-		'S': Suit.Spades,
+		H: Suit.Hearts,
+		D: Suit.Diamonds,
+		C: Suit.Clubs,
+		S: Suit.Spades,
 	} as const;
 
-	constructor(public readonly suit: Suit, public readonly rank: Rank) {}
+	constructor(
+		public readonly suit: Suit,
+		public readonly rank: Rank,
+	) {}
 
 	/**
 	 * Returns a string representation of the card (e.g., "AH", "KS", "2C")

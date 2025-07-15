@@ -2,7 +2,7 @@
 
 /**
  * Replay System Demo
- * 
+ *
  * Demonstrates the enhanced logging and replay functionality
  */
 
@@ -17,7 +17,7 @@ const SERVER_URL = 'http://localhost:3000';
 const axiosInstance = axios.create({
 	proxy: false, // Disable proxy for localhost
 	timeout: 10000,
-	baseURL: SERVER_URL
+	baseURL: SERVER_URL,
 });
 
 // Configure socket options for better connectivity
@@ -27,7 +27,7 @@ const socketConfig = {
 	reconnectionAttempts: 5,
 	reconnectionDelay: 1000,
 	timeout: 10000,
-	forceNew: true // Force new connection for each bot
+	forceNew: true, // Force new connection for each bot
 };
 
 console.log('🔧 Configured for direct localhost connection (bypassing proxy)');
@@ -72,12 +72,12 @@ class SimpleBot extends EventEmitter {
 
 		this.socket.on('gameEvent', (payload) => {
 			const event = payload.event;
-			
+
 			if (event.type === 'hand_started') {
 				this.log('🆕 NEW HAND STARTING');
 				this.emit('hand_started');
 			}
-			
+
 			if (event.type === 'hand_complete') {
 				this.log('✅ HAND COMPLETED');
 				this.emit('hand_complete');
@@ -113,15 +113,15 @@ class SimpleBot extends EventEmitter {
 		// Simple strategy: prefer check/call, sometimes fold
 		let chosenAction;
 		const rand = Math.random();
-		
+
 		if (rand < 0.1) {
 			// 10% chance to fold if possible
-			chosenAction = actions.find(a => a.type === 'fold') || actions[0];
+			chosenAction = actions.find((a) => a.type === 'fold') || actions[0];
 		} else {
 			// Prefer passive actions
-			chosenAction = 
-				actions.find(a => a.type === 'check') ||
-				actions.find(a => a.type === 'call') ||
+			chosenAction =
+				actions.find((a) => a.type === 'check') ||
+				actions.find((a) => a.type === 'call') ||
 				actions[0];
 		}
 
@@ -168,8 +168,8 @@ async function runReplayDemo() {
 			isTournament: false,
 			startSettings: {
 				condition: 'minPlayers',
-				minPlayers: 2
-			}
+				minPlayers: 2,
+			},
 		});
 		console.log(`✅ Game created: ${gameId}`);
 
@@ -179,7 +179,7 @@ async function runReplayDemo() {
 		bot2 = new SimpleBot('Demo-Bot-2');
 
 		// Wait for connection
-		await new Promise(resolve => setTimeout(resolve, 1000));
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		// Track hand completion
 		bot1.on('hand_complete', () => {
@@ -190,7 +190,7 @@ async function runReplayDemo() {
 		// Join game
 		console.log('🔗 Joining game...');
 		bot1.joinGame(gameId);
-		await new Promise(resolve => setTimeout(resolve, 500));
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		bot2.joinGame(gameId);
 
 		// Wait for game to complete target hands
@@ -234,29 +234,46 @@ async function runReplayDemo() {
 				const replayData = replayResponse.data.data;
 				console.log(`✅ Replay data retrieved successfully`);
 				console.log(`📈 Events captured: ${replayData.events?.length || 0}`);
-				console.log(`🕐 Game duration: ${Math.round((replayData.metadata?.gameDuration || 0) / 1000)}s`);
-				console.log(`🎯 Total actions: ${replayData.metadata?.totalActions || 0}`);
-				console.log(`🤖 Players: ${Object.keys(replayData.metadata?.playerNames || {}).length}`);
+				console.log(
+					`🕐 Game duration: ${Math.round((replayData.metadata?.gameDuration || 0) / 1000)}s`,
+				);
+				console.log(
+					`🎯 Total actions: ${replayData.metadata?.totalActions || 0}`,
+				);
+				console.log(
+					`🤖 Players: ${Object.keys(replayData.metadata?.playerNames || {}).length}`,
+				);
 			}
 		} catch (error) {
-			console.log('⚠️  Could not retrieve replay data:', error.response?.data?.message || error.message);
+			console.log(
+				'⚠️  Could not retrieve replay data:',
+				error.response?.data?.message || error.message,
+			);
 		}
 
 		// Get replay analysis
 		console.log('🔍 Getting replay analysis...');
 		try {
-			const analysisResponse = await axiosInstance.get(`/api/replays/${gameId}/analysis`);
+			const analysisResponse = await axiosInstance.get(
+				`/api/replays/${gameId}/analysis`,
+			);
 			if (analysisResponse.data.success) {
 				const analysis = analysisResponse.data.data;
 				console.log('✅ Replay analysis completed');
 				console.log(`📊 Hands analyzed: ${analysis.handAnalysis?.length || 0}`);
-				console.log(`🎮 Players analyzed: ${Object.keys(analysis.playerStatistics || {}).length}`);
-				console.log(`⚡ Interesting moments: ${analysis.interestingMoments?.length || 0}`);
-				
+				console.log(
+					`🎮 Players analyzed: ${Object.keys(analysis.playerStatistics || {}).length}`,
+				);
+				console.log(
+					`⚡ Interesting moments: ${analysis.interestingMoments?.length || 0}`,
+				);
+
 				// Show some interesting stats
 				if (analysis.gameFlow) {
 					const flow = analysis.gameFlow;
-					console.log(`⏱️  Average hand duration: ${Math.round(flow.avgHandDuration / 1000)}s`);
+					console.log(
+						`⏱️  Average hand duration: ${Math.round(flow.avgHandDuration / 1000)}s`,
+					);
 					const actions = Object.keys(flow.actionDistribution);
 					if (actions.length > 0) {
 						console.log(`🎯 Most common action: ${actions[0]}`);
@@ -264,46 +281,65 @@ async function runReplayDemo() {
 				}
 			}
 		} catch (error) {
-			console.log('⚠️  Could not get replay analysis:', error.response?.data?.message || error.message);
+			console.log(
+				'⚠️  Could not get replay analysis:',
+				error.response?.data?.message || error.message,
+			);
 		}
 
 		// Test hand-specific replay
 		console.log('🎲 Getting hand replay data...');
 		try {
-			const handResponse = await axiosInstance.get(`/api/replays/${gameId}/hands/1`);
+			const handResponse = await axiosInstance.get(
+				`/api/replays/${gameId}/hands/1`,
+			);
 			if (handResponse.data.success) {
 				const handData = handResponse.data.data;
 				console.log(`✅ Hand 1 replay retrieved`);
-				console.log(`👥 Players in hand: ${handData.playersInvolved?.length || 0}`);
-				console.log(`🃏 Community cards: ${handData.communityCards?.length || 0}`);
+				console.log(
+					`👥 Players in hand: ${handData.playersInvolved?.length || 0}`,
+				);
+				console.log(
+					`🃏 Community cards: ${handData.communityCards?.length || 0}`,
+				);
 				console.log(`💰 Final pot: $${handData.potSize || 0}`);
 			}
 		} catch (error) {
-			console.log('⚠️  Could not get hand replay:', error.response?.data?.message || error.message);
+			console.log(
+				'⚠️  Could not get hand replay:',
+				error.response?.data?.message || error.message,
+			);
 		}
 
 		// Save replay
 		console.log('💾 Saving replay to file...');
 		try {
-			const saveResponse = await axiosInstance.post(`/api/replays/${gameId}/save`);
+			const saveResponse = await axiosInstance.post(
+				`/api/replays/${gameId}/save`,
+			);
 			if (saveResponse.data.success) {
 				console.log('✅ Replay saved to file successfully');
 			}
 		} catch (error) {
-			console.log('⚠️  Could not save replay:', error.response?.data?.message || error.message);
+			console.log(
+				'⚠️  Could not save replay:',
+				error.response?.data?.message || error.message,
+			);
 		}
 
 		// Delete game
 		console.log('🧹 Cleaning up...');
 		await axiosInstance.delete(`/api/games/${gameId}`);
 		console.log('✅ Game deleted');
-
 	} catch (error) {
-		console.error('❌ Demo failed:', error.response?.data?.message || error.message);
+		console.error(
+			'❌ Demo failed:',
+			error.response?.data?.message || error.message,
+		);
 	} finally {
 		if (bot1) bot1.socket.disconnect();
 		if (bot2) bot2.socket.disconnect();
-		
+
 		console.log('');
 		console.log('🎉 DEMO COMPLETE!');
 		console.log('The enhanced logging system captured:');

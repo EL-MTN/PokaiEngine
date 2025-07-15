@@ -1,4 +1,10 @@
-import { Action, GamePhase, GameState as GameStateInterface, Position, Pot } from '@/domain/types';
+import {
+	Action,
+	GamePhase,
+	GameState as GameStateInterface,
+	Position,
+	Pot,
+} from '@/domain/types';
 import { shouldShowHoleCards } from '@/domain/types/visibility';
 import { Card } from '../cards/Card';
 import { Player } from './Player';
@@ -51,7 +57,9 @@ export class GameState implements GameStateInterface {
 		}
 
 		if (player.chipStack <= 0) {
-			throw new Error('Player must have a positive chip count to join the game');
+			throw new Error(
+				'Player must have a positive chip count to join the game',
+			);
 		}
 
 		this.players.push(player);
@@ -117,8 +125,12 @@ export class GameState implements GameStateInterface {
 		// Assign positions based on player count
 		if (playerCount === 2) {
 			// Heads-up: dealer is small blind
-			activePlayers[this.dealerPosition % playerCount].setPosition(Position.SmallBlind);
-			activePlayers[(this.dealerPosition + 1) % playerCount].setPosition(Position.BigBlind);
+			activePlayers[this.dealerPosition % playerCount].setPosition(
+				Position.SmallBlind,
+			);
+			activePlayers[(this.dealerPosition + 1) % playerCount].setPosition(
+				Position.BigBlind,
+			);
 		} else {
 			// Multi-player
 			const positions = this.getPositionsForPlayerCount(playerCount);
@@ -149,7 +161,7 @@ export class GameState implements GameStateInterface {
 					Position.Button,
 					Position.SmallBlind,
 					Position.BigBlind,
-					Position.UnderTheGun
+					Position.UnderTheGun,
 				);
 				break;
 			case 5:
@@ -158,7 +170,7 @@ export class GameState implements GameStateInterface {
 					Position.SmallBlind,
 					Position.BigBlind,
 					Position.UnderTheGun,
-					Position.Cutoff
+					Position.Cutoff,
 				);
 				break;
 			case 6:
@@ -168,7 +180,7 @@ export class GameState implements GameStateInterface {
 					Position.BigBlind,
 					Position.UnderTheGun,
 					Position.MiddlePosition1,
-					Position.Cutoff
+					Position.Cutoff,
 				);
 				break;
 			default:
@@ -182,7 +194,7 @@ export class GameState implements GameStateInterface {
 					Position.MiddlePosition1,
 					Position.MiddlePosition2,
 					Position.Hijack,
-					Position.Cutoff
+					Position.Cutoff,
 				);
 				break;
 		}
@@ -215,7 +227,7 @@ export class GameState implements GameStateInterface {
 		// Reset pot manager
 		this.potManager.reset();
 		this.pots = this.potManager.getPots();
-		
+
 		// Reset showdown tracking
 		this.playersWhoShowedCards.clear();
 
@@ -507,9 +519,11 @@ export class GameState implements GameStateInterface {
 	 */
 	getStateWithVisibility(
 		viewerType: 'player' | 'spectator' | 'replay',
-		viewerId?: string
+		viewerId?: string,
 	): GameStateInterface {
-		const isShowdown = this.currentPhase === GamePhase.Showdown || this.currentPhase === GamePhase.HandComplete;
+		const isShowdown =
+			this.currentPhase === GamePhase.Showdown ||
+			this.currentPhase === GamePhase.HandComplete;
 
 		return {
 			id: this.id,
@@ -519,7 +533,7 @@ export class GameState implements GameStateInterface {
 					viewerId,
 					p.id,
 					isShowdown,
-					p.isFolded
+					p.isFolded,
 				);
 
 				if (shouldShow) {
@@ -547,7 +561,11 @@ export class GameState implements GameStateInterface {
 	 * Clones the game state
 	 */
 	clone(): GameState {
-		const cloned = new GameState(this.id, this.smallBlindAmount, this.bigBlindAmount);
+		const cloned = new GameState(
+			this.id,
+			this.smallBlindAmount,
+			this.bigBlindAmount,
+		);
 		cloned.players = this.players.map((p) => p.clone());
 		cloned.communityCards = [...this.communityCards];
 		cloned.currentPhase = this.currentPhase;
@@ -587,14 +605,18 @@ export class GameState implements GameStateInterface {
 		if (riverAggressor) {
 			// Last aggressor shows first
 			const orderedPlayers: Player[] = [];
-			const aggressorPlayer = playersInShowdown.find((p) => p.id === riverAggressor);
+			const aggressorPlayer = playersInShowdown.find(
+				(p) => p.id === riverAggressor,
+			);
 
 			if (aggressorPlayer) {
 				orderedPlayers.push(aggressorPlayer);
 			}
 
 			// Add remaining players in clockwise order from aggressor
-			const aggressorIndex = playersInShowdown.findIndex((p) => p.id === riverAggressor);
+			const aggressorIndex = playersInShowdown.findIndex(
+				(p) => p.id === riverAggressor,
+			);
 			if (aggressorIndex !== -1) {
 				for (let i = 1; i < playersInShowdown.length; i++) {
 					const nextIndex = (aggressorIndex + i) % playersInShowdown.length;

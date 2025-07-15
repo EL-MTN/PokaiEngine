@@ -23,8 +23,8 @@ export class DatabaseConnection {
 				serverSelectionTimeoutMS: 5000,
 				socketTimeoutMS: 45000,
 				family: 4, // Use IPv4, skip trying IPv6
-				...config.options
-			}
+				...config.options,
+			},
 		};
 	}
 
@@ -39,7 +39,9 @@ export class DatabaseConnection {
 	public static getInstance(config?: DatabaseConfig): DatabaseConnection {
 		if (!DatabaseConnection.instance) {
 			if (!config) {
-				throw new Error('Database configuration required for first initialization');
+				throw new Error(
+					'Database configuration required for first initialization',
+				);
 			}
 			DatabaseConnection.instance = new DatabaseConnection(config);
 		}
@@ -57,26 +59,30 @@ export class DatabaseConnection {
 
 		while (attempts < maxAttempts) {
 			try {
-				this.log(`Attempting to connect to MongoDB (attempt ${attempts + 1}/${maxAttempts})`);
-				
+				this.log(
+					`Attempting to connect to MongoDB (attempt ${attempts + 1}/${maxAttempts})`,
+				);
+
 				await mongoose.connect(this.config.uri, this.config.options);
-				
+
 				this.isConnected = true;
 				this.log('Successfully connected to MongoDB');
-				
+
 				// Set up connection event handlers
 				this.setupEventHandlers();
-				
+
 				return;
 			} catch (error) {
 				attempts++;
 				this.logError(`Connection attempt ${attempts} failed:`, error);
-				
+
 				if (attempts < maxAttempts) {
 					this.log(`Retrying in ${this.config.retryDelay}ms...`);
 					await this.delay(this.config.retryDelay || 5000);
 				} else {
-					throw new Error(`Failed to connect to MongoDB after ${maxAttempts} attempts: ${error}`);
+					throw new Error(
+						`Failed to connect to MongoDB after ${maxAttempts} attempts: ${error}`,
+					);
 				}
 			}
 		}
@@ -112,7 +118,7 @@ export class DatabaseConnection {
 	public async healthCheck(): Promise<boolean> {
 		try {
 			if (!this.isConnected) return false;
-			
+
 			// Simple ping to check connection
 			if (mongoose.connection.db) {
 				await mongoose.connection.db.admin().ping();
@@ -155,14 +161,15 @@ export class DatabaseConnection {
 	}
 
 	private delay(ms: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, ms));
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 }
 
 // Utility function to get default database configuration
 export function getDefaultDatabaseConfig(): DatabaseConfig {
-	const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/pokai-engine';
-	
+	const mongoUri =
+		process.env.MONGODB_URI || 'mongodb://localhost:27017/pokai-engine';
+
 	return {
 		uri: mongoUri,
 		options: {
@@ -171,12 +178,14 @@ export function getDefaultDatabaseConfig(): DatabaseConfig {
 			socketTimeoutMS: 45000,
 		},
 		retryAttempts: 5,
-		retryDelay: 5000
+		retryDelay: 5000,
 	};
 }
 
 // Convenience function to initialize database
-export async function initializeDatabase(config?: DatabaseConfig): Promise<DatabaseConnection> {
+export async function initializeDatabase(
+	config?: DatabaseConfig,
+): Promise<DatabaseConnection> {
 	const dbConfig = config || getDefaultDatabaseConfig();
 	const db = DatabaseConnection.getInstance(dbConfig);
 	await db.connect();

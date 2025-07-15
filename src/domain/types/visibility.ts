@@ -6,7 +6,7 @@ export function shouldShowHoleCards(
 	viewerId: string | undefined,
 	cardOwnerId: string,
 	isShowdown: boolean,
-	playerFolded: boolean
+	playerFolded: boolean,
 ): boolean {
 	// Players can always see their own cards
 	if (viewerType === 'player' && viewerId === cardOwnerId) {

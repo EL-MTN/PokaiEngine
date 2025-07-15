@@ -1,8 +1,8 @@
-import { 
-	Action, 
-	GameEvent, 
-	GameId, 
-	GameState, 
+import {
+	Action,
+	GameEvent,
+	GameId,
+	GameState,
 	PlayerId,
 	ReplayEvent,
 	ReplayData,
@@ -11,7 +11,7 @@ import {
 	PlayerDecisionContext,
 	GameConfig,
 	Position,
-	PossibleAction
+	PossibleAction,
 } from '@/domain/types';
 import { shouldShowHoleCards } from '@/domain/types/visibility';
 import { GameState as GameStateClass } from '@/domain/poker/game/GameState';
@@ -37,13 +37,13 @@ export class GameReplayRecorder {
 	private recordings: Map<GameId, GameRecordingEntry> = new Map();
 	private config: ReplayRecordingConfig;
 	private sequenceCounter: number = 0;
-	
+
 	constructor(config?: Partial<ReplayRecordingConfig>) {
 		this.config = {
 			enabled: true,
 			maxReplaysInMemory: 100,
 			checkpointInterval: 50,
-			...config
+			...config,
 		};
 	}
 
@@ -54,14 +54,14 @@ export class GameReplayRecorder {
 		gameId: GameId,
 		gameConfig: GameConfig,
 		initialGameState: GameState,
-		playerNames: Map<PlayerId, string>
+		playerNames: Map<PlayerId, string>,
 	): void {
 		if (!this.config.enabled) {
 			return;
 		}
 
 		const now = new Date();
-		
+
 		const metadata: ReplayMetadata = {
 			gameConfig: this.cloneObject(gameConfig),
 			playerNames: Object.fromEntries(playerNames),
@@ -70,7 +70,7 @@ export class GameReplayRecorder {
 			totalActions: 0,
 			gameDuration: 0,
 			createdAt: now,
-			version: '1.0.0'
+			version: '1.0.0',
 		};
 
 		const replayData: ReplayData = {
@@ -79,23 +79,23 @@ export class GameReplayRecorder {
 			events: [],
 			initialGameState: this.cloneGameState(initialGameState),
 			metadata,
-			checkpoints: []
+			checkpoints: [],
 		};
 
 		const entry: GameRecordingEntry = {
 			gameId,
 			replayData,
-			isActive: true
+			isActive: true,
 		};
 
 		this.recordings.set(gameId, entry);
-		
+
 		// Record game start event
 		this.recordEvent(gameId, {
 			type: 'game_started',
 			timestamp: now.getTime(),
 			handNumber: 0,
-			gameState: initialGameState
+			gameState: initialGameState,
 		});
 
 		replayLogger.info(`Started recording for game: ${gameId}`);
@@ -105,11 +105,11 @@ export class GameReplayRecorder {
 	 * Records a game event
 	 */
 	recordEvent(
-		gameId: GameId, 
-		event: GameEvent, 
+		gameId: GameId,
+		event: GameEvent,
 		gameStateBefore?: GameState,
 		gameStateAfter?: GameState,
-		playerDecisionContext?: PlayerDecisionContext
+		playerDecisionContext?: PlayerDecisionContext,
 	): void {
 		const entry = this.recordings.get(gameId);
 		if (!entry || !this.config.enabled) {
@@ -119,14 +119,21 @@ export class GameReplayRecorder {
 		const replayEvent: ReplayEvent = {
 			...this.cloneEvent(event),
 			sequenceId: ++this.sequenceCounter,
-			gameStateBefore: gameStateBefore ? this.cloneGameState(gameStateBefore) : undefined,
-			gameStateAfter: gameStateAfter ? this.cloneGameState(gameStateAfter) : undefined,
-			playerDecisionContext: playerDecisionContext ? this.cloneObject(playerDecisionContext) : undefined
+			gameStateBefore: gameStateBefore
+				? this.cloneGameState(gameStateBefore)
+				: undefined,
+			gameStateAfter: gameStateAfter
+				? this.cloneGameState(gameStateAfter)
+				: undefined,
+			playerDecisionContext: playerDecisionContext
+				? this.cloneObject(playerDecisionContext)
+				: undefined,
 		};
 
 		// Calculate event duration if we have previous events
 		if (entry.replayData.events.length > 0) {
-			const lastEvent = entry.replayData.events[entry.replayData.events.length - 1];
+			const lastEvent =
+				entry.replayData.events[entry.replayData.events.length - 1];
 			replayEvent.eventDuration = event.timestamp - lastEvent.timestamp;
 		}
 
@@ -162,14 +169,17 @@ export class GameReplayRecorder {
 		gameStateBefore: GameState,
 		gameStateAfter: GameState,
 		timeToDecide: number,
-		equity?: { before: number; after: number }
+		equity?: { before: number; after: number },
 	): void {
-		const player = gameStateBefore.players.find(p => p.id === playerId);
+		const player = gameStateBefore.players.find((p) => p.id === playerId);
 		if (!player) return;
 
-		const potSize = gameStateBefore.pots.reduce((sum, pot) => sum + pot.amount, 0);
+		const potSize = gameStateBefore.pots.reduce(
+			(sum, pot) => sum + pot.amount,
+			0,
+		);
 		const callAmount = this.getCallAmount(possibleActions);
-		
+
 		const decisionContext: PlayerDecisionContext = {
 			playerId,
 			possibleActions: this.cloneObject(possibleActions),
@@ -179,7 +189,10 @@ export class GameReplayRecorder {
 			position: player.position || Position.Button,
 			chipStack: player.chipStack,
 			potOdds: callAmount > 0 ? callAmount / (potSize + callAmount) : 0,
-			effectiveStackSize: Math.min(player.chipStack, this.getMaxOpponentStack(gameStateBefore, playerId))
+			effectiveStackSize: Math.min(
+				player.chipStack,
+				this.getMaxOpponentStack(gameStateBefore, playerId),
+			),
 		};
 
 		const gameEvent: GameEvent = {
@@ -189,10 +202,16 @@ export class GameReplayRecorder {
 			timestamp: Date.now(),
 			handNumber: gameStateBefore.handNumber,
 			phase: gameStateBefore.currentPhase,
-			gameState: gameStateAfter
+			gameState: gameStateAfter,
 		};
 
-		this.recordEvent(gameId, gameEvent, gameStateBefore, gameStateAfter, decisionContext);
+		this.recordEvent(
+			gameId,
+			gameEvent,
+			gameStateBefore,
+			gameStateAfter,
+			decisionContext,
+		);
 	}
 
 	/**
@@ -205,7 +224,8 @@ export class GameReplayRecorder {
 		const now = new Date();
 		entry.replayData.endTime = now;
 		entry.replayData.finalGameState = this.cloneGameState(finalGameState);
-		entry.replayData.metadata.gameDuration = now.getTime() - entry.replayData.startTime.getTime();
+		entry.replayData.metadata.gameDuration =
+			now.getTime() - entry.replayData.startTime.getTime();
 		entry.isActive = false;
 
 		// Calculate final statistics
@@ -216,10 +236,12 @@ export class GameReplayRecorder {
 			type: 'game_ended',
 			timestamp: now.getTime(),
 			handNumber: finalGameState.handNumber,
-			gameState: finalGameState
+			gameState: finalGameState,
 		});
 
-		replayLogger.info(`Ended recording for game: ${gameId} (${entry.replayData.metadata.totalEvents} events)`);
+		replayLogger.info(
+			`Ended recording for game: ${gameId} (${entry.replayData.metadata.totalEvents} events)`,
+		);
 	}
 
 	/**
@@ -273,18 +295,21 @@ export class GameReplayRecorder {
 	} {
 		const active = this.getActiveRecordings().length;
 		const completed = this.getCompletedRecordings().length;
-		
+
 		return {
 			totalRecordings: this.recordings.size,
 			activeRecordings: active,
-			completedRecordings: completed
+			completedRecordings: completed,
 		};
 	}
 
 	/**
 	 * Private helper methods
 	 */
-	private createCheckpoint(replayData: ReplayData, currentEvent: ReplayEvent): void {
+	private createCheckpoint(
+		replayData: ReplayData,
+		currentEvent: ReplayEvent,
+	): void {
 		if (!currentEvent.gameStateAfter) return;
 
 		const checkpoint: ReplayCheckpoint = {
@@ -293,7 +318,7 @@ export class GameReplayRecorder {
 			phase: currentEvent.gameStateAfter.currentPhase,
 			gameState: this.cloneGameState(currentEvent.gameStateAfter),
 			timestamp: currentEvent.timestamp,
-			eventIndex: replayData.events.length - 1
+			eventIndex: replayData.events.length - 1,
 		};
 
 		replayData.checkpoints = replayData.checkpoints || [];
@@ -305,17 +330,25 @@ export class GameReplayRecorder {
 	}
 
 	private manageMemory(): void {
-		const activeCount = Array.from(this.recordings.values()).filter(entry => entry.isActive).length;
+		const activeCount = Array.from(this.recordings.values()).filter(
+			(entry) => entry.isActive,
+		).length;
 		const totalCount = this.recordings.size;
 
 		if (totalCount > this.config.maxReplaysInMemory) {
 			// Remove oldest inactive recordings
 			const inactiveEntries = Array.from(this.recordings.entries())
 				.filter(([_, entry]) => !entry.isActive)
-				.sort(([_, a], [__, b]) => a.replayData.startTime.getTime() - b.replayData.startTime.getTime());
+				.sort(
+					([_, a], [__, b]) =>
+						a.replayData.startTime.getTime() - b.replayData.startTime.getTime(),
+				);
 
-			const toRemove = Math.min(inactiveEntries.length, totalCount - this.config.maxReplaysInMemory);
-			
+			const toRemove = Math.min(
+				inactiveEntries.length,
+				totalCount - this.config.maxReplaysInMemory,
+			);
+
 			for (let i = 0; i < toRemove; i++) {
 				const [gameId] = inactiveEntries[i];
 				this.recordings.delete(gameId);
@@ -341,13 +374,15 @@ export class GameReplayRecorder {
 		}
 
 		if (handDurations.length > 0) {
-			replayData.metadata.avgHandDuration = handDurations.reduce((sum, duration) => sum + duration, 0) / handDurations.length;
+			replayData.metadata.avgHandDuration =
+				handDurations.reduce((sum, duration) => sum + duration, 0) /
+				handDurations.length;
 		}
 
 		// Calculate winners and final chip counts
 		if (replayData.finalGameState) {
 			replayData.metadata.finalChipCounts = {};
-			replayData.finalGameState.players.forEach(player => {
+			replayData.finalGameState.players.forEach((player) => {
 				replayData.metadata.finalChipCounts![player.id] = player.chipStack;
 			});
 		}
@@ -357,16 +392,21 @@ export class GameReplayRecorder {
 		if (!gameState) {
 			throw new Error('Cannot clone undefined game state');
 		}
-		
+
 		// If we have a GameStateClass instance with visibility methods, use them
-		if (gameState && typeof (gameState as any).getStateWithVisibility === 'function') {
+		if (
+			gameState &&
+			typeof (gameState as any).getStateWithVisibility === 'function'
+		) {
 			return (gameState as any).getStateWithVisibility('replay', undefined);
 		}
-		
+
 		// Otherwise, manually filter the game state
 		const clonedState = JSON.parse(JSON.stringify(gameState));
-		const isShowdown = gameState.currentPhase === 'showdown' || gameState.currentPhase === 'hand_complete';
-		
+		const isShowdown =
+			gameState.currentPhase === 'showdown' ||
+			gameState.currentPhase === 'hand_complete';
+
 		// Apply visibility rules to players
 		if (clonedState.players && Array.isArray(clonedState.players)) {
 			clonedState.players = clonedState.players.map((player: any) => {
@@ -375,19 +415,19 @@ export class GameReplayRecorder {
 					undefined,
 					player.id,
 					isShowdown,
-					player.isFolded
+					player.isFolded,
 				);
-				
+
 				if (!shouldShow && player.holeCards) {
 					// Remove hole cards
 					const { holeCards, ...publicPlayer } = player;
 					return publicPlayer;
 				}
-				
+
 				return player;
 			});
 		}
-		
+
 		return clonedState;
 	}
 
@@ -400,13 +440,18 @@ export class GameReplayRecorder {
 	}
 
 	private getCallAmount(possibleActions: PossibleAction[]): number {
-		const callAction = possibleActions.find(a => a.type === 'call');
+		const callAction = possibleActions.find((a) => a.type === 'call');
 		return callAction?.minAmount || 0;
 	}
 
-	private getMaxOpponentStack(gameState: GameState, playerId: PlayerId): number {
-		return Math.max(...gameState.players
-			.filter(p => p.id !== playerId && p.isActive)
-			.map(p => p.chipStack));
+	private getMaxOpponentStack(
+		gameState: GameState,
+		playerId: PlayerId,
+	): number {
+		return Math.max(
+			...gameState.players
+				.filter((p) => p.id !== playerId && p.isActive)
+				.map((p) => p.chipStack),
+		);
 	}
 }

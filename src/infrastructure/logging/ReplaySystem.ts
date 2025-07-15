@@ -39,7 +39,10 @@ export class ReplaySystem {
 	private isPlaying: boolean = false;
 	private playbackSpeed: number = 1.0;
 	private playbackInterval: NodeJS.Timeout | null = null;
-	private eventCallbacks: ((event: ReplayEvent, gameState: GameState) => void)[] = [];
+	private eventCallbacks: ((
+		event: ReplayEvent,
+		gameState: GameState,
+	) => void)[] = [];
 	private positionCallbacks: ((position: ReplayPosition) => void)[] = [];
 	private replayStorage: ReplayStorage;
 	private replayAnalyzer: ReplayAnalyzer;
@@ -68,7 +71,9 @@ export class ReplaySystem {
 			this.currentEventIndex = 0;
 			this.stop();
 
-			this.log(`Loaded replay: ${replayData.gameId} (${replayData.events.length} events)`);
+			this.log(
+				`Loaded replay: ${replayData.gameId} (${replayData.events.length} events)`,
+			);
 			return true;
 		} catch (error) {
 			this.logError(`Failed to load replay:`, error);
@@ -103,7 +108,10 @@ export class ReplaySystem {
 			const replayData = this.convertMongoReplayToReplayData(mongoReplay);
 			return this.loadReplay(replayData);
 		} catch (error) {
-			this.logError(`Failed to load replay from MongoDB for game ${gameId}:`, error);
+			this.logError(
+				`Failed to load replay from MongoDB for game ${gameId}:`,
+				error,
+			);
 			return false;
 		}
 	}
@@ -115,7 +123,10 @@ export class ReplaySystem {
 		try {
 			return await this.replayStorage.getReplayAnalysis(gameId);
 		} catch (error) {
-			this.logError(`Failed to get replay analysis from MongoDB for game ${gameId}:`, error);
+			this.logError(
+				`Failed to get replay analysis from MongoDB for game ${gameId}:`,
+				error,
+			);
 			return null;
 		}
 	}
@@ -123,13 +134,16 @@ export class ReplaySystem {
 	/**
 	 * Gets hand replay from MongoDB
 	 */
-	async getHandReplayFromMongo(gameId: GameId, handNumber: number): Promise<any | null> {
+	async getHandReplayFromMongo(
+		gameId: GameId,
+		handNumber: number,
+	): Promise<any | null> {
 		try {
 			return await this.replayStorage.getHandReplay(gameId, handNumber);
 		} catch (error) {
 			this.logError(
 				`Failed to get hand replay from MongoDB for game ${gameId}, hand ${handNumber}:`,
-				error
+				error,
 			);
 			return null;
 		}
@@ -189,7 +203,10 @@ export class ReplaySystem {
 	 * Steps forward one event
 	 */
 	stepForward(): boolean {
-		if (!this.replayData || this.currentEventIndex >= this.replayData.events.length - 1) {
+		if (
+			!this.replayData ||
+			this.currentEventIndex >= this.replayData.events.length - 1
+		) {
 			return false;
 		}
 
@@ -217,7 +234,11 @@ export class ReplaySystem {
 	 * Jumps to a specific event index
 	 */
 	seekToEvent(eventIndex: number): boolean {
-		if (!this.replayData || eventIndex < 0 || eventIndex >= this.replayData.events.length) {
+		if (
+			!this.replayData ||
+			eventIndex < 0 ||
+			eventIndex >= this.replayData.events.length
+		) {
 			return false;
 		}
 
@@ -234,7 +255,8 @@ export class ReplaySystem {
 		if (!this.replayData) return false;
 
 		const handStartEvent = this.replayData.events.findIndex(
-			(event) => event.type === 'hand_started' && event.handNumber === handNumber
+			(event) =>
+				event.type === 'hand_started' && event.handNumber === handNumber,
 		);
 
 		if (handStartEvent === -1) return false;
@@ -294,7 +316,9 @@ export class ReplaySystem {
 		}
 
 		const currentEvent = this.replayData.events[this.currentEventIndex];
-		return currentEvent?.gameStateAfter || currentEvent?.gameStateBefore || null;
+		return (
+			currentEvent?.gameStateAfter || currentEvent?.gameStateBefore || null
+		);
 	}
 
 	/**
@@ -305,7 +329,7 @@ export class ReplaySystem {
 		return this.replayStorage.buildHandReplayData(
 			this.replayData.gameId,
 			handNumber,
-			this.replayData.events
+			this.replayData.events,
 		);
 	}
 
@@ -401,7 +425,9 @@ export class ReplaySystem {
 	}
 
 	private canStepForward(): boolean {
-		return this.replayData ? this.currentEventIndex < this.replayData.events.length - 1 : false;
+		return this.replayData
+			? this.currentEventIndex < this.replayData.events.length - 1
+			: false;
 	}
 
 	private canStepBackward(): boolean {
@@ -437,7 +463,8 @@ export class ReplaySystem {
 			initialGameState:
 				mongoReplay.events[0]?.data?.initialGameState ||
 				mongoReplay.events[0]?.data?.gameState,
-			finalGameState: mongoReplay.events[mongoReplay.events.length - 1]?.data?.gameState,
+			finalGameState:
+				mongoReplay.events[mongoReplay.events.length - 1]?.data?.gameState,
 			metadata: {
 				gameConfig: {
 					maxPlayers: mongoReplay.metadata.maxPlayers,

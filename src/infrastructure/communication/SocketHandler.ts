@@ -2,7 +2,10 @@ import { GameController } from '@/application/engine/GameController';
 import { Action, GameEvent, GameId, PlayerId } from '@/domain/types';
 import { BotInterface } from './BotInterface';
 import { BotAuthService } from '@/application/services/BotAuthService';
-import { communicationLogger, authLogger } from '@/infrastructure/logging/Logger';
+import {
+	communicationLogger,
+	authLogger,
+} from '@/infrastructure/logging/Logger';
 
 // Socket interface for compatibility
 export interface Socket {
@@ -101,23 +104,34 @@ export class SocketHandler {
 			timestamp: Date.now(),
 		});
 
-		communicationLogger.info(`New bot connection: ${socket.id} - awaiting authentication`);
+		communicationLogger.info(
+			`New bot connection: ${socket.id} - awaiting authentication`,
+		);
 	}
 
 	/**
 	 * Sets up event listeners for a bot connection
 	 */
-	private setupBotEventListeners(socket: Socket, connection: BotConnection): void {
+	private setupBotEventListeners(
+		socket: Socket,
+		connection: BotConnection,
+	): void {
 		// Authentication handler - must be called first
-		socket.on('authenticate', async (data: { botId: string; apiKey: string }) => {
-			await this.handleAuthentication(connection, data);
-		});
+		socket.on(
+			'authenticate',
+			async (data: { botId: string; apiKey: string }) => {
+				await this.handleAuthentication(connection, data);
+			},
+		);
 
 		// Bot identification and game joining (requires authentication)
-		socket.on('identify', (data: { botName: string; gameId: GameId; chipStack: number }) => {
-			if (!this.requireAuth(connection)) return;
-			this.handleBotIdentification(connection, data);
-		});
+		socket.on(
+			'identify',
+			(data: { botName: string; gameId: GameId; chipStack: number }) => {
+				if (!this.requireAuth(connection)) return;
+				this.handleBotIdentification(connection, data);
+			},
+		);
 
 		// Bot actions (requires authentication)
 		socket.on('action', (data: { action: Action }) => {
@@ -195,7 +209,7 @@ export class SocketHandler {
 	 */
 	private handleBotIdentification(
 		connection: BotConnection,
-		data: { botName: string; gameId: GameId; chipStack: number }
+		data: { botName: string; gameId: GameId; chipStack: number },
 	): void {
 		try {
 			// Check if game exists
@@ -205,24 +219,32 @@ export class SocketHandler {
 			}
 
 			// Check if this is a reconnection (player already in the game)
-			const existingGameId = this.gameController.getPlayerGameId(connection.playerId);
-			
+			const existingGameId = this.gameController.getPlayerGameId(
+				connection.playerId,
+			);
+
 			if (existingGameId) {
 				// This is a reconnection scenario
 				if (existingGameId !== data.gameId) {
-					throw new Error(`Player ${connection.playerId} is already in a different game: ${existingGameId}`);
+					throw new Error(
+						`Player ${connection.playerId} is already in a different game: ${existingGameId}`,
+					);
 				}
-				
+
 				// Player is reconnecting to the same game - just update connection info
 				connection.gameId = data.gameId;
-				communicationLogger.info(`Player ${connection.playerId} reconnected to game ${data.gameId}`);
+				communicationLogger.info(
+					`Player ${connection.playerId} reconnected to game ${data.gameId}`,
+				);
 			} else {
 				// This is a new connection - check capacity and add player
 				const gameState = game.getGameState();
 				const maxPlayers = game.getConfig().maxPlayers;
 
 				if (gameState.players.length >= maxPlayers) {
-					throw new Error(`Game ${data.gameId} is full (${maxPlayers} players)`);
+					throw new Error(
+						`Game ${data.gameId} is full (${maxPlayers} players)`,
+					);
 				}
 
 				// Join the game
@@ -230,7 +252,7 @@ export class SocketHandler {
 					data.gameId,
 					connection.playerId,
 					data.botName,
-					data.chipStack
+					data.chipStack,
 				);
 
 				connection.gameId = data.gameId;
@@ -258,7 +280,10 @@ export class SocketHandler {
 
 			// If it's already this bot's turn, start the turn timer immediately.
 			const joinedGame = this.gameController.getGame(data.gameId);
-			if (joinedGame && joinedGame.getGameState().currentPlayerToAct === connection.playerId) {
+			if (
+				joinedGame &&
+				joinedGame.getGameState().currentPlayerToAct === connection.playerId
+			) {
 				this.startTurnTimer(connection);
 			}
 		} catch (error) {
@@ -323,18 +348,24 @@ export class SocketHandler {
 		}
 
 		try {
-			this.gameController.removePlayerFromGame(connection.gameId, connection.playerId);
+			this.gameController.removePlayerFromGame(
+				connection.gameId,
+				connection.playerId,
+			);
 
 			// Unsubscribe from events and leave room
 			if (connection.eventHandler) {
 				try {
 					this.gameController.unsubscribeFromGame(
 						connection.gameId,
-						connection.eventHandler
+						connection.eventHandler,
 					);
 				} catch (error) {
 					// Log error but don't prevent cleanup
-					communicationLogger.error(`Failed to unsubscribe from game events for player ${connection.playerId}:`, error);
+					communicationLogger.error(
+						`Failed to unsubscribe from game events for player ${connection.playerId}:`,
+						error,
+					);
 				}
 				// Clear the handler reference to prevent memory leaks
 				connection.eventHandler = undefined;
@@ -410,7 +441,7 @@ export class SocketHandler {
 		try {
 			const possibleActions = this.gameController.getPossibleActions(
 				connection.gameId,
-				connection.playerId
+				connection.playerId,
 			);
 
 			connection.socket.emit('possibleActions', {
@@ -436,7 +467,7 @@ export class SocketHandler {
 		try {
 			const gameState = this.gameController.getBotGameState(
 				connection.gameId,
-				connection.playerId
+				connection.playerId,
 			);
 
 			connection.socket.emit('gameState', {
@@ -605,10 +636,16 @@ export class SocketHandler {
 
 		// Force action through game controller
 		try {
-			this.gameController.forcePlayerAction(connection.gameId, connection.playerId);
+			this.gameController.forcePlayerAction(
+				connection.gameId,
+				connection.playerId,
+			);
 		} catch (error) {
 			// Log error but don't crash - game should continue functioning
-			communicationLogger.error(`Force action failed for player ${connection.playerId}:`, error);
+			communicationLogger.error(
+				`Force action failed for player ${connection.playerId}:`,
+				error,
+			);
 
 			// Notify the player that force action failed
 			connection.socket.emit('forceActionError', {
@@ -630,16 +667,24 @@ export class SocketHandler {
 			if (connection.spectatingGames && connection.eventHandler) {
 				for (const gameId of connection.spectatingGames) {
 					try {
-						this.gameController.unsubscribeFromGame(gameId, connection.eventHandler);
+						this.gameController.unsubscribeFromGame(
+							gameId,
+							connection.eventHandler,
+						);
 					} catch (error) {
-						communicationLogger.error(`Failed to unsubscribe spectator from game ${gameId}:`, error);
+						communicationLogger.error(
+							`Failed to unsubscribe spectator from game ${gameId}:`,
+							error,
+						);
 					}
 				}
 				connection.spectatingGames.clear();
 			}
 			connection.eventHandler = undefined;
 			this.connections.delete(connection.socket.id);
-			communicationLogger.info(`Spectator ${connection.socket.id} disconnected`);
+			communicationLogger.info(
+				`Spectator ${connection.socket.id} disconnected`,
+			);
 			return;
 		}
 
@@ -650,10 +695,16 @@ export class SocketHandler {
 		// Unsubscribe from game events
 		if (connection.gameId && connection.eventHandler) {
 			try {
-				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
+				this.gameController.unsubscribeFromGame(
+					connection.gameId,
+					connection.eventHandler,
+				);
 			} catch (error) {
 				// Log error but don't prevent cleanup
-				communicationLogger.error(`Failed to unsubscribe from game events for player ${connection.playerId}:`, error);
+				communicationLogger.error(
+					`Failed to unsubscribe from game events for player ${connection.playerId}:`,
+					error,
+				);
 			}
 			// Clear the handler reference to prevent memory leaks
 			connection.eventHandler = undefined;
@@ -676,10 +727,18 @@ export class SocketHandler {
 		// Then remove player from game entirely
 		if (connection.gameId) {
 			try {
-				communicationLogger.info(`Permanently removing player ${connection.playerId} from game ${connection.gameId} due to timeout`);
-				this.gameController.removePlayerFromGame(connection.gameId, connection.playerId);
+				communicationLogger.info(
+					`Permanently removing player ${connection.playerId} from game ${connection.gameId} due to timeout`,
+				);
+				this.gameController.removePlayerFromGame(
+					connection.gameId,
+					connection.playerId,
+				);
 			} catch (error) {
-				communicationLogger.error(`Failed to remove player ${connection.playerId} from game:`, error);
+				communicationLogger.error(
+					`Failed to remove player ${connection.playerId} from game:`,
+					error,
+				);
 			}
 		}
 	}
@@ -724,13 +783,13 @@ export class SocketHandler {
 		const connections = Array.from(this.connections.values());
 		const activeConnections = connections.filter((c) => c.isConnected).length;
 		const botsInGames = connections.filter(
-			(c) => c.gameId && c.isConnected && c.connectionType !== 'spectator'
+			(c) => c.gameId && c.isConnected && c.connectionType !== 'spectator',
 		).length;
 		const activeTurnTimers = this.turnTimers.size;
 		const spectators = connections.filter(
-			(c) => c.connectionType === 'spectator' && c.isConnected
+			(c) => c.connectionType === 'spectator' && c.isConnected,
 		).length;
-		
+
 		// Count unique games being spectated
 		const spectatedGames = new Set<GameId>();
 		connections
@@ -763,7 +822,8 @@ export class SocketHandler {
 		for (const [socketId, connection] of this.connections) {
 			const shouldRemove =
 				!connection.isConnected ||
-				(connection.lastAction && now - connection.lastAction > inactiveThreshold);
+				(connection.lastAction &&
+					now - connection.lastAction > inactiveThreshold);
 
 			if (shouldRemove) {
 				connectionsToRemove.push(connection);
@@ -781,18 +841,23 @@ export class SocketHandler {
 	 */
 	private async handleAuthentication(
 		connection: BotConnection,
-		data: { botId: string; apiKey: string }
+		data: { botId: string; apiKey: string },
 	): Promise<void> {
 		try {
 			// Validate bot credentials
-			const isValid = await this.botAuthService.validateBot(data.botId, data.apiKey);
+			const isValid = await this.botAuthService.validateBot(
+				data.botId,
+				data.apiKey,
+			);
 
 			if (!isValid) {
 				connection.socket.emit('authError', {
 					message: 'Invalid bot credentials',
-					timestamp: Date.now()
+					timestamp: Date.now(),
 				});
-				authLogger.warn(`Authentication failed for bot ${data.botId} from ${connection.socket.id}`);
+				authLogger.warn(
+					`Authentication failed for bot ${data.botId} from ${connection.socket.id}`,
+				);
 				return;
 			}
 
@@ -801,7 +866,7 @@ export class SocketHandler {
 			if (!bot) {
 				connection.socket.emit('authError', {
 					message: 'Bot not found',
-					timestamp: Date.now()
+					timestamp: Date.now(),
 				});
 				return;
 			}
@@ -816,18 +881,20 @@ export class SocketHandler {
 				botId: data.botId,
 				botName: bot.botName,
 				playerId: connection.playerId,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 
 			// Subscribe to game events for this bot
 			this.subscribeToGameEvents(connection);
 
-			authLogger.info(`Bot ${data.botId} (${bot.botName}) authenticated successfully`);
+			authLogger.info(
+				`Bot ${data.botId} (${bot.botName}) authenticated successfully`,
+			);
 		} catch (error) {
 			authLogger.error(`Authentication error for bot ${data.botId}:`, error);
 			connection.socket.emit('authError', {
 				message: 'Authentication failed',
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		}
 	}
@@ -841,12 +908,12 @@ export class SocketHandler {
 			connection.authenticated = true;
 			return true;
 		}
-		
+
 		if (!connection.authenticated) {
 			connection.socket.emit('error', {
 				code: 'AUTH_REQUIRED',
 				message: 'Authentication required. Please authenticate first.',
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 			return false;
 		}
@@ -866,26 +933,31 @@ export class SocketHandler {
 	/**
 	 * Handles spectator authentication
 	 */
-	private handleSpectatorAuth(connection: BotConnection, data: { adminKey?: string }): void {
+	private handleSpectatorAuth(
+		connection: BotConnection,
+		data: { adminKey?: string },
+	): void {
 		// For now, we'll use a simple admin key check
 		// In production, this should integrate with a proper auth system
 		const validAdminKey = process.env.SPECTATOR_ADMIN_KEY || 'admin123';
-		
+
 		if (data.adminKey === validAdminKey) {
 			connection.authenticated = true;
 			connection.connectionType = 'spectator';
 			connection.spectatingGames = new Set();
-			
+
 			connection.socket.emit('spectatorAuthSuccess', {
 				message: 'Authenticated as spectator',
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
-			
-			communicationLogger.info(`Spectator authenticated: ${connection.socket.id}`);
+
+			communicationLogger.info(
+				`Spectator authenticated: ${connection.socket.id}`,
+			);
 		} else {
 			connection.socket.emit('spectatorAuthError', {
 				error: 'Invalid admin key',
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		}
 	}
@@ -894,10 +966,13 @@ export class SocketHandler {
 	 * Checks if connection is authenticated as spectator
 	 */
 	private requireSpectatorAuth(connection: BotConnection): boolean {
-		if (!connection.authenticated || connection.connectionType !== 'spectator') {
+		if (
+			!connection.authenticated ||
+			connection.connectionType !== 'spectator'
+		) {
 			connection.socket.emit('spectatorAuthRequired', {
 				error: 'Spectator authentication required',
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 			return false;
 		}
@@ -929,12 +1004,12 @@ export class SocketHandler {
 			const spectatorEventHandler = (event: GameEvent) => {
 				this.handleSpectatorGameEvent(connection, gameId, event);
 			};
-			
+
 			// Store handler for cleanup
 			if (!connection.eventHandler) {
 				connection.eventHandler = spectatorEventHandler;
 			}
-			
+
 			this.gameController.subscribeToGame(gameId, spectatorEventHandler);
 
 			// Send current full game state
@@ -943,14 +1018,17 @@ export class SocketHandler {
 			connection.socket.emit('spectatingGame', {
 				gameId,
 				message: `Now spectating game ${gameId}`,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 
-			communicationLogger.info(`Spectator ${connection.socket.id} started spectating game ${gameId}`);
+			communicationLogger.info(
+				`Spectator ${connection.socket.id} started spectating game ${gameId}`,
+			);
 		} catch (error) {
 			connection.socket.emit('spectateError', {
-				error: error instanceof Error ? error.message : 'Failed to spectate game',
-				timestamp: Date.now()
+				error:
+					error instanceof Error ? error.message : 'Failed to spectate game',
+				timestamp: Date.now(),
 			});
 		}
 	}
@@ -958,7 +1036,10 @@ export class SocketHandler {
 	/**
 	 * Handles spectator leaving a game
 	 */
-	private handleStopSpectating(connection: BotConnection, gameId: GameId): void {
+	private handleStopSpectating(
+		connection: BotConnection,
+		gameId: GameId,
+	): void {
 		try {
 			if (connection.spectatingGames?.has(gameId)) {
 				connection.spectatingGames.delete(gameId);
@@ -970,22 +1051,28 @@ export class SocketHandler {
 
 				// Unsubscribe from events if not spectating any other games
 				if (connection.spectatingGames.size === 0 && connection.eventHandler) {
-					this.gameController.unsubscribeFromGame(gameId, connection.eventHandler);
+					this.gameController.unsubscribeFromGame(
+						gameId,
+						connection.eventHandler,
+					);
 					connection.eventHandler = undefined;
 				}
 
 				connection.socket.emit('stoppedSpectating', {
 					gameId,
 					message: `Stopped spectating game ${gameId}`,
-					timestamp: Date.now()
+					timestamp: Date.now(),
 				});
 
-				communicationLogger.info(`Spectator ${connection.socket.id} stopped spectating game ${gameId}`);
+				communicationLogger.info(
+					`Spectator ${connection.socket.id} stopped spectating game ${gameId}`,
+				);
 			}
 		} catch (error) {
 			connection.socket.emit('stopSpectatingError', {
-				error: error instanceof Error ? error.message : 'Failed to stop spectating',
-				timestamp: Date.now()
+				error:
+					error instanceof Error ? error.message : 'Failed to stop spectating',
+				timestamp: Date.now(),
 			});
 		}
 	}
@@ -995,15 +1082,15 @@ export class SocketHandler {
 	 */
 	private sendActiveGamesList(connection: BotConnection): void {
 		const games = this.gameController.listGames();
-		const activeGames = games.map(game => ({
+		const activeGames = games.map((game) => ({
 			...game,
 			canSpectate: true,
-			playerNames: this.getPlayerNamesForGame(game.id)
+			playerNames: this.getPlayerNamesForGame(game.id),
 		}));
 
 		connection.socket.emit('activeGamesList', {
 			games: activeGames,
-			timestamp: Date.now()
+			timestamp: Date.now(),
 		});
 	}
 
@@ -1018,32 +1105,41 @@ export class SocketHandler {
 			}
 
 			const gameState = game.getGameState();
-			
+
 			// Get game state with visibility rules applied (simple showdown-only visibility)
 			let spectatorGameState;
 			if (typeof (gameState as any).getStateWithVisibility === 'function') {
-				spectatorGameState = (gameState as any).getStateWithVisibility('spectator', undefined);
+				spectatorGameState = (gameState as any).getStateWithVisibility(
+					'spectator',
+					undefined,
+				);
 			} else {
 				// Fallback for plain game state objects
-				const isShowdown = gameState.currentPhase === 'showdown' || gameState.currentPhase === 'hand_complete';
+				const isShowdown =
+					gameState.currentPhase === 'showdown' ||
+					gameState.currentPhase === 'hand_complete';
 				spectatorGameState = {
 					...gameState,
-					players: gameState.players.map(player => ({
+					players: gameState.players.map((player) => ({
 						...player,
-						holeCards: isShowdown && !player.isFolded ? (player.holeCards || []) : undefined
-					}))
+						holeCards:
+							isShowdown && !player.isFolded
+								? player.holeCards || []
+								: undefined,
+					})),
 				};
 			}
 
 			connection.socket.emit('fullGameState', {
 				gameId,
 				gameState: spectatorGameState,
-				timestamp: Date.now()
+				timestamp: Date.now(),
 			});
 		} catch (error) {
 			connection.socket.emit('gameStateError', {
-				error: error instanceof Error ? error.message : 'Failed to get game state',
-				timestamp: Date.now()
+				error:
+					error instanceof Error ? error.message : 'Failed to get game state',
+				timestamp: Date.now(),
 			});
 		}
 	}
@@ -1051,7 +1147,11 @@ export class SocketHandler {
 	/**
 	 * Handles game events for spectators
 	 */
-	private handleSpectatorGameEvent(connection: BotConnection, gameId: GameId, event: GameEvent): void {
+	private handleSpectatorGameEvent(
+		connection: BotConnection,
+		gameId: GameId,
+		event: GameEvent,
+	): void {
 		if (!connection.isConnected || !connection.spectatingGames?.has(gameId)) {
 			return;
 		}
@@ -1064,9 +1164,9 @@ export class SocketHandler {
 				// Include additional state if available (cast to any to handle extended properties)
 				gameState: event.gameState,
 				gameStateBefore: (event as any).gameStateBefore,
-				gameStateAfter: (event as any).gameStateAfter
+				gameStateAfter: (event as any).gameStateAfter,
 			},
-			timestamp: Date.now()
+			timestamp: Date.now(),
 		});
 
 		// For certain events, also send updated full game state

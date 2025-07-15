@@ -6,8 +6,7 @@ if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
 module.exports = {
 	preset: 'ts-jest',
 	testEnvironment: 'node',
-	roots: ['<rootDir>/src'],
-	testMatch: ['**/tests/**/*.test.ts'],
+	roots: ['<rootDir>/tests'],
 	transform: {
 		'^.+\\.ts$': 'ts-jest',
 	},

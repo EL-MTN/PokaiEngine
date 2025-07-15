@@ -3,7 +3,7 @@ import { Card } from './Card';
 
 /**
  * Texas Hold'em hand evaluation utility class
- * 
+ *
  * This class implements the standard poker hand ranking system for Texas Hold'em.
  * Hand rankings from highest to lowest:
  * 1. Royal Flush (10, J, Q, K, A of the same suit)
@@ -16,7 +16,7 @@ import { Card } from './Card';
  * 8. Two Pair (2 pairs of different ranks)
  * 9. One Pair (2 cards of the same rank)
  * 10. High Card (no matching cards)
- * 
+ *
  * Special rules implemented:
  * - Ace can be high (A-K-Q-J-10) or low (A-2-3-4-5) in straights
  * - Ace-low straight (wheel) is the lowest possible straight
@@ -25,13 +25,16 @@ import { Card } from './Card';
 export class HandEvaluator {
 	/**
 	 * Evaluates the best 5-card poker hand from hole cards and community cards
-	 * 
+	 *
 	 * @param holeCards - The player's 2 hole cards
 	 * @param communityCards - The 5 community cards (flop, turn, river)
 	 * @returns The best possible 5-card hand evaluation
 	 * @throws Error if fewer than 5 total cards are provided
 	 */
-	static evaluateHand(holeCards: Card[], communityCards: Card[]): HandEvaluation {
+	static evaluateHand(
+		holeCards: Card[],
+		communityCards: Card[],
+	): HandEvaluation {
 		const allCards = [...holeCards, ...communityCards];
 
 		if (allCards.length < 5) {
@@ -57,11 +60,11 @@ export class HandEvaluator {
 
 	/**
 	 * Evaluates a specific 5-card hand and determines its rank and value
-	 * 
+	 *
 	 * This method takes exactly 5 cards and determines the best poker hand
 	 * they form. The evaluation includes the hand rank, cards used, kickers,
 	 * and a numeric value for comparison purposes.
-	 * 
+	 *
 	 * @param cards - Array of exactly 5 cards to evaluate
 	 * @returns HandEvaluation object containing rank, cards, kickers, and comparison value
 	 * @throws Error if the number of cards is not exactly 5
@@ -75,24 +78,26 @@ export class HandEvaluator {
 		const sortedCards = [...cards].sort((a, b) => b.rank - a.rank);
 
 		// Check for each hand type (from highest to lowest)
-		return this.checkRoyalFlush(sortedCards) ||
-			   this.checkStraightFlush(sortedCards) ||
-			   this.checkFourOfAKind(sortedCards) ||
-			   this.checkFullHouse(sortedCards) ||
-			   this.checkFlush(sortedCards) ||
-			   this.checkStraight(sortedCards) ||
-			   this.checkThreeOfAKind(sortedCards) ||
-			   this.checkTwoPair(sortedCards) ||
-			   this.checkOnePair(sortedCards) ||
-			   this.checkHighCard(sortedCards);
+		return (
+			this.checkRoyalFlush(sortedCards) ||
+			this.checkStraightFlush(sortedCards) ||
+			this.checkFourOfAKind(sortedCards) ||
+			this.checkFullHouse(sortedCards) ||
+			this.checkFlush(sortedCards) ||
+			this.checkStraight(sortedCards) ||
+			this.checkThreeOfAKind(sortedCards) ||
+			this.checkTwoPair(sortedCards) ||
+			this.checkOnePair(sortedCards) ||
+			this.checkHighCard(sortedCards)
+		);
 	}
 
 	/**
 	 * Checks for royal flush (10-J-Q-K-A of same suit)
-	 * 
+	 *
 	 * A royal flush is the highest possible hand in poker, consisting of
 	 * the top 5 cards of the same suit: 10, Jack, Queen, King, and Ace.
-	 * 
+	 *
 	 * @param sortedCards - Cards sorted in descending rank order
 	 * @returns HandEvaluation if royal flush found, null otherwise
 	 */
@@ -110,15 +115,17 @@ export class HandEvaluator {
 
 	/**
 	 * Checks for straight flush (5 consecutive cards of same suit, excluding royal flush)
-	 * 
+	 *
 	 * A straight flush consists of 5 consecutive cards all of the same suit.
 	 * Special handling for ace-low straight flush (A-2-3-4-5), also known as
 	 * the "wheel" or "bicycle", which is the lowest possible straight flush.
-	 * 
+	 *
 	 * @param sortedCards - Cards sorted in descending rank order
 	 * @returns HandEvaluation if straight flush found, null otherwise
 	 */
-	private static checkStraightFlush(sortedCards: Card[]): HandEvaluation | null {
+	private static checkStraightFlush(
+		sortedCards: Card[],
+	): HandEvaluation | null {
 		if (this.isStraightFlush(sortedCards)) {
 			// Handle ace-low straight flush (wheel) specially
 			if (this.isAceLowStraight(sortedCards)) {
@@ -136,7 +143,9 @@ export class HandEvaluator {
 				rank: HandRank.StraightFlush,
 				cards: sortedCards,
 				kickers: [],
-				value: this.calculateHandValue(HandRank.StraightFlush, [sortedCards[0]]), // Use highest card
+				value: this.calculateHandValue(HandRank.StraightFlush, [
+					sortedCards[0],
+				]), // Use highest card
 			};
 		}
 		return null;
@@ -153,7 +162,10 @@ export class HandEvaluator {
 				rank: HandRank.FourOfAKind,
 				cards: sortedCards,
 				kickers: [kicker],
-				value: this.calculateHandValue(HandRank.FourOfAKind, [fourOfAKind, kicker]),
+				value: this.calculateHandValue(HandRank.FourOfAKind, [
+					fourOfAKind,
+					kicker,
+				]),
 			};
 		}
 		return null;
@@ -231,7 +243,10 @@ export class HandEvaluator {
 				rank: HandRank.ThreeOfAKind,
 				cards: sortedCards,
 				kickers: kickers,
-				value: this.calculateHandValue(HandRank.ThreeOfAKind, [threeOfAKind, ...kickers]),
+				value: this.calculateHandValue(HandRank.ThreeOfAKind, [
+					threeOfAKind,
+					...kickers,
+				]),
 			};
 		}
 		return null;
@@ -244,7 +259,7 @@ export class HandEvaluator {
 		const twoPair = this.getTwoPair(sortedCards);
 		if (twoPair) {
 			const kicker = sortedCards.find(
-				(c) => c.rank !== twoPair.high.rank && c.rank !== twoPair.low.rank
+				(c) => c.rank !== twoPair.high.rank && c.rank !== twoPair.low.rank,
 			)!;
 			return {
 				rank: HandRank.TwoPair,
@@ -291,11 +306,11 @@ export class HandEvaluator {
 
 	/**
 	 * Sorts cards for wheel (A-2-3-4-5) display order
-	 * 
+	 *
 	 * In an ace-low straight, the ace should be displayed as the lowest card
 	 * rather than the highest. This method re-sorts the cards to show them
 	 * in the conventional order: 5-4-3-2-A.
-	 * 
+	 *
 	 * @param cards - The 5 cards forming an ace-low straight
 	 * @returns Cards sorted in wheel display order (5-4-3-2-A)
 	 */
@@ -348,13 +363,15 @@ export class HandEvaluator {
 	 */
 	private static isRoyalFlush(cards: Card[]): boolean {
 		if (!this.isFlush(cards)) return false;
-		
-		const ranks = cards.map(c => c.rank).sort((a, b) => b - a);
-		return ranks[0] === Rank.Ace && 
-			   ranks[1] === Rank.King && 
-			   ranks[2] === Rank.Queen && 
-			   ranks[3] === Rank.Jack && 
-			   ranks[4] === Rank.Ten;
+
+		const ranks = cards.map((c) => c.rank).sort((a, b) => b - a);
+		return (
+			ranks[0] === Rank.Ace &&
+			ranks[1] === Rank.King &&
+			ranks[2] === Rank.Queen &&
+			ranks[3] === Rank.Jack &&
+			ranks[4] === Rank.Ten
+		);
 	}
 
 	/**
@@ -434,7 +451,9 @@ export class HandEvaluator {
 	/**
 	 * Gets full house if present
 	 */
-	private static getFullHouse(cards: Card[]): { trips: Card; pair: Card } | null {
+	private static getFullHouse(
+		cards: Card[],
+	): { trips: Card; pair: Card } | null {
 		const rankCounts = this.getRankCounts(cards);
 		let trips: Card | null = null;
 		let pair: Card | null = null;
@@ -503,11 +522,11 @@ export class HandEvaluator {
 
 	/**
 	 * Creates a temporary card object for hand value calculation
-	 * 
+	 *
 	 * This helper method creates a minimal Card object used only for calculating
 	 * hand comparison values. The suit is irrelevant for value calculation,
 	 * so Hearts is used as a default.
-	 * 
+	 *
 	 * @param rank - The rank of the temporary card
 	 * @returns A Card object with the specified rank and Hearts suit
 	 */
@@ -517,20 +536,23 @@ export class HandEvaluator {
 
 	/**
 	 * Calculates a numeric value for hand comparison
-	 * 
+	 *
 	 * This method generates a unique numeric value for each possible poker hand
 	 * that allows for accurate comparison. The value is calculated as:
 	 * - Base value: Hand rank * 10 billion (ensures rank precedence)
 	 * - Card values: Each significant card adds its rank * (100^position)
-	 * 
+	 *
 	 * This ensures that a higher-ranked hand always beats a lower-ranked hand,
 	 * and within the same rank, proper kicker comparison is maintained.
-	 * 
+	 *
 	 * @param handRank - The type of poker hand (pair, flush, etc.)
 	 * @param significantCards - Cards that determine hand strength (main cards + kickers)
 	 * @returns Numeric value for comparison (higher = better hand)
 	 */
-	private static calculateHandValue(handRank: HandRank, significantCards: Card[]): number {
+	private static calculateHandValue(
+		handRank: HandRank,
+		significantCards: Card[],
+	): number {
 		// Use a much larger multiplier to ensure hand rank always dominates
 		let value = handRank * 10000000000; // Base value for hand rank (10 billion)
 
