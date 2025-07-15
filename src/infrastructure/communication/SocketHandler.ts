@@ -819,7 +819,7 @@ export class SocketHandler {
 		// Collect connections to remove to avoid modifying map while iterating
 		const connectionsToRemove: BotConnection[] = [];
 
-		for (const [socketId, connection] of this.connections) {
+		for (const [, connection] of this.connections) {
 			const shouldRemove =
 				!connection.isConnected ||
 				(connection.lastAction &&

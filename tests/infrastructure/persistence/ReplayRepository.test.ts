@@ -6,7 +6,6 @@ import {
 	Replay,
 	IReplay,
 	IGameEvent,
-	IGameMetadata,
 	IReplayAnalytics,
 } from '@/infrastructure/persistence/models/Replay';
 import { Types } from 'mongoose';

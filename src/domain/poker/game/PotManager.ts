@@ -307,7 +307,7 @@ export class PotManager {
 			let potDistributed = false;
 
 			// Find the best hand among eligible players for this pot
-			for (const [handStrength, playerIds] of sortedGroups) {
+			for (const [, playerIds] of sortedGroups) {
 				const eligibleWinners = playerIds.filter((playerId) =>
 					pot.eligiblePlayers.includes(playerId),
 				);
@@ -406,7 +406,7 @@ export class PotManager {
 			let potDistributed = false;
 
 			// Find the best hand among eligible players for this pot
-			for (const [handStrength, players] of sortedGroups) {
+			for (const [, players] of sortedGroups) {
 				const eligibleWinners = players.filter((player) =>
 					pot.eligiblePlayers.includes(player.playerId),
 				);

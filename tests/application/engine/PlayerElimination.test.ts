@@ -1,5 +1,4 @@
 import { GameController } from '@/application/engine/GameController';
-import { GameEngine } from '@/application/engine/GameEngine';
 import { ActionType, GameConfig } from '@/domain/types';
 
 describe('Player Elimination with 0 Chips', () => {

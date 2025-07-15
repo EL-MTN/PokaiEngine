@@ -355,10 +355,10 @@ describe('GameController', () => {
 		});
 
 		it('should handle removing a game when other games have players', async () => {
-			const game1 = setupMockGame('game1', createConfig());
+			setupMockGame('game1', createConfig());
 			gameController.addPlayerToGame('game1', 'p1', 'Alice', 1000);
 
-			const game2 = setupMockGame('game2', createConfig());
+			setupMockGame('game2', createConfig());
 			gameController.addPlayerToGame('game2', 'p2', 'Bob', 1000);
 
 			await gameController.removeGame('game1');

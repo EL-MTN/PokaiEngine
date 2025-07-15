@@ -1,6 +1,6 @@
 import { GameController } from '@/application/engine/GameController';
 import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
-import { GameConfig, ActionType, Action } from '@/domain/types';
+import { GameConfig } from '@/domain/types';
 
 // Mock Socket type
 class MockSocket {
@@ -25,8 +25,8 @@ class MockSocket {
 		(this.handlers[event] || []).forEach((cb) => cb(data));
 	}
 
-	join(_room: string): void {}
-	leave(_room: string): void {}
+	join(): void {}
+	leave(): void {}
 
 	disconnect(): void {
 		this.trigger('disconnect', {});
@@ -155,7 +155,7 @@ describe('SocketHandler Basic Tests', () => {
 
 	it('should track connection stats', async () => {
 		const socket1 = server.connect('socket1');
-		const socket2 = server.connect('socket2');
+		server.connect('socket2');
 
 		// Initial stats
 		let stats = socketHandler.getConnectionStats();

@@ -7,7 +7,6 @@ import {
 	PlayerId,
 	PossibleAction,
 	GamePhase,
-	StartCondition,
 } from '@/domain/types';
 import { GameEngine } from './GameEngine';
 import { ReplayManager } from '@/domain/replay/ReplayManager';
@@ -42,7 +41,7 @@ export class GameController {
 	/** Replay system for playback */
 	private replaySystem: ReplaySystem;
 
-	constructor(loggerConfig?: any) {
+	constructor() {
 		// Initialize replay management
 		this.replayManager = new ReplayManager();
 		this.replaySystem = new ReplaySystem();
@@ -269,7 +268,9 @@ export class GameController {
 		busted.forEach((pid) => {
 			try {
 				game.removePlayer(pid);
-			} catch {}
+			} catch {
+				gameLogger.error(`Error removing player ${pid} from game ${gameId}`);
+			}
 		});
 
 		// Now proceed to start the hand if still enough players.
@@ -647,7 +648,7 @@ export class GameController {
 
 		// Handle different start conditions
 		switch (startSettings.condition) {
-			case 'minPlayers':
+			case 'minPlayers': {
 				const minPlayers = startSettings.minPlayers || 2;
 				if (gameState.players.length >= minPlayers) {
 					gameLogger.info(
@@ -656,7 +657,7 @@ export class GameController {
 					this.startHand(gameId);
 				}
 				break;
-
+			}
 			case 'scheduled':
 				// Scheduled starts would be handled by an external timer/scheduler
 				// This is just a placeholder for future implementation

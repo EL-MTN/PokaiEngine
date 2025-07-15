@@ -1,4 +1,4 @@
-import { GameLogger, GameLog } from '@/infrastructure/logging/GameLogger';
+import { GameLogger } from '@/infrastructure/logging/GameLogger';
 import {
 	GameState,
 	PlayerInfo,

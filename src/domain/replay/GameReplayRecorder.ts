@@ -14,7 +14,6 @@ import {
 	PossibleAction,
 } from '@/domain/types';
 import { shouldShowHoleCards } from '@/domain/types/visibility';
-import { GameState as GameStateClass } from '@/domain/poker/game/GameState';
 import { replayLogger } from '@/infrastructure/logging/Logger';
 
 export interface ReplayRecordingConfig {
@@ -265,7 +264,7 @@ export class GameReplayRecorder {
 	 */
 	getActiveRecordings(): GameId[] {
 		return Array.from(this.recordings.entries())
-			.filter(([_, entry]) => entry.isActive)
+			.filter(([, entry]) => entry.isActive)
 			.map(([gameId]) => gameId);
 	}
 
@@ -274,7 +273,7 @@ export class GameReplayRecorder {
 	 */
 	getCompletedRecordings(): GameId[] {
 		return Array.from(this.recordings.entries())
-			.filter(([_, entry]) => !entry.isActive)
+			.filter(([, entry]) => !entry.isActive)
 			.map(([gameId]) => gameId);
 	}
 
@@ -330,17 +329,14 @@ export class GameReplayRecorder {
 	}
 
 	private manageMemory(): void {
-		const activeCount = Array.from(this.recordings.values()).filter(
-			(entry) => entry.isActive,
-		).length;
 		const totalCount = this.recordings.size;
 
 		if (totalCount > this.config.maxReplaysInMemory) {
 			// Remove oldest inactive recordings
 			const inactiveEntries = Array.from(this.recordings.entries())
-				.filter(([_, entry]) => !entry.isActive)
+				.filter(([, entry]) => !entry.isActive)
 				.sort(
-					([_, a], [__, b]) =>
+					([, a], [, b]) =>
 						a.replayData.startTime.getTime() - b.replayData.startTime.getTime(),
 				);
 
@@ -420,7 +416,7 @@ export class GameReplayRecorder {
 
 				if (!shouldShow && player.holeCards) {
 					// Remove hole cards
-					const { holeCards, ...publicPlayer } = player;
+					const { ...publicPlayer } = player;
 					return publicPlayer;
 				}
 

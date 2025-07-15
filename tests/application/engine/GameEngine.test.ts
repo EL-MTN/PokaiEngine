@@ -4,8 +4,6 @@ import {
 	GameConfig,
 	HandRank,
 	GamePhase,
-	GameStateError,
-	InvalidActionError,
 	Suit,
 	Rank,
 } from '@/domain/types';
@@ -160,17 +158,15 @@ describe('GameEngine - Comprehensive Test Suite', () => {
 			const ids: string[] = ['p0', 'p1', 'p2'];
 
 			// Spy on the static evaluateHand method
-			jest
-				.spyOn(HandEvaluator, 'evaluateHand')
-				.mockImplementation((_holeCards: any, _community: any) => {
-					const pid = ids[callIndex++ % ids.length];
-					return {
-						rank: HandRank.HighCard,
-						cards: [],
-						kickers: [],
-						value: evalMap[pid] ?? 0,
-					};
-				});
+			jest.spyOn(HandEvaluator, 'evaluateHand').mockImplementation(() => {
+				const pid = ids[callIndex++ % ids.length];
+				return {
+					rank: HandRank.HighCard,
+					cards: [],
+					kickers: [],
+					value: evalMap[pid] ?? 0,
+				};
+			});
 
 			const engine = new GameEngine('g6', createConfig());
 
@@ -728,7 +724,6 @@ describe('GameEngine - Comprehensive Test Suite', () => {
 
 			// First player goes all-in
 			const firstToAct = engine.getGameState().currentPlayerToAct!;
-			const firstPlayer = engine.getGameState().getPlayer(firstToAct)!;
 			engine.processAction({
 				type: ActionType.AllIn,
 				playerId: firstToAct,

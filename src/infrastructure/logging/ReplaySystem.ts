@@ -3,8 +3,6 @@ import {
 	ReplayEvent,
 	GameState,
 	GameId,
-	PlayerId,
-	ReplayCheckpoint,
 	HandReplayData,
 	GamePhase,
 } from '@/domain/types';

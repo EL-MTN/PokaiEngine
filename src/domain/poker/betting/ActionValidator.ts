@@ -27,7 +27,7 @@ export class ActionValidator {
 
 		switch (action.type) {
 			case ActionType.Fold:
-				return this.validateFold(gameState, player);
+				return this.validateFold();
 			case ActionType.Check:
 				return this.validateCheck(gameState, player);
 			case ActionType.Call:
@@ -173,7 +173,7 @@ export class ActionValidator {
 	/**
 	 * Validates fold action
 	 */
-	private static validateFold(gameState: GameState, player: Player): boolean {
+	private static validateFold(): boolean {
 		// Fold is always valid when player can act
 		return true;
 	}
@@ -358,11 +358,11 @@ export class ActionValidator {
 				player.check();
 				break;
 
-			case ActionType.Call:
+			case ActionType.Call: {
 				const callAmount = this.getCallAmount(gameState, action.playerId);
 				gameState.processBet(action.playerId, callAmount);
 				break;
-
+			}
 			case ActionType.Bet:
 				if (action.amount === undefined) {
 					throw new Error('Bet amount is required');
@@ -376,7 +376,7 @@ export class ActionValidator {
 				);
 				break;
 
-			case ActionType.Raise:
+			case ActionType.Raise: {
 				if (action.amount === undefined) {
 					throw new Error('Raise amount is required');
 				}
@@ -389,8 +389,8 @@ export class ActionValidator {
 					action.playerId,
 				);
 				break;
-
-			case ActionType.AllIn:
+			}
+			case ActionType.AllIn: {
 				const currentBetBeforeAllIn = gameState.getCurrentBet();
 				gameState.processBet(action.playerId, player.chipStack);
 				// Track last aggressor (all-in is considered aggressive if it's a raise)
@@ -402,7 +402,7 @@ export class ActionValidator {
 					);
 				}
 				break;
-
+			}
 			default:
 				throw new Error('Invalid action type');
 		}

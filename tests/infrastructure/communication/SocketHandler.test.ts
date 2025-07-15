@@ -4,7 +4,7 @@ import {
 	Socket,
 	SocketIOServer,
 } from '@/infrastructure/communication/SocketHandler';
-import { GameConfig, ActionType, Action, GameEvent } from '@/domain/types';
+import { GameConfig, ActionType, Action } from '@/domain/types';
 import { BotAuthService } from '@/application/services/BotAuthService';
 
 // Mock BotAuthService to avoid MongoDB dependency
@@ -51,8 +51,8 @@ class MockSocket implements Socket {
 		(this.handlers[event] || []).forEach((cb) => cb(data));
 	}
 
-	join(_room: string): void {}
-	leave(_room: string): void {}
+	join(): void {}
+	leave(): void {}
 
 	disconnect(): void {
 		this.trigger('disconnect', {});

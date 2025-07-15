@@ -1223,6 +1223,7 @@ class PokaiDashboard {
 			try {
 				return new Date(timestampPart).getTime();
 			} catch (error) {
+				console.error(`Error extracting timestamp from filename: ${error}`);
 				return Date.now();
 			}
 		}
@@ -1913,7 +1914,7 @@ class PokaiDashboard {
 		playersContainer.innerHTML = seats.join('');
 	}
 
-	updateActionLog(currentEvent) {
+	updateActionLog() {
 		const actionLog = document.getElementById('action-log');
 		if (!actionLog) return;
 
@@ -2310,7 +2311,7 @@ class PokaiDashboard {
 		});
 
 		// Handle authentication response
-		this.socket.once('spectatorAuthSuccess', (data) => {
+		this.socket.once('spectatorAuthSuccess', () => {
 			this.isSpectatorAuthenticated = true;
 			this.addLog('info', 'Authenticated as spectator');
 			callback();
@@ -2330,7 +2331,7 @@ class PokaiDashboard {
 		// Request to spectate the game
 		this.socket.emit('spectate', { gameId });
 
-		this.socket.once('spectatingGame', (data) => {
+		this.socket.once('spectatingGame', () => {
 			this.addLog('info', `Started spectating game: ${gameId}`);
 			this.openLiveGameViewer(gameId);
 		});
@@ -2454,7 +2455,7 @@ class PokaiDashboard {
 		if (!container) return;
 
 		const playerElements = players
-			.map((player, index) => {
+			.map((player) => {
 				const isActive = player.id === currentPlayerToAct;
 				const isFolded = player.isFolded;
 
@@ -2540,11 +2541,12 @@ class PokaiDashboard {
 	formatLiveEventDescription(event) {
 		switch (event.type) {
 			case 'player_action':
-			case 'action_taken':
+			case 'action_taken': {
 				const action = event.action || {};
 				const playerId = event.playerId || action.playerId || 'Unknown';
 				const playerName = event.playerName || playerId;
 				return `${playerName}: ${action.type} ${action.amount ? `$${action.amount}` : ''}`;
+			}
 			case 'hand_started':
 				return `Hand #${event.handNumber || 1} started`;
 			case 'hand_complete':

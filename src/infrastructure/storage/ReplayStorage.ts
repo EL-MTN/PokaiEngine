@@ -335,9 +335,10 @@ export class ReplayStorage {
 		switch (format) {
 			case 'json':
 				return JSON.stringify(replayData, null, 2);
-			case 'compressed':
+			case 'compressed': {
 				// Compress the JSON data using gzip
 				const jsonData = JSON.stringify(replayData);
+
 				try {
 					return zlib.gzipSync(jsonData);
 				} catch (error) {
@@ -345,6 +346,7 @@ export class ReplayStorage {
 					// Fallback to uncompressed JSON
 					return jsonData;
 				}
+			}
 			default:
 				return undefined;
 		}

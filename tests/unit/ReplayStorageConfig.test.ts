@@ -1,6 +1,5 @@
 import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
 import * as fs from 'fs';
-import * as path from 'path';
 
 describe('ReplayStorage Configuration', () => {
 	let storage: ReplayStorage;

@@ -28,8 +28,8 @@ class MockSocket implements Socket {
 		(this.handlers[event] || []).forEach((cb) => cb(data));
 	}
 
-	join(_room: string): void {}
-	leave(_room: string): void {}
+	join(): void {}
+	leave(): void {}
 
 	disconnect(): void {
 		this.trigger('disconnect', {});

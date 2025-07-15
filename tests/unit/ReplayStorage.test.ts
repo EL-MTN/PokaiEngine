@@ -1,7 +1,6 @@
 import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
-import { ReplayData, GameState, Card, Suit, Rank } from '@/domain/types';
+import { ReplayData, GameState, Suit, Rank } from '@/domain/types';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as zlib from 'zlib';
 
 jest.mock('@/infrastructure/logging/Logger', () => ({
@@ -38,7 +37,6 @@ describe('ReplayStorage', () => {
 
 	describe('extractWinners', () => {
 		it('should extract winners from hand_complete event', () => {
-			const replayData = createTestReplayData();
 			const gameState = createTestGameState();
 			const events = [
 				{

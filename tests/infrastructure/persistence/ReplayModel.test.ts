@@ -3,8 +3,6 @@ import {
 	Replay,
 	IReplay,
 	IGameEvent,
-	IGameMetadata,
-	IReplayAnalytics,
 } from '@/infrastructure/persistence/models/Replay';
 
 // Setup in-memory MongoDB for testing

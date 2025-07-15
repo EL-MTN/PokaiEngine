@@ -1,6 +1,5 @@
 import winston from 'winston';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Ensure logs directory exists
 const logsDir = 'logs';

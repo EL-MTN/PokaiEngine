@@ -7,6 +7,7 @@ import {
 	HandEvaluation,
 	PlayerId,
 } from '@/domain/types';
+import { gameLogger } from './Logger';
 
 export interface GameLog {
 	gameId: GameId;
@@ -235,6 +236,7 @@ export class GameLogger {
 			this.logs.set(gameLog.gameId, gameLog);
 			return gameLog.gameId;
 		} catch (error) {
+			gameLogger.error(`Error importing game log: ${error}`);
 			return undefined;
 		}
 	}
@@ -309,7 +311,7 @@ export class GameLogger {
 		}
 
 		// Calculate average action times
-		for (const [playerId, stats] of playerStats) {
+		for (const [, stats] of playerStats) {
 			if (stats.actionsCount > 0) {
 				const playerActionTimes = actionTimes.slice(0, stats.actionsCount);
 				stats.avgActionTime =

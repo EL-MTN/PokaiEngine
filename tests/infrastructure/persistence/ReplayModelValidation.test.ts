@@ -351,14 +351,6 @@ describe('Replay Model Interfaces', () => {
 				winners: [playerId],
 			};
 
-			const event: IGameEvent = {
-				type: 'action',
-				timestamp: Date.now(),
-				data: { action: { type: 'call' } },
-				handNumber: 1,
-				playerId,
-			};
-
 			// Player referenced in event should exist in metadata
 			expect(metadata.playerNames[playerId]).toBeDefined();
 

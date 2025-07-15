@@ -14,6 +14,7 @@ import {
 	HandEvaluation,
 	PossibleAction,
 } from '@/domain/types';
+import { gameLogger } from '@/infrastructure/logging/Logger';
 
 export interface GameResult {
 	winners: Array<{
@@ -441,7 +442,7 @@ export class GameEngine {
 
 		// Simulate pot distribution
 		const remainingPlayerIds = playersInShowdown.map((p) => p.id);
-		const { distributions, totalDistributed } = potManager.simulateDistribution(
+		const { distributions } = potManager.simulateDistribution(
 			playerEvaluations,
 			remainingPlayerIds,
 		);
@@ -584,7 +585,7 @@ export class GameEngine {
 			try {
 				callback(event);
 			} catch (error) {
-				// Silently ignore callback errors to prevent breaking the game
+				gameLogger.error(`Error emitting event ${event.type}: ${error}`);
 			}
 		});
 	}

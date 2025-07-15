@@ -1,13 +1,6 @@
 import { BotInterface } from '@/infrastructure/communication/BotInterface';
-import { GameController, GameInfo } from '@/application/engine/GameController';
-import {
-	ActionType,
-	GameConfig,
-	Action,
-	GameEvent,
-	BotGameState,
-	PossibleAction,
-} from '@/domain/types';
+import { GameController } from '@/application/engine/GameController';
+import { ActionType, GameConfig, Action } from '@/domain/types';
 
 describe('BotInterface', () => {
 	let gameController: GameController;

@@ -76,10 +76,7 @@ export class ReplayService {
 
 		try {
 			// Generate initial analytics
-			const analytics = this.generateInitialAnalytics(
-				request.events || [],
-				request.metadata,
-			);
+			const analytics = this.generateInitialAnalytics(request.events || []);
 
 			const replayData: Partial<IReplay> = {
 				gameId: request.gameId,
@@ -132,10 +129,7 @@ export class ReplayService {
 			// Update analytics with new events
 			const updatedReplay = await this.replayRepository.findByGameId(gameId);
 			if (updatedReplay) {
-				const newAnalytics = this.generateAnalytics(
-					updatedReplay.events,
-					updatedReplay.metadata,
-				);
+				const newAnalytics = this.generateAnalytics(updatedReplay.events);
 				await this.replayRepository.updateAnalytics(gameId, newAnalytics);
 			}
 		} catch (error) {
@@ -296,10 +290,7 @@ export class ReplayService {
 		}
 	}
 
-	private generateInitialAnalytics(
-		events: IGameEvent[],
-		metadata: IGameMetadata,
-	): IReplayAnalytics {
+	private generateInitialAnalytics(events: IGameEvent[]): IReplayAnalytics {
 		return {
 			totalEvents: events.length,
 			avgHandDuration: 0,
@@ -315,10 +306,7 @@ export class ReplayService {
 		};
 	}
 
-	private generateAnalytics(
-		events: IGameEvent[],
-		metadata: IGameMetadata,
-	): IReplayAnalytics {
+	private generateAnalytics(events: IGameEvent[]): IReplayAnalytics {
 		const actionDistribution: Record<string, number> = {};
 		const phaseDistribution: Record<string, number> = {};
 		const playerActions: Record<string, number> = {};

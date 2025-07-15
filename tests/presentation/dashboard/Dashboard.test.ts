@@ -1,18 +1,14 @@
 import request from 'supertest';
-import { Server } from 'http';
 import PokaiExpressServer from '@/presentation/server';
-import { GameConfig } from '@/domain/types';
 
 describe('Dashboard API', () => {
 	let server: PokaiExpressServer;
-	let httpServer: Server;
 	let app: any;
 
 	beforeAll(async () => {
 		server = new PokaiExpressServer(0); // Use port 0 for testing
 		// Get the express app for testing
 		app = (server as any).app;
-		httpServer = (server as any).httpServer;
 	});
 
 	afterAll(async () => {
@@ -43,7 +39,7 @@ describe('Dashboard API', () => {
 			// Clean up any existing test game
 			try {
 				await request(app).delete(`/api/games/${testGameId}`);
-			} catch (error) {
+			} catch {
 				// Ignore errors if game doesn't exist
 			}
 		});
@@ -52,7 +48,7 @@ describe('Dashboard API', () => {
 			// Clean up test game
 			try {
 				await request(app).delete(`/api/games/${testGameId}`);
-			} catch (error) {
+			} catch {
 				// Ignore errors if game doesn't exist
 			}
 		});
@@ -274,7 +270,7 @@ describe('Dashboard API', () => {
 				for (const game of games) {
 					try {
 						await request(app).delete(`/api/games/${game.gameId}`);
-					} catch (error) {
+					} catch {
 						// Ignore cleanup errors
 					}
 				}
@@ -328,7 +324,7 @@ describe('Dashboard API', () => {
 				// Clean up
 				try {
 					await request(app).delete('/api/games/duplicate-test');
-				} catch (error) {
+				} catch {
 					// Ignore cleanup errors
 				}
 			}
