@@ -249,6 +249,99 @@ describe('ReplayStorage', () => {
 			expect(replays.some((r) => r.endsWith('.json.gz'))).toBe(true);
 		});
 	});
+
+	// Tests from ReplayStorageConfig.test.ts
+	describe('Configuration', () => {
+		describe('Test Environment Detection', () => {
+			it('should disable MongoDB in test environment by default', () => {
+				// Create storage without explicit config
+				const configStorage = new ReplayStorage({ directory: testDir });
+
+				// Access private config through any type assertion
+				const config = (configStorage as any).config;
+
+				// In test environment, MongoDB should be disabled by default
+				expect(config.mongoEnabled).toBe(false);
+				expect(config.fileEnabled).toBe(true);
+				expect(config.preferMongo).toBe(false);
+			});
+
+			it('should allow explicit MongoDB enable even in tests', () => {
+				// Create storage with explicit MongoDB enable
+				const configStorage = new ReplayStorage({
+					directory: testDir,
+					mongoEnabled: true,
+				});
+
+				const config = (configStorage as any).config;
+
+				// Should respect explicit configuration
+				expect(config.mongoEnabled).toBe(true);
+			});
+
+			it('should enable MongoDB in production environment', () => {
+				// Temporarily change NODE_ENV
+				const originalEnv = process.env.NODE_ENV;
+				const originalJestId = process.env.JEST_WORKER_ID;
+
+				try {
+					delete process.env.NODE_ENV;
+					delete process.env.JEST_WORKER_ID;
+
+					const configStorage = new ReplayStorage({ directory: testDir });
+					const config = (configStorage as any).config;
+
+					// In non-test environment, MongoDB should be enabled
+					expect(config.mongoEnabled).toBe(true);
+					expect(config.preferMongo).toBe(true);
+				} finally {
+					// Restore original environment
+					process.env.NODE_ENV = originalEnv;
+					if (originalJestId !== undefined) {
+						process.env.JEST_WORKER_ID = originalJestId;
+					}
+				}
+			});
+		});
+
+		describe('Storage Mode Configurations', () => {
+			it('should support MongoDB-only mode', () => {
+				const configStorage = new ReplayStorage({
+					directory: testDir,
+					mongoEnabled: true,
+					fileEnabled: false,
+				});
+
+				const config = (configStorage as any).config;
+				expect(config.mongoEnabled).toBe(true);
+				expect(config.fileEnabled).toBe(false);
+			});
+
+			it('should support file-only mode', () => {
+				const configStorage = new ReplayStorage({
+					directory: testDir,
+					mongoEnabled: false,
+					fileEnabled: true,
+				});
+
+				const config = (configStorage as any).config;
+				expect(config.mongoEnabled).toBe(false);
+				expect(config.fileEnabled).toBe(true);
+			});
+
+			it('should support disabled storage mode', () => {
+				const configStorage = new ReplayStorage({
+					directory: testDir,
+					mongoEnabled: false,
+					fileEnabled: false,
+				});
+
+				const config = (configStorage as any).config;
+				expect(config.mongoEnabled).toBe(false);
+				expect(config.fileEnabled).toBe(false);
+			});
+		});
+	});
 });
 
 function createTestReplayData(): ReplayData {

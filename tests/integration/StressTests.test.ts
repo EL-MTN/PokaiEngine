@@ -1,58 +1,8 @@
 import { GameController } from '@/application/engine/GameController';
 import { ActionType, GameConfig } from '@/domain/types';
-import {
-	Socket,
-	SocketHandler,
-	SocketIOServer,
-} from '@/infrastructure/communication/SocketHandler';
+import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
 
-class MockSocket implements Socket {
-	public handlers: Record<string, ((data: any) => void)[]> = {};
-	public outgoing: Array<{ event: string; data: any }> = [];
-	public id: string;
-
-	constructor(id: string) {
-		this.id = id;
-	}
-
-	emit(event: string, data: any): void {
-		this.outgoing.push({ event, data });
-	}
-
-	on(event: string, callback: (...args: any[]) => void): void {
-		if (!this.handlers[event]) this.handlers[event] = [];
-		this.handlers[event].push(callback);
-	}
-
-	trigger(event: string, data: any): void {
-		(this.handlers[event] || []).forEach((cb) => cb(data));
-	}
-
-	join(): void {}
-	leave(): void {}
-
-	disconnect(): void {
-		this.trigger('disconnect', {});
-	}
-}
-
-class MockSocketServer implements SocketIOServer {
-	private connectCallbacks: ((socket: Socket) => void)[] = [];
-	public sockets: MockSocket[] = [];
-
-	on(event: string, callback: (socket: Socket) => void): void {
-		if (event === 'connection') {
-			this.connectCallbacks.push(callback);
-		}
-	}
-
-	connect(id: string): MockSocket {
-		const socket = new MockSocket(id);
-		this.sockets.push(socket);
-		this.connectCallbacks.forEach((cb) => cb(socket));
-		return socket;
-	}
-}
+import { MockSocket, MockSocketServer } from '../utils/mocks';
 
 describe('Stress Tests', () => {
 	jest.setTimeout(10000);
@@ -144,6 +94,11 @@ describe('Stress Tests', () => {
 			const cycles = 10;
 			for (let i = 0; i < cycles; i++) {
 				const socket = server.connect(`rapid-bot-${i}`);
+
+				// Add error handler to prevent unhandled errors
+				socket.on('error', () => {
+					// Expected error for unauthenticated socket, ignore
+				});
 
 				socket.trigger('identify', {
 					botName: `RapidBot${i}`,
@@ -299,6 +254,12 @@ describe('Stress Tests', () => {
 			});
 
 			const socket = server.connect('event-bot');
+			
+			// Add error handler to prevent unhandled errors
+			socket.on('error', () => {
+				// Expected error for unauthenticated socket, ignore
+			});
+
 			socket.trigger('identify', {
 				botName: 'EventBot',
 				gameId,
