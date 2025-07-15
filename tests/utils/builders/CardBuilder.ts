@@ -2,143 +2,143 @@ import { Card } from '@core/poker/cards/Card';
 import { Rank, Suit } from '@core/types';
 
 export class CardBuilder {
-  static card(rank: Rank, suit: Suit): Card {
-    return new Card(rank, suit);
+  static card(suit: Suit, rank: Rank): Card {
+    return new Card(suit, rank);
   }
 
   static aceOfSpades(): Card {
-    return new Card('A', 'spades');
+    return new Card(Suit.Spades, Rank.Ace);
   }
 
   static kingOfHearts(): Card {
-    return new Card('K', 'hearts');
+    return new Card(Suit.Hearts, Rank.King);
   }
 
   static queenOfDiamonds(): Card {
-    return new Card('Q', 'diamonds');
+    return new Card(Suit.Diamonds, Rank.Queen);
   }
 
   static jackOfClubs(): Card {
-    return new Card('J', 'clubs');
+    return new Card(Suit.Clubs, Rank.Jack);
   }
 
   static randomCard(): Card {
-    const ranks: Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-    const suits: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
+    const ranks: Rank[] = [Rank.Two, Rank.Three, Rank.Four, Rank.Five, Rank.Six, Rank.Seven, Rank.Eight, Rank.Nine, Rank.Ten, Rank.Jack, Rank.Queen, Rank.King, Rank.Ace];
+    const suits: Suit[] = [Suit.Hearts, Suit.Diamonds, Suit.Clubs, Suit.Spades];
     const randomRank = ranks[Math.floor(Math.random() * ranks.length)];
     const randomSuit = suits[Math.floor(Math.random() * suits.length)];
-    return new Card(randomRank, randomSuit);
+    return new Card(randomSuit, randomRank);
   }
 
   static royalFlush(): Card[] {
     return [
-      new Card('A', 'spades'),
-      new Card('K', 'spades'),
-      new Card('Q', 'spades'),
-      new Card('J', 'spades'),
-      new Card('10', 'spades')
+      new Card(Suit.Spades, Rank.Ace),
+      new Card(Suit.Spades, Rank.King),
+      new Card(Suit.Spades, Rank.Queen),
+      new Card(Suit.Spades, Rank.Jack),
+      new Card(Suit.Spades, Rank.Ten)
     ];
   }
 
   static straightFlush(): Card[] {
     return [
-      new Card('9', 'hearts'),
-      new Card('8', 'hearts'),
-      new Card('7', 'hearts'),
-      new Card('6', 'hearts'),
-      new Card('5', 'hearts')
+      new Card(Suit.Hearts, Rank.Nine),
+      new Card(Suit.Hearts, Rank.Eight),
+      new Card(Suit.Hearts, Rank.Seven),
+      new Card(Suit.Hearts, Rank.Six),
+      new Card(Suit.Hearts, Rank.Five)
     ];
   }
 
   static fourOfAKind(): Card[] {
     return [
-      new Card('K', 'spades'),
-      new Card('K', 'hearts'),
-      new Card('K', 'diamonds'),
-      new Card('K', 'clubs'),
-      new Card('2', 'spades')
+      new Card(Suit.Spades, Rank.King),
+      new Card(Suit.Hearts, Rank.King),
+      new Card(Suit.Diamonds, Rank.King),
+      new Card(Suit.Clubs, Rank.King),
+      new Card(Suit.Spades, Rank.Two)
     ];
   }
 
   static fullHouse(): Card[] {
     return [
-      new Card('A', 'spades'),
-      new Card('A', 'hearts'),
-      new Card('A', 'diamonds'),
-      new Card('K', 'spades'),
-      new Card('K', 'hearts')
+      new Card(Suit.Spades, Rank.Ace),
+      new Card(Suit.Hearts, Rank.Ace),
+      new Card(Suit.Diamonds, Rank.Ace),
+      new Card(Suit.Spades, Rank.King),
+      new Card(Suit.Hearts, Rank.King)
     ];
   }
 
   static flush(): Card[] {
     return [
-      new Card('A', 'hearts'),
-      new Card('J', 'hearts'),
-      new Card('9', 'hearts'),
-      new Card('5', 'hearts'),
-      new Card('3', 'hearts')
+      new Card(Suit.Hearts, Rank.Ace),
+      new Card(Suit.Hearts, Rank.Jack),
+      new Card(Suit.Hearts, Rank.Nine),
+      new Card(Suit.Hearts, Rank.Five),
+      new Card(Suit.Hearts, Rank.Three)
     ];
   }
 
   static straight(): Card[] {
     return [
-      new Card('10', 'spades'),
-      new Card('9', 'hearts'),
-      new Card('8', 'diamonds'),
-      new Card('7', 'clubs'),
-      new Card('6', 'spades')
+      new Card(Suit.Spades, Rank.Ten),
+      new Card(Suit.Hearts, Rank.Nine),
+      new Card(Suit.Diamonds, Rank.Eight),
+      new Card(Suit.Clubs, Rank.Seven),
+      new Card(Suit.Spades, Rank.Six)
     ];
   }
 
   static threeOfAKind(): Card[] {
     return [
-      new Card('J', 'spades'),
-      new Card('J', 'hearts'),
-      new Card('J', 'diamonds'),
-      new Card('5', 'clubs'),
-      new Card('2', 'spades')
+      new Card(Suit.Spades, Rank.Jack),
+      new Card(Suit.Hearts, Rank.Jack),
+      new Card(Suit.Diamonds, Rank.Jack),
+      new Card(Suit.Clubs, Rank.Five),
+      new Card(Suit.Spades, Rank.Two)
     ];
   }
 
   static twoPair(): Card[] {
     return [
-      new Card('K', 'spades'),
-      new Card('K', 'hearts'),
-      new Card('7', 'diamonds'),
-      new Card('7', 'clubs'),
-      new Card('2', 'spades')
+      new Card(Suit.Spades, Rank.King),
+      new Card(Suit.Hearts, Rank.King),
+      new Card(Suit.Diamonds, Rank.Seven),
+      new Card(Suit.Clubs, Rank.Seven),
+      new Card(Suit.Spades, Rank.Two)
     ];
   }
 
   static onePair(): Card[] {
     return [
-      new Card('10', 'spades'),
-      new Card('10', 'hearts'),
-      new Card('8', 'diamonds'),
-      new Card('5', 'clubs'),
-      new Card('2', 'spades')
+      new Card(Suit.Spades, Rank.Ten),
+      new Card(Suit.Hearts, Rank.Ten),
+      new Card(Suit.Diamonds, Rank.Eight),
+      new Card(Suit.Clubs, Rank.Five),
+      new Card(Suit.Spades, Rank.Two)
     ];
   }
 
   static highCard(): Card[] {
     return [
-      new Card('A', 'spades'),
-      new Card('J', 'hearts'),
-      new Card('8', 'diamonds'),
-      new Card('5', 'clubs'),
-      new Card('2', 'spades')
+      new Card(Suit.Spades, Rank.Ace),
+      new Card(Suit.Hearts, Rank.Jack),
+      new Card(Suit.Diamonds, Rank.Eight),
+      new Card(Suit.Clubs, Rank.Five),
+      new Card(Suit.Spades, Rank.Two)
     ];
   }
 
   static communityCards(stage: 'flop' | 'turn' | 'river'): Card[] {
     const flop = [
-      new Card('A', 'hearts'),
-      new Card('K', 'hearts'),
-      new Card('Q', 'hearts')
+      new Card(Suit.Hearts, Rank.Ace),
+      new Card(Suit.Hearts, Rank.King),
+      new Card(Suit.Hearts, Rank.Queen)
     ];
 
     if (stage === 'flop') return flop;
-    if (stage === 'turn') return [...flop, new Card('J', 'hearts')];
-    return [...flop, new Card('J', 'hearts'), new Card('10', 'hearts')];
+    if (stage === 'turn') return [...flop, new Card(Suit.Hearts, Rank.Jack)];
+    return [...flop, new Card(Suit.Hearts, Rank.Jack), new Card(Suit.Hearts, Rank.Ten)];
   }
 }

@@ -18,16 +18,19 @@ describe('ReplayService', () => {
   const mockGameId = 'test-game-123';
   const mockMetadata = {
     gameId: mockGameId,
-    players: ['player1', 'player2'],
-    startTime: new Date(),
-    endTime: new Date(),
-    finalStandings: [],
-    playerNames: { player1: 'Alice', player2: 'Bob' },
-    totalHands: 10,
-    totalDuration: 3600000,
-    bigBlind: 20,
-    smallBlind: 10,
     gameType: 'cash' as const,
+    maxPlayers: 6,
+    actualPlayers: 2,
+    smallBlindAmount: 10,
+    bigBlindAmount: 20,
+    turnTimeLimit: 30,
+    gameStartTime: Date.now(),
+    gameEndTime: Date.now() + 3600000,
+    gameDuration: 3600000,
+    totalHands: 10,
+    totalActions: 30,
+    playerNames: { player1: 'Alice', player2: 'Bob' },
+    winners: ['player1'],
   };
 
   const mockEvents: IGameEvent[] = [
@@ -164,7 +167,7 @@ describe('ReplayService', () => {
       
       // Check analytics were generated
       expect(createCall.analytics).toBeDefined();
-      expect(createCall.analytics.totalEvents).toBe(3);
+      expect(createCall.analytics?.totalEvents).toBe(3);
       expect(result).toEqual(mockReplay);
     });
 
@@ -222,12 +225,12 @@ describe('ReplayService', () => {
   describe('getReplayList', () => {
     it('should retrieve replay list with filters', async () => {
       const mockList = [
-        { gameId: 'game1', startTime: new Date(), players: 2 },
-        { gameId: 'game2', startTime: new Date(), players: 3 },
+        { id: 'replay1', gameId: 'game1', gameType: 'cash' as const, actualPlayers: 2, gameDuration: 3600000, totalHands: 10, createdAt: new Date(), fileSizeMB: '1.5' },
+        { id: 'replay2', gameId: 'game2', gameType: 'cash' as const, actualPlayers: 3, gameDuration: 7200000, totalHands: 20, createdAt: new Date(), fileSizeMB: '2.1' },
       ];
       mockReplayRepository.findAll.mockResolvedValueOnce(mockList);
 
-      const filters = { startDate: new Date(), endDate: new Date() };
+      const filters = { dateFrom: new Date(), dateTo: new Date() };
       const result = await replayService.getReplayList(filters);
 
       expect(mockReplayRepository.findAll).toHaveBeenCalledWith(filters);
@@ -235,7 +238,7 @@ describe('ReplayService', () => {
     });
 
     it('should retrieve replay list without filters', async () => {
-      const mockList = [{ gameId: 'game1', startTime: new Date(), players: 2 }];
+      const mockList = [{ id: 'replay1', gameId: 'game1', gameType: 'cash' as const, actualPlayers: 2, gameDuration: 3600000, totalHands: 10, createdAt: new Date(), fileSizeMB: '1.5' }];
       mockReplayRepository.findAll.mockResolvedValueOnce(mockList);
 
       const result = await replayService.getReplayList();
@@ -618,17 +621,17 @@ describe('ReplayService', () => {
       const createCall = mockReplayRepository.create.mock.calls[0][0];
       const analytics = createCall.analytics;
 
-      expect(analytics.totalEvents).toBe(7);
+      expect(analytics?.totalEvents).toBe(7);
       
       // The avgHandDuration will be 0 because we need both hand_started and hand_complete
       // events with matching handNumbers to calculate duration
-      expect(analytics.avgHandDuration).toBeDefined();
+      expect(analytics?.avgHandDuration).toBeDefined();
       
       // Check the structure is correct
-      expect(analytics.actionDistribution).toBeDefined();
-      expect(analytics.phaseDistribution).toBeDefined();
-      expect(analytics.gameFlow).toBeDefined();
-      expect(analytics.playerPerformance).toBeDefined();
+      expect(analytics?.actionDistribution).toBeDefined();
+      expect(analytics?.phaseDistribution).toBeDefined();
+      expect(analytics?.gameFlow).toBeDefined();
+      expect(analytics?.playerPerformance).toBeDefined();
     });
   });
 });

@@ -1,13 +1,13 @@
 import { Card } from '@core/poker/cards/Card';
 import { GameState } from '@core/poker/game/GameState';
 import { Player } from '@core/poker/game/Player';
-import { BlindLevel, GameStage } from '@core/types';
+import { BlindLevel, GamePhase, Rank, Suit } from '@core/types';
 
 export class GameStateBuilder {
   private gameId: string = 'test-game-123';
   private players: Player[] = [];
   private currentBettingRound: number = 0;
-  private stage: GameStage = GameStage.PREFLOP;
+  private stage: GamePhase = GamePhase.PreFlop;
   private pot: number = 0;
   private currentBet: number = 0;
   private dealerPosition: number = 0;
@@ -16,7 +16,7 @@ export class GameStateBuilder {
   private minimumRaiseAmount: number = 0;
   private communityCards: Card[] = [];
   private deck: Card[] = [];
-  private blindLevel: BlindLevel = { smallBlind: 10, bigBlind: 20, ante: 0 };
+  private blindLevel: BlindLevel = { level: 1, smallBlind: 10, bigBlind: 20, ante: 0, duration: 15 };
   private handNumber: number = 1;
 
   withGameId(gameId: string): GameStateBuilder {
@@ -34,7 +34,7 @@ export class GameStateBuilder {
     return this;
   }
 
-  withStage(stage: GameStage): GameStateBuilder {
+  withStage(stage: GamePhase): GameStateBuilder {
     this.stage = stage;
     return this;
   }
@@ -70,73 +70,75 @@ export class GameStateBuilder {
   }
 
   atPreflop(): GameStateBuilder {
-    this.stage = GameStage.PREFLOP;
+    this.stage = GamePhase.PreFlop;
     this.communityCards = [];
     return this;
   }
 
   atFlop(): GameStateBuilder {
-    this.stage = GameStage.FLOP;
+    this.stage = GamePhase.Flop;
     if (this.communityCards.length < 3) {
       this.communityCards = [
-        new Card('A', 'hearts'),
-        new Card('K', 'hearts'),
-        new Card('Q', 'hearts')
+        new Card(Suit.Hearts, Rank.Ace),
+        new Card(Suit.Hearts, Rank.King),
+        new Card(Suit.Hearts, Rank.Queen)
       ];
     }
     return this;
   }
 
   atTurn(): GameStateBuilder {
-    this.stage = GameStage.TURN;
+    this.stage = GamePhase.Turn;
     if (this.communityCards.length < 4) {
       this.communityCards = [
-        new Card('A', 'hearts'),
-        new Card('K', 'hearts'),
-        new Card('Q', 'hearts'),
-        new Card('J', 'hearts')
+        new Card(Suit.Hearts, Rank.Ace),
+        new Card(Suit.Hearts, Rank.King),
+        new Card(Suit.Hearts, Rank.Queen),
+        new Card(Suit.Hearts, Rank.Jack)
       ];
     }
     return this;
   }
 
   atRiver(): GameStateBuilder {
-    this.stage = GameStage.RIVER;
+    this.stage = GamePhase.River;
     if (this.communityCards.length < 5) {
       this.communityCards = [
-        new Card('A', 'hearts'),
-        new Card('K', 'hearts'),
-        new Card('Q', 'hearts'),
-        new Card('J', 'hearts'),
-        new Card('10', 'hearts')
+        new Card(Suit.Hearts, Rank.Ace),
+        new Card(Suit.Hearts, Rank.King),
+        new Card(Suit.Hearts, Rank.Queen),
+        new Card(Suit.Hearts, Rank.Jack),
+        new Card(Suit.Hearts, Rank.Ten)
       ];
     }
     return this;
   }
 
   atShowdown(): GameStateBuilder {
-    this.stage = GameStage.SHOWDOWN;
+    this.stage = GamePhase.Showdown;
     return this;
   }
 
   build(): GameState {
     const state = new GameState(
       this.gameId,
-      this.players,
-      this.blindLevel
+      this.blindLevel.smallBlind,
+      this.blindLevel.bigBlind
     );
 
-    state['currentBettingRound'] = this.currentBettingRound;
-    state['stage'] = this.stage;
-    state['pot'] = this.pot;
-    state['currentBet'] = this.currentBet;
-    state['dealerPosition'] = this.dealerPosition;
-    state['activePlayerIndex'] = this.activePlayerIndex;
-    state['lastAggressorIndex'] = this.lastAggressorIndex;
-    state['minimumRaiseAmount'] = this.minimumRaiseAmount;
-    state['communityCards'] = this.communityCards;
-    state['deck'] = this.deck;
-    state['handNumber'] = this.handNumber;
+    // Set players
+    state.players = this.players;
+    
+    // Set game state properties
+    state.currentPhase = this.stage;
+    state.dealerPosition = this.dealerPosition;
+    state.communityCards = this.communityCards;
+    state.handNumber = this.handNumber;
+    
+    // Set optional properties
+    if (this.lastAggressorIndex !== null && this.players[this.lastAggressorIndex]) {
+      state.lastAggressor = this.players[this.lastAggressorIndex].id;
+    }
 
     return state;
   }

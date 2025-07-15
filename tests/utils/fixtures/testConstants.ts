@@ -1,24 +1,20 @@
 import { BlindLevel, GameConfig } from '@core/types';
 
 export const TEST_GAME_CONFIG: GameConfig = {
-  smallBlind: 10,
-  bigBlind: 20,
-  ante: 0,
-  playerStartingChips: 1000,
+  maxPlayers: 6,
+  smallBlindAmount: 10,
+  bigBlindAmount: 20,
+  turnTimeLimit: 30,
   handStartDelay: 0,
-  actionTimeout: 30000,
-  botActionDelay: {
-    min: 0,
-    max: 0
-  }
+  isTournament: false
 };
 
 export const TEST_BLIND_LEVELS: BlindLevel[] = [
-  { smallBlind: 10, bigBlind: 20, ante: 0 },
-  { smallBlind: 15, bigBlind: 30, ante: 0 },
-  { smallBlind: 25, bigBlind: 50, ante: 5 },
-  { smallBlind: 50, bigBlind: 100, ante: 10 },
-  { smallBlind: 100, bigBlind: 200, ante: 25 }
+  { level: 1, smallBlind: 10, bigBlind: 20, ante: 0, duration: 15 },
+  { level: 2, smallBlind: 15, bigBlind: 30, ante: 0, duration: 15 },
+  { level: 3, smallBlind: 25, bigBlind: 50, ante: 5, duration: 15 },
+  { level: 4, smallBlind: 50, bigBlind: 100, ante: 10, duration: 15 },
+  { level: 5, smallBlind: 100, bigBlind: 200, ante: 25, duration: 15 }
 ];
 
 export const TEST_TIMEOUTS = {

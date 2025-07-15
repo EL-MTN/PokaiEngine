@@ -22,7 +22,7 @@ export const GameScenarios = {
       return new GameStateBuilder()
         .withPlayers([player1, player2])
         .atPreflop()
-        .withBlindLevel({ smallBlind: 10, bigBlind: 20, ante: 0 })
+        .withBlindLevel({ level: 1, smallBlind: 10, bigBlind: 20, ante: 0, duration: 15 })
         .build();
     },
 
@@ -91,7 +91,7 @@ export const GameScenarios = {
         .withId('p1')
         .withName('ShortStack')
         .withChips(0)
-        .withTotalBet(200)
+        .withTotalBetThisHand(200)
         .asAllIn()
         .build();
 
@@ -99,16 +99,16 @@ export const GameScenarios = {
         .withId('p2')
         .withName('MediumStack')
         .withChips(300)
-        .withBet(200)
-        .withTotalBet(200)
+        .withCurrentBet(200)
+        .withTotalBetThisHand(200)
         .build();
 
       const player3 = new PlayerBuilder()
         .withId('p3')
         .withName('BigStack')
         .withChips(800)
-        .withBet(200)
-        .withTotalBet(200)
+        .withCurrentBet(200)
+        .withTotalBetThisHand(200)
         .build();
 
       return new GameStateBuilder()
@@ -121,11 +121,11 @@ export const GameScenarios = {
 
     complex: (): GameState => {
       const players = [
-        new PlayerBuilder().withId('p1').withChips(0).withTotalBet(100).asAllIn().build(),
-        new PlayerBuilder().withId('p2').withChips(0).withTotalBet(300).asAllIn().build(),
-        new PlayerBuilder().withId('p3').withChips(0).withTotalBet(500).asAllIn().build(),
-        new PlayerBuilder().withId('p4').withChips(200).withTotalBet(500).build(),
-        new PlayerBuilder().withId('p5').withChips(1000).withTotalBet(500).build()
+        new PlayerBuilder().withId('p1').withChips(0).withTotalBetThisHand(100).asAllIn().build(),
+        new PlayerBuilder().withId('p2').withChips(0).withTotalBetThisHand(300).asAllIn().build(),
+        new PlayerBuilder().withId('p3').withChips(0).withTotalBetThisHand(500).asAllIn().build(),
+        new PlayerBuilder().withId('p4').withChips(200).withTotalBetThisHand(500).build(),
+        new PlayerBuilder().withId('p5').withChips(1000).withTotalBetThisHand(500).build()
       ];
 
       return new GameStateBuilder()
@@ -141,7 +141,7 @@ export const GameScenarios = {
       const players = [
         new PlayerBuilder().withId('p1').withChips(2000).build(),
         new PlayerBuilder().withId('p2').withChips(0).asFolded().build(),
-        new PlayerBuilder().withId('p3').withChips(0).asSittingOut().build(),
+        new PlayerBuilder().withId('p3').withChips(0).asInactive().build(),
         new PlayerBuilder().withId('p4').withChips(0).asFolded().build()
       ];
 
@@ -157,7 +157,7 @@ export const GameScenarios = {
           .withId(player.id)
           .withName(player.name)
           .withChips(0)
-          .withTotalBet((i + 1) * 100)
+          .withTotalBetThisHand((i + 1) * 100)
           .asAllIn()
           .build();
       });
@@ -172,7 +172,7 @@ export const GameScenarios = {
     bigBlindWinsUncontested: (): GameState => {
       const players = [
         new PlayerBuilder().withId('sb').withChips(990).asFolded().build(),
-        new PlayerBuilder().withId('bb').withChips(980).withTotalBet(20).build(),
+        new PlayerBuilder().withId('bb').withChips(980).withTotalBetThisHand(20).build(),
         new PlayerBuilder().withId('p3').withChips(1000).asFolded().build()
       ];
 
@@ -180,7 +180,7 @@ export const GameScenarios = {
         .withPlayers(players)
         .atPreflop()
         .withPot(30)
-        .withBlindLevel({ smallBlind: 10, bigBlind: 20, ante: 0 })
+        .withBlindLevel({ level: 1, smallBlind: 10, bigBlind: 20, ante: 0, duration: 15 })
         .build();
     }
   },
@@ -196,7 +196,7 @@ export const GameScenarios = {
 
       return new GameStateBuilder()
         .withPlayers(players)
-        .withBlindLevel({ smallBlind: 1000, bigBlind: 2000, ante: 200 })
+        .withBlindLevel({ level: 1, smallBlind: 1000, bigBlind: 2000, ante: 200, duration: 15 })
         .atPreflop()
         .build();
     },
@@ -209,7 +209,7 @@ export const GameScenarios = {
 
       return new GameStateBuilder()
         .withPlayers(players)
-        .withBlindLevel({ smallBlind: 10000, bigBlind: 20000, ante: 2000 })
+        .withBlindLevel({ level: 1, smallBlind: 10000, bigBlind: 20000, ante: 2000, duration: 15 })
         .atFlop()
         .build();
     }
