@@ -1,5 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
 import crypto from 'crypto';
+
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IBot extends Document {
 	botId: string;

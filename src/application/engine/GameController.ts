@@ -1,17 +1,18 @@
+import { ReplayManager } from '@/domain/replay/ReplayManager';
 import {
 	Action,
 	BotGameState,
 	GameConfig,
 	GameEvent,
 	GameId,
+	GamePhase,
 	PlayerId,
 	PossibleAction,
-	GamePhase,
 } from '@/domain/types';
-import { GameEngine } from './GameEngine';
-import { ReplayManager } from '@/domain/replay/ReplayManager';
-import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
 import { gameLogger } from '@/infrastructure/logging/Logger';
+import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
+
+import { GameEngine } from './GameEngine';
 
 export interface GameInfo {
 	id: GameId;

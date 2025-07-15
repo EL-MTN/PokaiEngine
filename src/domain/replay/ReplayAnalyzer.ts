@@ -1,4 +1,4 @@
-import { PlayerId, ReplayData, ReplayEvent, GamePhase } from '@/domain/types';
+import { GamePhase, PlayerId, ReplayData, ReplayEvent } from '@/domain/types';
 
 export interface HandAnalysisResult {
 	handNumber: number;

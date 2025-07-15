@@ -1,10 +1,11 @@
+import mongoose from 'mongoose';
+
 import {
-	DatabaseConnection,
 	DatabaseConfig,
+	DatabaseConnection,
 	getDefaultDatabaseConfig,
 	initializeDatabase,
 } from '@/infrastructure/persistence/database/connection';
-import mongoose from 'mongoose';
 
 // Mock mongoose
 jest.mock('mongoose');

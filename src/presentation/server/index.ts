@@ -1,13 +1,15 @@
+import { createServer } from 'http';
+import * as path from 'path';
+
 import express, { Express, Request, Response } from 'express';
 import { Server } from 'socket.io';
-import { createServer } from 'http';
+
 import { GameController } from '@/application/engine/GameController';
-import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
-import { BotInterface } from '@/infrastructure/communication/BotInterface';
-import { GameLogger } from '@/infrastructure/logging/GameLogger';
-import { GameConfig } from '@/domain/types';
 import { BotAuthService } from '@/application/services/BotAuthService';
-import * as path from 'path';
+import { GameConfig } from '@/domain/types';
+import { BotInterface } from '@/infrastructure/communication/BotInterface';
+import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
+import { GameLogger } from '@/infrastructure/logging/GameLogger';
 import { serverLogger } from '@/infrastructure/logging/Logger';
 
 /**

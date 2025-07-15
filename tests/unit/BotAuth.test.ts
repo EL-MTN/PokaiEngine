@@ -1,6 +1,7 @@
+import mongoose from 'mongoose';
+
 import { BotAuthService } from '@/application/services/BotAuthService';
 import { Bot } from '@/infrastructure/persistence/models/Bot';
-import mongoose from 'mongoose';
 
 // Mock the logger
 jest.mock('@/infrastructure/logging/Logger', () => ({

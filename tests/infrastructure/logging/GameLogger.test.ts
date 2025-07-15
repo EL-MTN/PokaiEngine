@@ -1,13 +1,13 @@
-import { GameLogger } from '@/infrastructure/logging/GameLogger';
 import {
+	Action,
+	ActionType,
+	GameEvent,
+	GamePhase,
 	GameState,
 	PlayerInfo,
-	GameEvent,
-	Action,
-	GamePhase,
 	Pot,
-	ActionType,
 } from '@/domain/types';
+import { GameLogger } from '@/infrastructure/logging/GameLogger';
 
 describe('GameLogger', () => {
 	let gameLogger: GameLogger;

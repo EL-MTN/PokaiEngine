@@ -1,12 +1,12 @@
 import { ReplayManager } from '@/domain/replay/ReplayManager';
-import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
 import {
+	ActionType,
 	GameConfig,
-	GameState,
 	GameEvent,
 	GamePhase,
-	ActionType,
+	GameState,
 } from '@/domain/types';
+import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
 
 describe('ReplayManager', () => {
 	let replayManager: ReplayManager;

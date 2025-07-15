@@ -1,12 +1,13 @@
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
+
 import {
-	Replay,
-	IReplay,
 	IGameEvent,
+	IReplay,
+	Replay,
 } from '@/infrastructure/persistence/models/Replay';
 
 // Setup in-memory MongoDB for testing
-import { MongoMemoryServer } from 'mongodb-memory-server';
 
 describe('Replay Model', () => {
 	let mongoServer: MongoMemoryServer;

@@ -1,5 +1,5 @@
 import { Card } from '@/domain/poker/cards/Card';
-import { Suit, Rank } from '@/domain/types';
+import { Rank, Suit } from '@/domain/types';
 
 describe('Card', () => {
 	describe('Constructor', () => {

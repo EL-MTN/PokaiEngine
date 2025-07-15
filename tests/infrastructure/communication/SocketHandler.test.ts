@@ -1,11 +1,11 @@
 import { GameController } from '@/application/engine/GameController';
+import { BotAuthService } from '@/application/services/BotAuthService';
+import { Action, ActionType, GameConfig } from '@/domain/types';
 import {
-	SocketHandler,
 	Socket,
+	SocketHandler,
 	SocketIOServer,
 } from '@/infrastructure/communication/SocketHandler';
-import { GameConfig, ActionType, Action } from '@/domain/types';
-import { BotAuthService } from '@/application/services/BotAuthService';
 
 // Mock BotAuthService to avoid MongoDB dependency
 const mockBotAuthService = {

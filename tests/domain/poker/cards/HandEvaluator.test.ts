@@ -1,5 +1,5 @@
-import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
 import { Card } from '@/domain/poker/cards/Card';
+import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
 import { HandRank } from '@/domain/types';
 
 describe('HandEvaluator', () => {

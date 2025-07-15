@@ -1,6 +1,6 @@
 import { GameController } from '@/application/engine/GameController';
-import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
 import { GameConfig } from '@/domain/types';
+import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
 
 // Mock Socket type
 class MockSocket {

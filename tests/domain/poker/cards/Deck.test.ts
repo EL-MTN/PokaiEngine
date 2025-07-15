@@ -1,6 +1,6 @@
-import { Deck } from '@/domain/poker/cards/Deck';
 import { Card } from '@/domain/poker/cards/Card';
-import { Suit, Rank } from '@/domain/types';
+import { Deck } from '@/domain/poker/cards/Deck';
+import { Rank, Suit } from '@/domain/types';
 
 describe('Deck', () => {
 	let deck: Deck;

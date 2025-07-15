@@ -1,7 +1,7 @@
 import { GameController } from '@/application/engine/GameController';
+import { GameConfig } from '@/domain/types';
 import { GameLogger } from '@/infrastructure/logging/GameLogger';
 import { ReplaySystem } from '@/infrastructure/logging/ReplaySystem';
-import { GameConfig } from '@/domain/types';
 
 describe('Game Replay Integration Tests', () => {
 	let gameController: GameController;

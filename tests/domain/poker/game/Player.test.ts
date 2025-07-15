@@ -1,6 +1,6 @@
-import { Player } from '@/domain/poker/game/Player';
 import { Card } from '@/domain/poker/cards/Card';
-import { Action, ActionType, Position, Suit, Rank } from '@/domain/types';
+import { Player } from '@/domain/poker/game/Player';
+import { Action, ActionType, Position, Rank, Suit } from '@/domain/types';
 
 describe('Player', () => {
 	describe('Constructor', () => {

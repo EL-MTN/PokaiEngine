@@ -1,14 +1,15 @@
+import { Types } from 'mongoose';
+
+import {
+	IGameEvent,
+	IReplay,
+	IReplayAnalytics,
+	Replay,
+} from '@/infrastructure/persistence/models/Replay';
 import {
 	ReplayRepository,
 	ReplaySearchFilters,
 } from '@/infrastructure/persistence/repositories/ReplayRepository';
-import {
-	Replay,
-	IReplay,
-	IGameEvent,
-	IReplayAnalytics,
-} from '@/infrastructure/persistence/models/Replay';
-import { Types } from 'mongoose';
 
 // Mock mongoose and the Replay model
 jest.mock('@/infrastructure/persistence/models/Replay');

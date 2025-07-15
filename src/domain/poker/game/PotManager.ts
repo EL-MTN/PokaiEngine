@@ -1,4 +1,5 @@
 import { Pot } from '@/domain/types';
+
 import { Player } from './Player';
 
 export interface PotContribution {

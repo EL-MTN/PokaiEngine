@@ -1,11 +1,12 @@
 import { GameController } from '@/application/engine/GameController';
-import { Action, GameEvent, GameId, PlayerId } from '@/domain/types';
-import { BotInterface } from './BotInterface';
 import { BotAuthService } from '@/application/services/BotAuthService';
+import { Action, GameEvent, GameId, PlayerId } from '@/domain/types';
 import {
-	communicationLogger,
 	authLogger,
+	communicationLogger,
 } from '@/infrastructure/logging/Logger';
+
+import { BotInterface } from './BotInterface';
 
 // Socket interface for compatibility
 export interface Socket {

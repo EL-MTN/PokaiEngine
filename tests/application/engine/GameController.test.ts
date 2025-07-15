@@ -1,6 +1,6 @@
 import { GameController } from '@/application/engine/GameController';
 import { GameEngine } from '@/application/engine/GameEngine';
-import { GameConfig, ActionType } from '@/domain/types';
+import { ActionType, GameConfig } from '@/domain/types';
 
 // Mock the GameEngine class
 jest.mock('@/application/engine/GameEngine');

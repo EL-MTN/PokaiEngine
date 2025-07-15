@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jest from 'eslint-plugin-jest';
+import importPlugin from 'eslint-plugin-import';
 import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 
@@ -24,14 +25,62 @@ export default tseslint.config(
 				NodeJS: 'readonly',
 			},
 		},
-		plugins: {
+		settings: {
+			'import/resolver': {
+				typescript: {
+					alwaysTryTypes: true,
+					project: './tsconfig.json',
+				},
+			},
+		},
+				plugins: {
 			'@typescript-eslint': tseslint.plugin,
+			import: importPlugin,
 		},
 		rules: {
 			// Use TypeScript recommended rules only
 			...tseslint.configs.recommended.rules,
 			'no-unused-vars': 'off',
 			'@typescript-eslint/no-unused-vars': 'error',
+			
+			// VSCode-style import organization (replaces sort-imports)
+			'import/order': [
+				'error',
+				{
+					groups: [
+						'builtin', // Built-in imports (come first)
+						'external', // External library imports
+						'internal', // Internal modules
+						['sibling', 'parent'], // Relative imports
+						'index', // Index imports
+						'unknown', // Unknown
+					],
+					'newlines-between': 'always',
+					alphabetize: {
+						order: 'asc',
+						caseInsensitive: true,
+					},
+					pathGroups: [
+						{
+							pattern: '@/**',
+							group: 'internal',
+							position: 'before',
+						},
+					],
+					pathGroupsExcludedImportTypes: ['builtin'],
+				},
+			],
+			// Sort named imports within import statements
+			'sort-imports': [
+				'error',
+				{
+					ignoreCase: true,
+					ignoreDeclarationSort: true, // Let import/order handle declaration sorting
+					ignoreMemberSort: false,
+					memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],
+					allowSeparatedGroups: true,
+				},
+			],
 		},
 	},
 

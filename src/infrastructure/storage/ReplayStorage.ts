@@ -1,24 +1,25 @@
-import {
-	GameId,
-	ReplayData,
-	HandReplayData,
-	Card,
-	PlayerId,
-	HandEvaluation,
-	ReplayEvent,
-	GameState,
-} from '@/domain/types';
-import { ReplayService } from '@/application/services/ReplayService';
-import {
-	IGameMetadata,
-	IGameEvent,
-} from '@/infrastructure/persistence/models/Replay';
-import { replayLogger } from '@/infrastructure/logging/Logger';
-import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
-import { Card as CardClass } from '@/domain/poker/cards/Card';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
+
+import { ReplayService } from '@/application/services/ReplayService';
+import { Card as CardClass } from '@/domain/poker/cards/Card';
+import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
+import {
+	Card,
+	GameId,
+	GameState,
+	HandEvaluation,
+	HandReplayData,
+	PlayerId,
+	ReplayData,
+	ReplayEvent,
+} from '@/domain/types';
+import { replayLogger } from '@/infrastructure/logging/Logger';
+import {
+	IGameEvent,
+	IGameMetadata,
+} from '@/infrastructure/persistence/models/Replay';
 
 export interface ReplayStorageConfig {
 	directory: string;

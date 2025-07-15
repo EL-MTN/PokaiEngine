@@ -1,6 +1,7 @@
-import { Bot, IBot } from '@/infrastructure/persistence/models/Bot';
-import { authLogger } from '@/infrastructure/logging/Logger';
 import crypto from 'crypto';
+
+import { authLogger } from '@/infrastructure/logging/Logger';
+import { Bot, IBot } from '@/infrastructure/persistence/models/Bot';
 
 export interface BotCredentials {
 	botId: string;

@@ -1,14 +1,15 @@
+import { GameReplayRecorder } from '@/domain/replay/GameReplayRecorder';
+import { ReplayAnalysis, ReplayAnalyzer } from '@/domain/replay/ReplayAnalyzer';
 import {
+	GameId,
+	GamePhase,
+	GameState,
+	HandReplayData,
 	ReplayData,
 	ReplayEvent,
-	GameState,
-	GameId,
-	HandReplayData,
-	GamePhase,
 } from '@/domain/types';
-import { GameReplayRecorder } from '@/domain/replay/GameReplayRecorder';
 import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
-import { ReplayAnalyzer, ReplayAnalysis } from '@/domain/replay/ReplayAnalyzer';
+
 import { replayLogger } from './Logger';
 
 export interface ReplayPosition {

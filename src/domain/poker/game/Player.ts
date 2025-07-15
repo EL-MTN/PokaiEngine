@@ -1,4 +1,5 @@
 import { Action, PlayerInfo, Position } from '@/domain/types';
+
 import { Card } from '../cards/Card';
 
 export class Player implements PlayerInfo {

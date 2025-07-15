@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+
 import { dbLogger } from '@/infrastructure/logging/Logger';
 
 export interface DatabaseConfig {

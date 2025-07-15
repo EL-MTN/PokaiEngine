@@ -1,9 +1,10 @@
 import { Types } from 'mongoose';
+
 import {
-	Replay,
-	IReplay,
 	IGameEvent,
+	IReplay,
 	IReplayAnalytics,
+	Replay,
 } from '@/infrastructure/persistence/models/Replay';
 
 export interface ReplaySearchFilters {

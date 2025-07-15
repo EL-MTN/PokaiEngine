@@ -6,9 +6,10 @@ import {
 	Pot,
 } from '@/domain/types';
 import { shouldShowHoleCards } from '@/domain/types/visibility';
-import { Card } from '../cards/Card';
+
 import { Player } from './Player';
 import { PotManager } from './PotManager';
+import { Card } from '../cards/Card';
 
 export class GameState implements GameStateInterface {
 	public id: string;

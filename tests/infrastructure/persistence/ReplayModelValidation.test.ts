@@ -1,7 +1,7 @@
 import {
-	IReplay,
 	IGameEvent,
 	IGameMetadata,
+	IReplay,
 	IReplayAnalytics,
 } from '@/infrastructure/persistence/models/Replay';
 

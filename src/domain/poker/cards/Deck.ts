@@ -1,4 +1,5 @@
 import { Rank, Suit } from '@/domain/types';
+
 import { Card } from './Card';
 
 export class Deck {
