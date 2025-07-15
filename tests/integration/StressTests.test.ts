@@ -181,19 +181,21 @@ describe('Stress Tests', () => {
 			gameController.addPlayerToGame(gameId, 'p2', 'Bot2', 1000);
 
 			const game = gameController.getGame(gameId);
-			if (game) {
-				const currentPlayer = game.getGameState().currentPlayerToAct;
-				if (currentPlayer) {
-					// Make a valid action with timestamp
-					expect(() => {
-						gameController.processAction(gameId, {
-							type: ActionType.Call,
-							playerId: currentPlayer,
-							timestamp: Date.now(),
-						});
-					}).not.toThrow();
-				}
-			}
+			expect(game).toBeDefined();
+
+			// Game should have started with 2 players, so there should be a current player
+			const gameState = game!.getGameState();
+			const currentPlayer = gameState.currentPlayerToAct;
+			expect(currentPlayer).toBeDefined();
+
+			// Make a valid action with timestamp
+			expect(() => {
+				gameController.processAction(gameId, {
+					type: ActionType.Call,
+					playerId: currentPlayer!,
+					timestamp: Date.now(),
+				});
+			}).not.toThrow();
 
 			// Verify game is still functional
 			expect(game).toBeDefined();

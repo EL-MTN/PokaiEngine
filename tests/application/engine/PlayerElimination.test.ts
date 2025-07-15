@@ -152,21 +152,26 @@ describe('Player Elimination with 0 Chips', () => {
 			bigBlindAmount: 20,
 			turnTimeLimit: 30,
 			isTournament: false,
+			startSettings: {
+				condition: 'manual', // Prevent auto-start to control the scenario
+			},
 		};
 		const gameEngine = gameController.createGame(gameId, config);
 
-		// Add 2 players with tiny stacks
-		gameController.addPlayerToGame(gameId, 'p1', 'Player 1', 20);
-		gameController.addPlayerToGame(gameId, 'p2', 'Player 2', 20);
+		// Add 2 players
+		gameController.addPlayerToGame(gameId, 'p1', 'Player 1', 100);
+		gameController.addPlayerToGame(gameId, 'p2', 'Player 2', 100);
 
+		// Start the game manually
+		gameController.startGame(gameId);
+
+		// Complete a hand first
 		let gameState = gameEngine.getGameState();
-
-		// Both will go all-in on blinds
-		while (gameState.currentPhase !== 'hand_complete') {
+		while (gameEngine.isGameRunning()) {
 			const actor = gameState.currentPlayerToAct;
 			if (actor) {
 				gameEngine.processAction({
-					type: ActionType.AllIn,
+					type: ActionType.Fold,
 					playerId: actor,
 					timestamp: Date.now(),
 				});
@@ -174,16 +179,19 @@ describe('Player Elimination with 0 Chips', () => {
 			gameState = gameEngine.getGameState();
 		}
 
-		// After hand completion, if all players have 0 chips, they should be removed
-		const remainingPlayers = gameState.players.filter((p) => p.chipStack > 0);
+		// Manually set all players to 0 chips to simulate all players busting
+		gameState = gameEngine.getGameState();
+		gameState.players.forEach((player) => {
+			player.chipStack = 0;
+		});
 
-		// Advance timers to trigger auto-start attempt
-		jest.advanceTimersByTime(3000);
+		// Try to start a new hand - this should fail due to no players with chips
+		expect(() => {
+			gameController.startHand(gameId);
+		}).toThrow();
 
-		// Game should not have restarted if no players remain
-		if (remainingPlayers.length === 0) {
-			expect(gameEngine.isGameRunning()).toBe(false);
-		}
+		// Game should not be running when no players have chips
+		expect(gameEngine.isGameRunning()).toBe(false);
 
 		jest.useRealTimers();
 	});

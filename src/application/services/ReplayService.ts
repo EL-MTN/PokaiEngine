@@ -19,7 +19,6 @@ import {
 	ReplaySearchFilters,
 } from '@/infrastructure/persistence/repositories/ReplayRepository';
 
-
 export interface CreateReplayRequest {
 	gameId: string;
 	metadata: IGameMetadata;

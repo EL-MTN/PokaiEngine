@@ -33,7 +33,7 @@ export default tseslint.config(
 				},
 			},
 		},
-				plugins: {
+		plugins: {
 			'@typescript-eslint': tseslint.plugin,
 			import: importPlugin,
 		},
@@ -42,7 +42,7 @@ export default tseslint.config(
 			...tseslint.configs.recommended.rules,
 			'no-unused-vars': 'off',
 			'@typescript-eslint/no-unused-vars': 'error',
-			
+
 			// VSCode-style import organization (replaces sort-imports)
 			'import/order': [
 				'error',

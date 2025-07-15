@@ -356,49 +356,51 @@ describe('SocketHandler Comprehensive Tests', () => {
 			bot1.outgoing = [];
 			bot2.outgoing = [];
 
-			// Take action - first check if it's possible
+			// Request possible actions and verify they exist
 			actingBot.trigger('requestPossibleActions', undefined);
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
 			const possibleActionsMsg = actingBot.outgoing.find(
 				(e) => e.event === 'possibleActions',
 			);
-			if (
-				possibleActionsMsg &&
-				possibleActionsMsg.data.possibleActions.length > 0
-			) {
-				const possibleAction = possibleActionsMsg.data.possibleActions[0];
-				const action: Action = {
-					type: possibleAction.type,
-					playerId: actingId,
-					timestamp: Date.now(),
-				};
 
-				// Clear again before action
-				bot1.outgoing = [];
-				bot2.outgoing = [];
+			// Should have received possible actions
+			expect(possibleActionsMsg).toBeDefined();
+			expect(possibleActionsMsg!.data.possibleActions).toBeDefined();
+			expect(possibleActionsMsg!.data.possibleActions.length).toBeGreaterThan(
+				0,
+			);
 
-				actingBot.trigger('action', { action });
+			const possibleAction = possibleActionsMsg!.data.possibleActions[0];
+			const action: Action = {
+				type: possibleAction.type,
+				playerId: actingId,
+				timestamp: Date.now(),
+			};
 
-				// Wait for events to propagate
-				await new Promise((resolve) => setTimeout(resolve, 100));
+			// Clear outgoing messages before taking action
+			bot1.outgoing = [];
+			bot2.outgoing = [];
 
-				// Check for any game-related events (gameEvent, gameState, turnStart, etc.)
-				const bot1GameEvents = bot1.outgoing.filter(
-					(e) =>
-						e.event === 'gameEvent' ||
-						e.event === 'gameState' ||
-						e.event === 'actionSuccess',
-				);
-				const bot2GameEvents = bot2.outgoing.filter(
-					(e) => e.event === 'gameEvent' || e.event === 'gameState',
-				);
+			// Take the action
+			actingBot.trigger('action', { action });
 
-				// At least the acting bot should receive actionSuccess, and both should receive some update
-				expect(bot1GameEvents.length + bot2GameEvents.length).toBeGreaterThan(
-					0,
-				);
-			}
+			// Wait for events to propagate
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			// Check for any game-related events (gameEvent, gameState, turnStart, etc.)
+			const bot1GameEvents = bot1.outgoing.filter(
+				(e) =>
+					e.event === 'gameEvent' ||
+					e.event === 'gameState' ||
+					e.event === 'actionSuccess',
+			);
+			const bot2GameEvents = bot2.outgoing.filter(
+				(e) => e.event === 'gameEvent' || e.event === 'gameState',
+			);
+
+			// At least the acting bot should receive actionSuccess, and both should receive some update
+			expect(bot1GameEvents.length + bot2GameEvents.length).toBeGreaterThan(0);
 		});
 	});
 

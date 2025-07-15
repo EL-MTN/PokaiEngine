@@ -709,16 +709,18 @@ describe('PotManager', () => {
 
 			const pots = potManager.getPots();
 
-			// Verify eligibility excludes folded players
+			// This setup should create side pots due to different bet amounts
+			expect(pots.length).toBeGreaterThan(1);
+
+			// Verify main pot eligibility excludes folded players
 			expect(pots[0].eligiblePlayers).toContain('p1');
 			expect(pots[0].eligiblePlayers).not.toContain('p2'); // Folded
 			expect(pots[0].eligiblePlayers).toContain('p3');
 
-			if (pots.length > 1) {
-				expect(pots[1].eligiblePlayers).toContain('p1');
-				expect(pots[1].eligiblePlayers).not.toContain('p2'); // Folded
-				expect(pots[1].eligiblePlayers).not.toContain('p3'); // Not enough bet
-			}
+			// Verify side pot eligibility
+			expect(pots[1].eligiblePlayers).toContain('p1');
+			expect(pots[1].eligiblePlayers).not.toContain('p2'); // Folded
+			expect(pots[1].eligiblePlayers).not.toContain('p3'); // Not enough bet
 		});
 	});
 });

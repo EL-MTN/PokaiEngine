@@ -88,7 +88,7 @@ describe('Game Replay Integration Tests', () => {
 		expect(controls.currentPosition).toBeDefined();
 	});
 
-	it('analyzes replay data', () => {
+	it('can create game log and call analysis without errors', () => {
 		const gameId = 'analysis-test';
 		const config: GameConfig = {
 			maxPlayers: 2,
@@ -114,16 +114,18 @@ describe('Game Replay Integration Tests', () => {
 
 		gameLogger.endGame(gameId, game.getGameState());
 
-		// Try to analyze replay
-		const analysis = replaySystem.analyzeReplay();
+		// Verify game log was created
+		const gameLog = gameLogger.getGameLog(gameId);
+		expect(gameLog).toBeDefined();
+		expect(gameLog?.events).toHaveLength(1);
 
-		// Analysis may be null if no replay is loaded
-		if (analysis) {
-			expect(analysis).toHaveProperty('totalHands');
-			expect(analysis).toHaveProperty('playerStatistics');
-		} else {
-			// This is acceptable as no replay may be loaded
-			expect(analysis).toBeNull();
-		}
+		// Verify analysis can be called without throwing (may return null if no replay loaded)
+		expect(() => replaySystem.analyzeReplay()).not.toThrow();
+	});
+
+	it('returns null analysis when no replay is loaded', () => {
+		// Test analysis with empty replay system
+		const analysis = replaySystem.analyzeReplay();
+		expect(analysis).toBeNull();
 	});
 });

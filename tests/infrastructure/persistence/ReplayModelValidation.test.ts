@@ -280,23 +280,89 @@ describe('Replay Model Interfaces', () => {
 
 			// gameId should match in metadata
 			expect(replay.gameId).toBe(replay.metadata!.gameId);
+		});
+
+		it('should maintain event ordering', () => {
+			const replay = createValidReplay();
+
+			// Add multiple events with different timestamps to test ordering
+			const baseTime = Date.now();
+			replay.events = [
+				{
+					type: 'hand_started',
+					timestamp: baseTime,
+					data: {},
+					handNumber: 1,
+				},
+				{
+					type: 'action',
+					timestamp: baseTime + 1000,
+					data: { action: { type: 'bet', amount: 50 } },
+					handNumber: 1,
+					phase: 'preflop',
+					playerId: 'player1',
+				},
+				{
+					type: 'hand_complete',
+					timestamp: baseTime + 2000,
+					data: {},
+					handNumber: 1,
+				},
+			];
 
 			// Events should be ordered by timestamp
-			if (replay.events!.length > 1) {
-				for (let i = 1; i < replay.events!.length; i++) {
-					expect(replay.events![i].timestamp).toBeGreaterThanOrEqual(
-						replay.events![i - 1].timestamp,
-					);
-				}
+			expect(replay.events!.length).toBeGreaterThan(1);
+			for (let i = 1; i < replay.events!.length; i++) {
+				expect(replay.events![i].timestamp).toBeGreaterThanOrEqual(
+					replay.events![i - 1].timestamp,
+				);
 			}
+		});
+
+		it('should maintain hand summary ordering', () => {
+			const replay = createValidReplay();
+
+			// Add multiple hand summaries to test ordering
+			const baseTime = Date.now();
+			replay.handSummaries = [
+				{
+					handNumber: 1,
+					startTimestamp: baseTime,
+					endTimestamp: baseTime + 120000,
+					duration: 120000,
+					winner: 'player1',
+					potSize: 150,
+					communityCards: [],
+					actions: 8,
+				},
+				{
+					handNumber: 2,
+					startTimestamp: baseTime + 130000,
+					endTimestamp: baseTime + 250000,
+					duration: 120000,
+					winner: 'player2',
+					potSize: 200,
+					communityCards: [],
+					actions: 10,
+				},
+				{
+					handNumber: 3,
+					startTimestamp: baseTime + 260000,
+					endTimestamp: baseTime + 380000,
+					duration: 120000,
+					winner: 'player1',
+					potSize: 100,
+					communityCards: [],
+					actions: 6,
+				},
+			];
 
 			// Hand summaries should be ordered by hand number
-			if (replay.handSummaries!.length > 1) {
-				for (let i = 1; i < replay.handSummaries!.length; i++) {
-					expect(replay.handSummaries![i].handNumber).toBeGreaterThan(
-						replay.handSummaries![i - 1].handNumber,
-					);
-				}
+			expect(replay.handSummaries!.length).toBeGreaterThan(1);
+			for (let i = 1; i < replay.handSummaries!.length; i++) {
+				expect(replay.handSummaries![i].handNumber).toBeGreaterThan(
+					replay.handSummaries![i - 1].handNumber,
+				);
 			}
 		});
 
