@@ -17,7 +17,7 @@ module.exports = {
 		'^@communication/(.*)$': '<rootDir>/src/communication/$1',
 		'^@logging/(.*)$': '<rootDir>/src/logging/$1',
 		'^@types$': '<rootDir>/src/types/index',
-		'^@tests/(.*)$': '<rootDir>/src/tests/$1',
+		'^@tests/(.*)$': '<rootDir>/tests/$1',
 	},
 	setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 	testTimeout: 10000, // 10 second default timeout

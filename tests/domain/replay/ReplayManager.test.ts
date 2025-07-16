@@ -26,9 +26,15 @@ jest.mock('@/infrastructure/logging/Logger', () => ({
 	},
 }));
 
-const MockedGameReplayRecorder = GameReplayRecorder as jest.MockedClass<typeof GameReplayRecorder>;
-const MockedReplayAnalyzer = ReplayAnalyzer as jest.MockedClass<typeof ReplayAnalyzer>;
-const MockedReplayStorage = ReplayStorage as jest.MockedClass<typeof ReplayStorage>;
+const MockedGameReplayRecorder = GameReplayRecorder as jest.MockedClass<
+	typeof GameReplayRecorder
+>;
+const MockedReplayAnalyzer = ReplayAnalyzer as jest.MockedClass<
+	typeof ReplayAnalyzer
+>;
+const MockedReplayStorage = ReplayStorage as jest.MockedClass<
+	typeof ReplayStorage
+>;
 
 describe('ReplayManager', () => {
 	let replayManager: ReplayManager;
@@ -100,7 +106,8 @@ describe('ReplayManager', () => {
 		jest.clearAllMocks();
 
 		// Setup mocks
-		mockRecorder = new MockedGameReplayRecorder() as jest.Mocked<GameReplayRecorder>;
+		mockRecorder =
+			new MockedGameReplayRecorder() as jest.Mocked<GameReplayRecorder>;
 		mockAnalyzer = new MockedReplayAnalyzer() as jest.Mocked<ReplayAnalyzer>;
 		mockStorage = new MockedReplayStorage() as jest.Mocked<ReplayStorage>;
 
@@ -125,7 +132,7 @@ describe('ReplayManager', () => {
 				gameId,
 				gameConfig,
 				gameState,
-				playerNames
+				playerNames,
 			);
 		});
 
@@ -148,14 +155,20 @@ describe('ReplayManager', () => {
 				effectiveStackSize: 1000,
 			};
 
-			replayManager.recordEvent(gameId, event, gameStateBefore, gameStateAfter, playerDecisionContext);
+			replayManager.recordEvent(
+				gameId,
+				event,
+				gameStateBefore,
+				gameStateAfter,
+				playerDecisionContext,
+			);
 
 			expect(mockRecorder.recordEvent).toHaveBeenCalledWith(
 				gameId,
 				event,
 				gameStateBefore,
 				gameStateAfter,
-				playerDecisionContext
+				playerDecisionContext,
 			);
 		});
 
@@ -167,12 +180,22 @@ describe('ReplayManager', () => {
 				timestamp: Date.now(),
 			};
 			const possibleActions = [
-				{ type: ActionType.Fold, minAmount: 0, maxAmount: 0, description: 'Fold' },
-				{ type: ActionType.Call, minAmount: 20, maxAmount: 20, description: 'Call 20' },
+				{
+					type: ActionType.Fold,
+					minAmount: 0,
+					maxAmount: 0,
+					description: 'Fold',
+				},
+				{
+					type: ActionType.Call,
+					minAmount: 20,
+					maxAmount: 20,
+					description: 'Call 20',
+				},
 			];
 			const gameStateBefore = createMockGameState();
 			const gameStateAfter = createMockGameState();
-			const equity = { before: 0.45, after: 0.40 };
+			const equity = { before: 0.45, after: 0.4 };
 
 			replayManager.recordPlayerDecision(
 				gameId,
@@ -182,7 +205,7 @@ describe('ReplayManager', () => {
 				gameStateBefore,
 				gameStateAfter,
 				5000,
-				equity
+				equity,
 			);
 
 			expect(mockRecorder.recordPlayerDecision).toHaveBeenCalledWith(
@@ -193,7 +216,7 @@ describe('ReplayManager', () => {
 				gameStateBefore,
 				gameStateAfter,
 				5000,
-				equity
+				equity,
 			);
 		});
 
@@ -219,7 +242,9 @@ describe('ReplayManager', () => {
 			mockStorage.saveReplay.mockRejectedValue(new Error('Storage error'));
 
 			// Should not throw
-			await expect(replayManager.endRecording(gameId, gameState)).resolves.not.toThrow();
+			await expect(
+				replayManager.endRecording(gameId, gameState),
+			).resolves.not.toThrow();
 			expect(mockStorage.saveReplay).toHaveBeenCalled();
 		});
 
@@ -276,7 +301,9 @@ describe('ReplayManager', () => {
 
 			const result = replayManager.loadReplayFromFile('/path/to/replay.json');
 
-			expect(mockStorage.loadReplayFromFile).toHaveBeenCalledWith('/path/to/replay.json');
+			expect(mockStorage.loadReplayFromFile).toHaveBeenCalledWith(
+				'/path/to/replay.json',
+			);
 			expect(result).toBe(replayData);
 		});
 
@@ -326,19 +353,19 @@ describe('ReplayManager', () => {
 			const mockAnalysis = {
 				handAnalysis: [],
 				playerStatistics: {},
-				gameFlow: { 
-					totalDuration: 60000, 
-					actionDistribution: {}, 
-					phaseDistribution: { 
-						[GamePhase.PreFlop]: 10, 
-						[GamePhase.Flop]: 5, 
-						[GamePhase.Turn]: 3, 
-						[GamePhase.River]: 2, 
+				gameFlow: {
+					totalDuration: 60000,
+					actionDistribution: {},
+					phaseDistribution: {
+						[GamePhase.PreFlop]: 10,
+						[GamePhase.Flop]: 5,
+						[GamePhase.Turn]: 3,
+						[GamePhase.River]: 2,
 						[GamePhase.Showdown]: 1,
-						[GamePhase.HandComplete]: 1
-					}, 
-					potSizeProgression: [], 
-					avgHandDuration: 30000 
+						[GamePhase.HandComplete]: 1,
+					},
+					potSizeProgression: [],
+					avgHandDuration: 30000,
 				},
 				interestingMoments: [],
 			};
@@ -356,7 +383,20 @@ describe('ReplayManager', () => {
 			const mockAnalysis = {
 				handAnalysis: [],
 				playerStatistics: {},
-				gameFlow: { totalDuration: 60000, actionDistribution: {}, phaseDistribution: { [GamePhase.PreFlop]: 10, [GamePhase.Flop]: 5, [GamePhase.Turn]: 3, [GamePhase.River]: 2, [GamePhase.Showdown]: 1, [GamePhase.HandComplete]: 1 }, potSizeProgression: [], avgHandDuration: 30000 },
+				gameFlow: {
+					totalDuration: 60000,
+					actionDistribution: {},
+					phaseDistribution: {
+						[GamePhase.PreFlop]: 10,
+						[GamePhase.Flop]: 5,
+						[GamePhase.Turn]: 3,
+						[GamePhase.River]: 2,
+						[GamePhase.Showdown]: 1,
+						[GamePhase.HandComplete]: 1,
+					},
+					potSizeProgression: [],
+					avgHandDuration: 30000,
+				},
 				interestingMoments: [],
 			};
 			mockRecorder.getReplayData.mockReturnValue(replayData);
@@ -381,15 +421,47 @@ describe('ReplayManager', () => {
 		test('should delegate player comparison to analyzer', () => {
 			const replayData = createMockReplayData();
 			const mockComparison = {
-				player1: { playerId: 'player1', name: 'Player 1', handsPlayed: 1, actionsCount: 5, avgDecisionTime: 3000, aggression: 0.4, tightness: 0.2, winRate: 0.6, chipStackProgression: [] },
-				player2: { playerId: 'player2', name: 'Player 2', handsPlayed: 1, actionsCount: 3, avgDecisionTime: 5000, aggression: 0.2, tightness: 0.4, winRate: 0.4, chipStackProgression: [] },
-				comparison: { moreAggressive: 'player1', fasterDecisions: 'player1', moreActive: 'player1' },
+				player1: {
+					playerId: 'player1',
+					name: 'Player 1',
+					handsPlayed: 1,
+					actionsCount: 5,
+					avgDecisionTime: 3000,
+					aggression: 0.4,
+					tightness: 0.2,
+					winRate: 0.6,
+					chipStackProgression: [],
+				},
+				player2: {
+					playerId: 'player2',
+					name: 'Player 2',
+					handsPlayed: 1,
+					actionsCount: 3,
+					avgDecisionTime: 5000,
+					aggression: 0.2,
+					tightness: 0.4,
+					winRate: 0.4,
+					chipStackProgression: [],
+				},
+				comparison: {
+					moreAggressive: 'player1',
+					fasterDecisions: 'player1',
+					moreActive: 'player1',
+				},
 			};
 			mockAnalyzer.comparePlayerStats.mockReturnValue(mockComparison);
 
-			const result = replayManager.comparePlayerStats(replayData, 'player1', 'player2');
+			const result = replayManager.comparePlayerStats(
+				replayData,
+				'player1',
+				'player2',
+			);
 
-			expect(mockAnalyzer.comparePlayerStats).toHaveBeenCalledWith(replayData, 'player1', 'player2');
+			expect(mockAnalyzer.comparePlayerStats).toHaveBeenCalledWith(
+				replayData,
+				'player1',
+				'player2',
+			);
 			expect(result).toBe(mockComparison);
 		});
 
@@ -464,7 +536,11 @@ describe('ReplayManager', () => {
 		});
 
 		test('should delegate getMemoryStats to recorder', () => {
-			const memoryStats = { totalRecordings: 5, activeRecordings: 2, completedRecordings: 3 };
+			const memoryStats = {
+				totalRecordings: 5,
+				activeRecordings: 2,
+				completedRecordings: 3,
+			};
 			mockRecorder.getMemoryStats.mockReturnValue(memoryStats);
 
 			const result = replayManager.getMemoryStats();
@@ -490,7 +566,11 @@ describe('ReplayManager', () => {
 		});
 
 		test('should delegate replay deletion to storage', async () => {
-			const deleteResult = { fileDeleted: true, mongoDeleted: false, error: 'MongoDB unavailable' };
+			const deleteResult = {
+				fileDeleted: true,
+				mongoDeleted: false,
+				error: 'MongoDB unavailable',
+			};
 			mockStorage.deleteReplay.mockResolvedValue(deleteResult);
 
 			const result = await replayManager.deleteReplay('test-game-123');
@@ -523,7 +603,10 @@ describe('ReplayManager', () => {
 			const result = replayManager.exportReplay(gameId, 'compressed');
 
 			expect(mockRecorder.getReplayData).toHaveBeenCalledWith(gameId);
-			expect(mockStorage.exportReplay).toHaveBeenCalledWith(replayData, 'compressed');
+			expect(mockStorage.exportReplay).toHaveBeenCalledWith(
+				replayData,
+				'compressed',
+			);
 			expect(result).toBe(compressedData);
 		});
 
@@ -574,19 +657,27 @@ describe('ReplayManager', () => {
 			mockStorage.healthCheck.mockRejectedValue(new Error('Storage error'));
 
 			// Should still resolve, not throw
-			await expect(replayManager.healthCheck()).rejects.toThrow('Storage error');
+			await expect(replayManager.healthCheck()).rejects.toThrow(
+				'Storage error',
+			);
 		});
 
 		test('should handle errors in storage statistics', async () => {
-			mockStorage.getStorageStatistics.mockRejectedValue(new Error('Connection error'));
+			mockStorage.getStorageStatistics.mockRejectedValue(
+				new Error('Connection error'),
+			);
 
-			await expect(replayManager.getStorageStatistics()).rejects.toThrow('Connection error');
+			await expect(replayManager.getStorageStatistics()).rejects.toThrow(
+				'Connection error',
+			);
 		});
 
 		test('should handle errors in deletion', async () => {
 			mockStorage.deleteReplay.mockRejectedValue(new Error('Delete failed'));
 
-			await expect(replayManager.deleteReplay('test-game')).rejects.toThrow('Delete failed');
+			await expect(replayManager.deleteReplay('test-game')).rejects.toThrow(
+				'Delete failed',
+			);
 		});
 	});
 
@@ -608,7 +699,7 @@ describe('ReplayManager', () => {
 
 			// Complete workflow
 			replayManager.startRecording(gameId, gameConfig, gameState, playerNames);
-			
+
 			const event = {
 				type: 'hand_started',
 				timestamp: Date.now(),
@@ -616,7 +707,7 @@ describe('ReplayManager', () => {
 				phase: GamePhase.PreFlop,
 			};
 			replayManager.recordEvent(gameId, event);
-			
+
 			await replayManager.endRecording(gameId, gameState);
 
 			// Verify complete workflow
@@ -630,9 +721,44 @@ describe('ReplayManager', () => {
 			const gameId = 'analysis-test';
 			const replayData = createMockReplayData();
 			const mockAnalysis = {
-				handAnalysis: [{ handNumber: 1, duration: 30000, totalActions: 5, potSize: 150, players: ['player1'], keyDecisions: [], unusual: false }],
-				playerStatistics: { player1: { playerId: 'player1', name: 'Player 1', handsPlayed: 1, actionsCount: 5, avgDecisionTime: 3000, aggression: 0.4, tightness: 0.2, winRate: 0.6, chipStackProgression: [] } },
-				gameFlow: { totalDuration: 60000, actionDistribution: { call: 2, raise: 1 }, phaseDistribution: { [GamePhase.PreFlop]: 10, [GamePhase.Flop]: 5, [GamePhase.Turn]: 3, [GamePhase.River]: 2, [GamePhase.Showdown]: 1, [GamePhase.HandComplete]: 1 }, potSizeProgression: [], avgHandDuration: 30000 },
+				handAnalysis: [
+					{
+						handNumber: 1,
+						duration: 30000,
+						totalActions: 5,
+						potSize: 150,
+						players: ['player1'],
+						keyDecisions: [],
+						unusual: false,
+					},
+				],
+				playerStatistics: {
+					player1: {
+						playerId: 'player1',
+						name: 'Player 1',
+						handsPlayed: 1,
+						actionsCount: 5,
+						avgDecisionTime: 3000,
+						aggression: 0.4,
+						tightness: 0.2,
+						winRate: 0.6,
+						chipStackProgression: [],
+					},
+				},
+				gameFlow: {
+					totalDuration: 60000,
+					actionDistribution: { call: 2, raise: 1 },
+					phaseDistribution: {
+						[GamePhase.PreFlop]: 10,
+						[GamePhase.Flop]: 5,
+						[GamePhase.Turn]: 3,
+						[GamePhase.River]: 2,
+						[GamePhase.Showdown]: 1,
+						[GamePhase.HandComplete]: 1,
+					},
+					potSizeProgression: [],
+					avgHandDuration: 30000,
+				},
 				interestingMoments: [],
 			};
 
@@ -646,4 +772,4 @@ describe('ReplayManager', () => {
 			expect(mockAnalyzer.analyzeReplay).toHaveBeenCalledWith(replayData);
 		});
 	});
-}); 
+});

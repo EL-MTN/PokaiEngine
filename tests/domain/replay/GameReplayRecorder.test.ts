@@ -50,11 +50,18 @@ describe('GameReplayRecorder', () => {
 		bigBlindAmount: 20,
 		minimumRaise: 20,
 		communityCards: [],
-		pots: [{ amount: 30, eligiblePlayers: ['player1', 'player2'], isMainPot: true }],
+		pots: [
+			{ amount: 30, eligiblePlayers: ['player1', 'player2'], isMainPot: true },
+		],
 		isComplete: false,
 	});
 
-	const createMockPlayer = (id: string, name: string, position: Position, chipStack = 1000): PlayerInfo => ({
+	const createMockPlayer = (
+		id: string,
+		name: string,
+		position: Position,
+		chipStack = 1000,
+	): PlayerInfo => ({
 		id,
 		name,
 		chipStack,
@@ -97,8 +104,18 @@ describe('GameReplayRecorder', () => {
 
 	const mockPossibleActions: PossibleAction[] = [
 		{ type: ActionType.Fold, minAmount: 0, maxAmount: 0, description: 'Fold' },
-		{ type: ActionType.Call, minAmount: 20, maxAmount: 20, description: 'Call 20' },
-		{ type: ActionType.Raise, minAmount: 40, maxAmount: 1000, description: 'Raise 40-1000' },
+		{
+			type: ActionType.Call,
+			minAmount: 20,
+			maxAmount: 20,
+			description: 'Call 20',
+		},
+		{
+			type: ActionType.Raise,
+			minAmount: 40,
+			maxAmount: 1000,
+			description: 'Raise 40-1000',
+		},
 	];
 
 	beforeEach(() => {
@@ -141,9 +158,9 @@ describe('GameReplayRecorder', () => {
 
 		test('should start recording successfully', () => {
 			const gameState = createMockGameState();
-			
+
 			recorder.startRecording(gameId, gameConfig, gameState, playerNames);
-			
+
 			expect(recorder.isRecording(gameId)).toBe(true);
 			const replayData = recorder.getReplayData(gameId);
 			expect(replayData).toBeDefined();
@@ -159,11 +176,11 @@ describe('GameReplayRecorder', () => {
 		test('should end recording successfully', async () => {
 			const gameState = createMockGameState();
 			recorder.startRecording(gameId, gameConfig, gameState, playerNames);
-			
+
 			// Add small delay to ensure duration > 0
-			await new Promise(resolve => setTimeout(resolve, 1));
+			await new Promise((resolve) => setTimeout(resolve, 1));
 			recorder.endRecording(gameId, gameState);
-			
+
 			expect(recorder.isRecording(gameId)).toBe(false);
 			const replayData = recorder.getReplayData(gameId);
 			expect(replayData?.endTime).toBeDefined();
@@ -173,18 +190,20 @@ describe('GameReplayRecorder', () => {
 
 		test('should handle end recording for non-existent game', () => {
 			const gameState = createMockGameState();
-			
+
 			// Should not throw
-			expect(() => recorder.endRecording('non-existent', gameState)).not.toThrow();
+			expect(() =>
+				recorder.endRecording('non-existent', gameState),
+			).not.toThrow();
 		});
 
 		test('should track multiple recordings', () => {
 			const gameState1 = createMockGameState();
 			const gameState2 = createMockGameState();
-			
+
 			recorder.startRecording('game1', gameConfig, gameState1, playerNames);
 			recorder.startRecording('game2', gameConfig, gameState2, playerNames);
-			
+
 			expect(recorder.getActiveRecordings()).toContain('game1');
 			expect(recorder.getActiveRecordings()).toContain('game2');
 			expect(recorder.getMemoryStats().activeRecordings).toBe(2);
@@ -213,10 +232,10 @@ describe('GameReplayRecorder', () => {
 			};
 
 			recorder.recordEvent(gameId, event, gameStateBefore, gameStateAfter);
-			
+
 			const replayData = recorder.getReplayData(gameId);
 			expect(replayData?.events.length).toBe(2); // game_started + hand_started
-			
+
 			const recordedEvent = replayData?.events[1];
 			expect(recordedEvent?.type).toBe('hand_started');
 			expect(recordedEvent?.sequenceId).toBeDefined();
@@ -244,7 +263,7 @@ describe('GameReplayRecorder', () => {
 
 			recorder.recordEvent(gameId, event1);
 			recorder.recordEvent(gameId, event2);
-			
+
 			const replayData = recorder.getReplayData(gameId);
 			const lastEvent = replayData?.events[replayData.events.length - 1];
 			expect(lastEvent?.eventDuration).toBe(1000);
@@ -270,7 +289,7 @@ describe('GameReplayRecorder', () => {
 
 			recorder.recordEvent(gameId, handStartEvent);
 			recorder.recordEvent(gameId, actionEvent);
-			
+
 			const replayData = recorder.getReplayData(gameId);
 			expect(replayData?.metadata.handCount).toBe(1);
 			expect(replayData?.metadata.totalActions).toBe(1);
@@ -288,7 +307,7 @@ describe('GameReplayRecorder', () => {
 			};
 
 			disabledRecorder.recordEvent(gameId, event);
-			
+
 			const replayData = disabledRecorder.getReplayData(gameId);
 			expect(replayData).toBeUndefined();
 		});
@@ -331,24 +350,30 @@ describe('GameReplayRecorder', () => {
 				gameStateBefore,
 				gameStateAfter,
 				5000, // 5 seconds to decide
-				{ before: 0.45, after: 0.40 }
+				{ before: 0.45, after: 0.4 },
 			);
 
 			const replayData = recorder.getReplayData(gameId);
 			const lastEvent = replayData?.events[replayData.events.length - 1];
-			
+
 			expect(lastEvent?.type).toBe('action_taken');
 			expect(lastEvent?.playerDecisionContext).toBeDefined();
 			expect(lastEvent?.playerDecisionContext?.timeToDecide).toBe(5000);
 			expect(lastEvent?.playerDecisionContext?.equityBefore).toBe(0.45);
-			expect(lastEvent?.playerDecisionContext?.equityAfter).toBe(0.40);
+			expect(lastEvent?.playerDecisionContext?.equityAfter).toBe(0.4);
 			expect(lastEvent?.playerDecisionContext?.potOdds).toBeDefined();
 		});
 
 		test('should calculate pot odds correctly', () => {
 			const gameStateBefore = createMockGameState();
-			gameStateBefore.pots = [{ amount: 100, eligiblePlayers: ['player1', 'player2'], isMainPot: true }];
-			
+			gameStateBefore.pots = [
+				{
+					amount: 100,
+					eligiblePlayers: ['player1', 'player2'],
+					isMainPot: true,
+				},
+			];
+
 			const gameStateAfter = createMockGameState();
 			const action = createMockAction(ActionType.Call, 20);
 			const possibleActions = mockPossibleActions;
@@ -360,13 +385,13 @@ describe('GameReplayRecorder', () => {
 				possibleActions,
 				gameStateBefore,
 				gameStateAfter,
-				3000
+				3000,
 			);
 
 			const replayData = recorder.getReplayData(gameId);
 			const lastEvent = replayData?.events[replayData.events.length - 1];
 			const context = lastEvent?.playerDecisionContext;
-			
+
 			expect(context?.potOdds).toBeCloseTo(20 / (100 + 20)); // call / (pot + call)
 		});
 
@@ -385,7 +410,7 @@ describe('GameReplayRecorder', () => {
 					possibleActions,
 					gameStateBefore,
 					gameStateAfter,
-					1000
+					1000,
 				);
 			}).not.toThrow();
 		});
@@ -416,13 +441,13 @@ describe('GameReplayRecorder', () => {
 				possibleActions,
 				gameStateBefore,
 				gameStateAfter,
-				2000
+				2000,
 			);
 
 			const replayData = recorder.getReplayData(gameId);
 			const lastEvent = replayData?.events[replayData.events.length - 1];
 			const context = lastEvent?.playerDecisionContext;
-			
+
 			expect(context?.effectiveStackSize).toBe(500); // Min of player's stack (500) and max opponent (1000)
 		});
 	});
@@ -433,9 +458,16 @@ describe('GameReplayRecorder', () => {
 		const playerNames = new Map([['player1', 'Player 1']]);
 
 		test('should create checkpoints at configured intervals', () => {
-			const checkpointRecorder = new GameReplayRecorder({ checkpointInterval: 3 });
+			const checkpointRecorder = new GameReplayRecorder({
+				checkpointInterval: 3,
+			});
 			const gameState = createMockGameState();
-			checkpointRecorder.startRecording(gameId, gameConfig, gameState, playerNames);
+			checkpointRecorder.startRecording(
+				gameId,
+				gameConfig,
+				gameState,
+				playerNames,
+			);
 
 			// Record events to trigger checkpoint
 			for (let i = 0; i < 5; i++) {
@@ -456,9 +488,16 @@ describe('GameReplayRecorder', () => {
 		});
 
 		test('should not create checkpoints without gameStateAfter', () => {
-			const checkpointRecorder = new GameReplayRecorder({ checkpointInterval: 2 });
+			const checkpointRecorder = new GameReplayRecorder({
+				checkpointInterval: 2,
+			});
 			const gameState = createMockGameState();
-			checkpointRecorder.startRecording(gameId, gameConfig, gameState, playerNames);
+			checkpointRecorder.startRecording(
+				gameId,
+				gameConfig,
+				gameState,
+				playerNames,
+			);
 
 			// Record events without gameStateAfter
 			const event: GameEvent = {
@@ -486,8 +525,13 @@ describe('GameReplayRecorder', () => {
 			for (let i = 1; i <= 4; i++) {
 				const gameId = `game-${i}`;
 				const gameState = createMockGameState();
-				memoryRecorder.startRecording(gameId, gameConfig, gameState, playerNames);
-				
+				memoryRecorder.startRecording(
+					gameId,
+					gameConfig,
+					gameState,
+					playerNames,
+				);
+
 				// End the first two recordings to make them inactive
 				if (i <= 2) {
 					memoryRecorder.endRecording(gameId, gameState);
@@ -506,12 +550,32 @@ describe('GameReplayRecorder', () => {
 
 			// Create recordings
 			const gameState = createMockGameState();
-			memoryRecorder.startRecording('game-1', gameConfig, gameState, playerNames);
+			memoryRecorder.startRecording(
+				'game-1',
+				gameConfig,
+				gameState,
+				playerNames,
+			);
 			memoryRecorder.endRecording('game-1', gameState); // Make inactive
 
-			memoryRecorder.startRecording('game-2', gameConfig, gameState, playerNames);
-			memoryRecorder.startRecording('game-3', gameConfig, gameState, playerNames);
-			memoryRecorder.startRecording('game-4', gameConfig, gameState, playerNames);
+			memoryRecorder.startRecording(
+				'game-2',
+				gameConfig,
+				gameState,
+				playerNames,
+			);
+			memoryRecorder.startRecording(
+				'game-3',
+				gameConfig,
+				gameState,
+				playerNames,
+			);
+			memoryRecorder.startRecording(
+				'game-4',
+				gameConfig,
+				gameState,
+				playerNames,
+			);
 
 			// game-1 (inactive) should be removed first
 			expect(memoryRecorder.isRecording('game-1')).toBe(false);
@@ -527,10 +591,10 @@ describe('GameReplayRecorder', () => {
 
 		test('should track active recordings correctly', () => {
 			const gameState = createMockGameState();
-			
+
 			recorder.startRecording('game-1', gameConfig, gameState, playerNames);
 			recorder.startRecording('game-2', gameConfig, gameState, playerNames);
-			
+
 			const activeRecordings = recorder.getActiveRecordings();
 			expect(activeRecordings).toContain('game-1');
 			expect(activeRecordings).toContain('game-2');
@@ -539,24 +603,24 @@ describe('GameReplayRecorder', () => {
 
 		test('should track completed recordings correctly', () => {
 			const gameState = createMockGameState();
-			
+
 			recorder.startRecording('game-1', gameConfig, gameState, playerNames);
 			recorder.endRecording('game-1', gameState);
-			
+
 			const completedRecordings = recorder.getCompletedRecordings();
 			expect(completedRecordings).toContain('game-1');
 			expect(completedRecordings.length).toBe(1);
-			
+
 			const activeRecordings = recorder.getActiveRecordings();
 			expect(activeRecordings.length).toBe(0);
 		});
 
 		test('should remove recordings correctly', () => {
 			const gameState = createMockGameState();
-			
+
 			recorder.startRecording('game-1', gameConfig, gameState, playerNames);
 			expect(recorder.isRecording('game-1')).toBe(true);
-			
+
 			const removed = recorder.removeRecording('game-1');
 			expect(removed).toBe(true);
 			expect(recorder.isRecording('game-1')).toBe(false);
@@ -570,20 +634,20 @@ describe('GameReplayRecorder', () => {
 
 		test('should provide accurate memory statistics', () => {
 			const gameState = createMockGameState();
-			
+
 			// Initially empty
 			let stats = recorder.getMemoryStats();
 			expect(stats.totalRecordings).toBe(0);
 			expect(stats.activeRecordings).toBe(0);
 			expect(stats.completedRecordings).toBe(0);
-			
+
 			// Add active recording
 			recorder.startRecording('game-1', gameConfig, gameState, playerNames);
 			stats = recorder.getMemoryStats();
 			expect(stats.totalRecordings).toBe(1);
 			expect(stats.activeRecordings).toBe(1);
 			expect(stats.completedRecordings).toBe(0);
-			
+
 			// Complete recording
 			recorder.endRecording('game-1', gameState);
 			stats = recorder.getMemoryStats();
@@ -721,7 +785,7 @@ describe('GameReplayRecorder', () => {
 	describe('Error Handling', () => {
 		test('should handle invalid game state cloning', () => {
 			const recorder = new GameReplayRecorder();
-			
+
 			// Should throw when trying to clone undefined state
 			expect(() => {
 				(recorder as any).cloneGameState(undefined);
@@ -733,12 +797,22 @@ describe('GameReplayRecorder', () => {
 			const gameConfig = createMockGameConfig();
 			const playerNames = new Map([['player1', 'Player 1']]);
 			const gameState = createMockGameState();
-			
+
 			recorder.startRecording(gameId, gameConfig, gameState, playerNames);
 
 			const possibleActions: PossibleAction[] = [
-				{ type: ActionType.Fold, minAmount: 0, maxAmount: 0, description: 'Fold' },
-				{ type: ActionType.Raise, minAmount: 40, maxAmount: 1000, description: 'Raise 40-1000' },
+				{
+					type: ActionType.Fold,
+					minAmount: 0,
+					maxAmount: 0,
+					description: 'Fold',
+				},
+				{
+					type: ActionType.Raise,
+					minAmount: 40,
+					maxAmount: 1000,
+					description: 'Raise 40-1000',
+				},
 			]; // No call action
 
 			// Should not throw
@@ -750,7 +824,7 @@ describe('GameReplayRecorder', () => {
 					possibleActions,
 					gameState,
 					gameState,
-					1000
+					1000,
 				);
 			}).not.toThrow();
 		});
@@ -760,10 +834,10 @@ describe('GameReplayRecorder', () => {
 			const gameConfig = createMockGameConfig();
 			const playerNames = new Map([['player1', 'Player 1']]);
 			const gameState = createMockGameState();
-			
+
 			// Only one active player
 			gameState.players = [gameState.players[0]];
-			
+
 			recorder.startRecording(gameId, gameConfig, gameState, playerNames);
 
 			// Should not throw when calculating effective stack with no opponents
@@ -775,9 +849,9 @@ describe('GameReplayRecorder', () => {
 					mockPossibleActions,
 					gameState,
 					gameState,
-					1000
+					1000,
 				);
 			}).not.toThrow();
 		});
 	});
-}); 
+});

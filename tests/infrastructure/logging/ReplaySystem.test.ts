@@ -16,8 +16,12 @@ jest.mock('@/infrastructure/logging/Logger', () => ({
 	},
 }));
 
-const MockedReplayStorage = ReplayStorage as jest.MockedClass<typeof ReplayStorage>;
-const MockedReplayAnalyzer = ReplayAnalyzer as jest.MockedClass<typeof ReplayAnalyzer>;
+const MockedReplayStorage = ReplayStorage as jest.MockedClass<
+	typeof ReplayStorage
+>;
+const MockedReplayAnalyzer = ReplayAnalyzer as jest.MockedClass<
+	typeof ReplayAnalyzer
+>;
 
 describe('ReplaySystem', () => {
 	let replaySystem: ReplaySystem;
@@ -71,7 +75,7 @@ describe('ReplaySystem', () => {
 				turnTimeLimit: 30000,
 				isTournament: false,
 			},
-			playerNames: { 'player1': 'Player 1', 'player2': 'Player 2' },
+			playerNames: { player1: 'Player 1', player2: 'Player 2' },
 			handCount: 1,
 			totalEvents: 3,
 			totalActions: 2,
@@ -113,10 +117,11 @@ describe('ReplaySystem', () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
-		
+
 		// Setup mocks
 		mockReplayStorage = new MockedReplayStorage() as jest.Mocked<ReplayStorage>;
-		mockReplayAnalyzer = new MockedReplayAnalyzer() as jest.Mocked<ReplayAnalyzer>;
+		mockReplayAnalyzer =
+			new MockedReplayAnalyzer() as jest.Mocked<ReplayAnalyzer>;
 		mockRecorder = {
 			getCurrentReplay: jest.fn(),
 		} as unknown as jest.Mocked<GameReplayRecorder>;
@@ -131,9 +136,9 @@ describe('ReplaySystem', () => {
 	describe('Loading Replays', () => {
 		test('should load replay data successfully', () => {
 			const replayData = createMockReplayData();
-			
+
 			const result = replaySystem.loadReplay(replayData);
-			
+
 			expect(result).toBe(true);
 			const controls = replaySystem.getControls();
 			expect(controls.totalEvents).toBe(3);
@@ -142,27 +147,29 @@ describe('ReplaySystem', () => {
 
 		test('should handle load replay errors', () => {
 			const invalidData = undefined as any;
-			
+
 			const result = replaySystem.loadReplay(invalidData);
-			
+
 			expect(result).toBe(false);
 		});
 
 		test('should load replay from file successfully', () => {
 			const replayData = createMockReplayData();
 			mockReplayStorage.loadReplayFromFile.mockReturnValue(replayData);
-			
+
 			const result = replaySystem.loadReplayFromFile('test-file.json');
-			
+
 			expect(result).toBe(true);
-			expect(mockReplayStorage.loadReplayFromFile).toHaveBeenCalledWith('test-file.json');
+			expect(mockReplayStorage.loadReplayFromFile).toHaveBeenCalledWith(
+				'test-file.json',
+			);
 		});
 
 		test('should handle file load failures', () => {
 			mockReplayStorage.loadReplayFromFile.mockReturnValue(undefined);
-			
+
 			const result = replaySystem.loadReplayFromFile('non-existent.json');
-			
+
 			expect(result).toBe(false);
 		});
 
@@ -177,7 +184,7 @@ describe('ReplaySystem', () => {
 					bigBlindAmount: 20,
 					turnTimeLimit: 30000,
 					gameType: 'cash',
-					playerNames: { 'player1': 'Player 1', 'player2': 'Player 2' },
+					playerNames: { player1: 'Player 1', player2: 'Player 2' },
 					totalHands: 1,
 					totalActions: 2,
 					gameDuration: 3600000,
@@ -204,26 +211,30 @@ describe('ReplaySystem', () => {
 				version: '1.0.0',
 			};
 			mockReplayStorage.loadReplayFromMongo.mockResolvedValue(mongoReplay);
-			
+
 			const result = await replaySystem.loadReplayFromMongo('test-game-123');
-			
+
 			expect(result).toBe(true);
-			expect(mockReplayStorage.loadReplayFromMongo).toHaveBeenCalledWith('test-game-123');
+			expect(mockReplayStorage.loadReplayFromMongo).toHaveBeenCalledWith(
+				'test-game-123',
+			);
 		});
 
 		test('should handle MongoDB load failures', async () => {
 			mockReplayStorage.loadReplayFromMongo.mockResolvedValue(null);
-			
+
 			const result = await replaySystem.loadReplayFromMongo('non-existent');
-			
+
 			expect(result).toBe(false);
 		});
 
 		test('should handle MongoDB load errors', async () => {
-			mockReplayStorage.loadReplayFromMongo.mockRejectedValue(new Error('MongoDB error'));
-			
+			mockReplayStorage.loadReplayFromMongo.mockRejectedValue(
+				new Error('MongoDB error'),
+			);
+
 			const result = await replaySystem.loadReplayFromMongo('test-game-123');
-			
+
 			expect(result).toBe(false);
 		});
 	});
@@ -236,18 +247,18 @@ describe('ReplaySystem', () => {
 
 		test('should start playback', () => {
 			replaySystem.play();
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.isPlaying).toBe(true);
 			expect(controls.playbackSpeed).toBe(1.0);
-			
+
 			replaySystem.stop();
 		});
 
 		test('should not start playback if no replay loaded', () => {
 			const emptySystem = new ReplaySystem();
 			emptySystem.play();
-			
+
 			const controls = emptySystem.getControls();
 			expect(controls.isPlaying).toBe(false);
 		});
@@ -255,10 +266,10 @@ describe('ReplaySystem', () => {
 		test('should not start playback if already playing', () => {
 			replaySystem.play();
 			const controls1 = replaySystem.getControls();
-			
+
 			replaySystem.play(); // Try to start again
 			const controls2 = replaySystem.getControls();
-			
+
 			expect(controls1.isPlaying).toBe(true);
 			expect(controls2.isPlaying).toBe(true);
 			replaySystem.stop();
@@ -267,7 +278,7 @@ describe('ReplaySystem', () => {
 		test('should pause playback', () => {
 			replaySystem.play();
 			replaySystem.pause();
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.isPlaying).toBe(false);
 		});
@@ -276,7 +287,7 @@ describe('ReplaySystem', () => {
 			replaySystem.stepForward();
 			replaySystem.play();
 			replaySystem.stop();
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.isPlaying).toBe(false);
 			expect(controls.currentPosition.eventIndex).toBe(0);
@@ -285,13 +296,13 @@ describe('ReplaySystem', () => {
 		test('should step forward through events', () => {
 			const result1 = replaySystem.stepForward();
 			expect(result1).toBe(true);
-			
+
 			const controls1 = replaySystem.getControls();
 			expect(controls1.currentPosition.eventIndex).toBe(1);
-			
+
 			const result2 = replaySystem.stepForward();
 			expect(result2).toBe(true);
-			
+
 			const controls2 = replaySystem.getControls();
 			expect(controls2.currentPosition.eventIndex).toBe(2);
 		});
@@ -299,17 +310,17 @@ describe('ReplaySystem', () => {
 		test('should not step forward beyond last event', () => {
 			// Move to last event
 			replaySystem.seekToEvent(2);
-			
+
 			const result = replaySystem.stepForward();
 			expect(result).toBe(false);
 		});
 
 		test('should step backward through events', () => {
 			replaySystem.seekToEvent(2);
-			
+
 			const result = replaySystem.stepBackward();
 			expect(result).toBe(true);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.currentPosition.eventIndex).toBe(1);
 		});
@@ -322,7 +333,7 @@ describe('ReplaySystem', () => {
 		test('should seek to specific event', () => {
 			const result = replaySystem.seekToEvent(1);
 			expect(result).toBe(true);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.currentPosition.eventIndex).toBe(1);
 		});
@@ -330,7 +341,7 @@ describe('ReplaySystem', () => {
 		test('should not seek to invalid event index', () => {
 			const result1 = replaySystem.seekToEvent(-1);
 			expect(result1).toBe(false);
-			
+
 			const result2 = replaySystem.seekToEvent(10);
 			expect(result2).toBe(false);
 		});
@@ -338,7 +349,7 @@ describe('ReplaySystem', () => {
 		test('should seek to specific hand', () => {
 			const result = replaySystem.seekToHand(1);
 			expect(result).toBe(true);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.currentPosition.eventIndex).toBe(1); // hand_started event
 		});
@@ -351,7 +362,7 @@ describe('ReplaySystem', () => {
 		test('should seek to checkpoint', () => {
 			const result = replaySystem.seekToCheckpoint(2);
 			expect(result).toBe(true);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.currentPosition.eventIndex).toBe(0); // Latest checkpoint before event 2
 		});
@@ -360,7 +371,7 @@ describe('ReplaySystem', () => {
 			const replayData = createMockReplayData();
 			delete replayData.checkpoints;
 			replaySystem.loadReplay(replayData);
-			
+
 			const result = replaySystem.seekToCheckpoint(1);
 			expect(result).toBe(false);
 		});
@@ -374,21 +385,21 @@ describe('ReplaySystem', () => {
 
 		test('should set playback speed within valid range', () => {
 			replaySystem.setPlaybackSpeed(2.0);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.playbackSpeed).toBe(2.0);
 		});
 
 		test('should clamp playback speed to minimum', () => {
 			replaySystem.setPlaybackSpeed(0.1);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.playbackSpeed).toBe(0.25);
 		});
 
 		test('should clamp playback speed to maximum', () => {
 			replaySystem.setPlaybackSpeed(10.0);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.playbackSpeed).toBe(8.0);
 		});
@@ -396,10 +407,10 @@ describe('ReplaySystem', () => {
 		test('should restart playback with new speed if currently playing', async () => {
 			replaySystem.play();
 			replaySystem.setPlaybackSpeed(4.0);
-			
+
 			// Should still be playing with new speed
-			await new Promise(resolve => setTimeout(resolve, 50));
-			
+			await new Promise((resolve) => setTimeout(resolve, 50));
+
 			const controls = replaySystem.getControls();
 			expect(controls.isPlaying).toBe(true);
 			expect(controls.playbackSpeed).toBe(4.0);
@@ -416,12 +427,12 @@ describe('ReplaySystem', () => {
 		test('should call event callbacks when stepping through events', () => {
 			const eventCallback = jest.fn();
 			const positionCallback = jest.fn();
-			
+
 			replaySystem.onEvent(eventCallback);
 			replaySystem.onPositionChange(positionCallback);
-			
+
 			replaySystem.stepForward();
-			
+
 			expect(eventCallback).toHaveBeenCalledTimes(1);
 			expect(positionCallback).toHaveBeenCalledTimes(1);
 		});
@@ -430,9 +441,9 @@ describe('ReplaySystem', () => {
 			const errorCallback = jest.fn(() => {
 				throw new Error('Callback error');
 			});
-			
+
 			replaySystem.onEvent(errorCallback);
-			
+
 			// Should not throw
 			expect(() => replaySystem.stepForward()).not.toThrow();
 		});
@@ -440,20 +451,20 @@ describe('ReplaySystem', () => {
 		test('should clear event callbacks', () => {
 			const eventCallback = jest.fn();
 			replaySystem.onEvent(eventCallback);
-			
+
 			replaySystem.clearEventCallbacks();
 			replaySystem.stepForward();
-			
+
 			expect(eventCallback).not.toHaveBeenCalled();
 		});
 
 		test('should clear position callbacks', () => {
 			const positionCallback = jest.fn();
 			replaySystem.onPositionChange(positionCallback);
-			
+
 			replaySystem.clearPositionCallbacks();
 			replaySystem.stepForward();
-			
+
 			expect(positionCallback).not.toHaveBeenCalled();
 		});
 	});
@@ -478,14 +489,14 @@ describe('ReplaySystem', () => {
 		test('should get hand replay data', () => {
 			const handData = { handNumber: 1, events: [] };
 			mockReplayStorage.buildHandReplayData.mockReturnValue(handData as any);
-			
+
 			const result = replaySystem.getHandReplay(1);
-			
+
 			expect(result).toEqual(handData);
 			expect(mockReplayStorage.buildHandReplayData).toHaveBeenCalledWith(
 				'test-game-123',
 				1,
-				expect.any(Array)
+				expect.any(Array),
 			);
 		});
 
@@ -498,9 +509,9 @@ describe('ReplaySystem', () => {
 		test('should analyze replay', () => {
 			const mockAnalysis = { totalHands: 1, totalPlayers: 2 };
 			mockReplayAnalyzer.analyzeReplay.mockReturnValue(mockAnalysis as any);
-			
+
 			const result = replaySystem.analyzeReplay();
-			
+
 			expect(result).toEqual(mockAnalysis);
 			expect(mockReplayAnalyzer.analyzeReplay).toHaveBeenCalled();
 		});
@@ -516,70 +527,89 @@ describe('ReplaySystem', () => {
 		test('should get replay analysis from MongoDB', async () => {
 			const mockAnalysis = { handCount: 5, playerStats: {} };
 			mockReplayStorage.getReplayAnalysis.mockResolvedValue(mockAnalysis);
-			
-			const result = await replaySystem.getReplayAnalysisFromMongo('test-game-123');
-			
+
+			const result =
+				await replaySystem.getReplayAnalysisFromMongo('test-game-123');
+
 			expect(result).toEqual(mockAnalysis);
-			expect(mockReplayStorage.getReplayAnalysis).toHaveBeenCalledWith('test-game-123');
+			expect(mockReplayStorage.getReplayAnalysis).toHaveBeenCalledWith(
+				'test-game-123',
+			);
 		});
 
 		test('should handle MongoDB analysis errors', async () => {
-			mockReplayStorage.getReplayAnalysis.mockRejectedValue(new Error('MongoDB error'));
-			
-			const result = await replaySystem.getReplayAnalysisFromMongo('test-game-123');
-			
+			mockReplayStorage.getReplayAnalysis.mockRejectedValue(
+				new Error('MongoDB error'),
+			);
+
+			const result =
+				await replaySystem.getReplayAnalysisFromMongo('test-game-123');
+
 			expect(result).toBeNull();
 		});
 
 		test('should get hand replay from MongoDB', async () => {
 			const mockHandReplay = { handNumber: 1, events: [] };
 			mockReplayStorage.getHandReplay.mockResolvedValue(mockHandReplay);
-			
-			const result = await replaySystem.getHandReplayFromMongo('test-game-123', 1);
-			
+
+			const result = await replaySystem.getHandReplayFromMongo(
+				'test-game-123',
+				1,
+			);
+
 			expect(result).toEqual(mockHandReplay);
-			expect(mockReplayStorage.getHandReplay).toHaveBeenCalledWith('test-game-123', 1);
+			expect(mockReplayStorage.getHandReplay).toHaveBeenCalledWith(
+				'test-game-123',
+				1,
+			);
 		});
 
 		test('should handle MongoDB hand replay errors', async () => {
-			mockReplayStorage.getHandReplay.mockRejectedValue(new Error('MongoDB error'));
-			
-			const result = await replaySystem.getHandReplayFromMongo('test-game-123', 1);
-			
+			mockReplayStorage.getHandReplay.mockRejectedValue(
+				new Error('MongoDB error'),
+			);
+
+			const result = await replaySystem.getHandReplayFromMongo(
+				'test-game-123',
+				1,
+			);
+
 			expect(result).toBeNull();
 		});
 
 		test('should list MongoDB replays', async () => {
 			const mockReplays = [{ gameId: 'game1' }, { gameId: 'game2' }];
 			mockReplayStorage.listRecentReplays.mockResolvedValue(mockReplays);
-			
+
 			const result = await replaySystem.listMongoReplays(10);
-			
+
 			expect(result).toEqual(mockReplays);
 			expect(mockReplayStorage.listRecentReplays).toHaveBeenCalledWith(10);
 		});
 
 		test('should use default limit for listing MongoDB replays', async () => {
 			mockReplayStorage.listRecentReplays.mockResolvedValue([]);
-			
+
 			await replaySystem.listMongoReplays();
-			
+
 			expect(mockReplayStorage.listRecentReplays).toHaveBeenCalledWith(50);
 		});
 
 		test('should handle MongoDB list errors', async () => {
-			mockReplayStorage.listRecentReplays.mockRejectedValue(new Error('MongoDB error'));
-			
+			mockReplayStorage.listRecentReplays.mockRejectedValue(
+				new Error('MongoDB error'),
+			);
+
 			const result = await replaySystem.listMongoReplays();
-			
+
 			expect(result).toEqual([]);
 		});
 
 		test('should check MongoDB availability', () => {
 			mockReplayStorage.isMongoAvailable.mockReturnValue(true);
-			
+
 			const result = replaySystem.isMongoAvailable();
-			
+
 			expect(result).toBe(true);
 			expect(mockReplayStorage.isMongoAvailable).toHaveBeenCalled();
 		});
@@ -589,7 +619,7 @@ describe('ReplaySystem', () => {
 		test('should return correct controls for empty system', () => {
 			const emptySystem = new ReplaySystem();
 			const controls = emptySystem.getControls();
-			
+
 			expect(controls).toEqual({
 				isPlaying: false,
 				playbackSpeed: 1.0,
@@ -609,9 +639,9 @@ describe('ReplaySystem', () => {
 		test('should return correct controls with loaded replay', () => {
 			const replayData = createMockReplayData();
 			replaySystem.loadReplay(replayData);
-			
+
 			const controls = replaySystem.getControls();
-			
+
 			expect(controls.totalEvents).toBe(3);
 			expect(controls.canStepForward).toBe(true);
 			expect(controls.canStepBackward).toBe(false);
@@ -621,18 +651,18 @@ describe('ReplaySystem', () => {
 		test('should update navigation flags correctly', () => {
 			const replayData = createMockReplayData();
 			replaySystem.loadReplay(replayData);
-			
+
 			// At beginning
 			let controls = replaySystem.getControls();
 			expect(controls.canStepForward).toBe(true);
 			expect(controls.canStepBackward).toBe(false);
-			
+
 			// In middle
 			replaySystem.stepForward();
 			controls = replaySystem.getControls();
 			expect(controls.canStepForward).toBe(true);
 			expect(controls.canStepBackward).toBe(true);
-			
+
 			// At end
 			replaySystem.seekToEvent(2);
 			controls = replaySystem.getControls();
@@ -644,7 +674,7 @@ describe('ReplaySystem', () => {
 	describe('Error Handling', () => {
 		test('should handle operations on unloaded replay gracefully', () => {
 			const emptySystem = new ReplaySystem();
-			
+
 			expect(emptySystem.stepForward()).toBe(false);
 			expect(emptySystem.stepBackward()).toBe(false);
 			expect(emptySystem.seekToEvent(0)).toBe(false);
@@ -653,7 +683,7 @@ describe('ReplaySystem', () => {
 			expect(emptySystem.getCurrentGameState()).toBeNull();
 			expect(emptySystem.getHandReplay(1)).toBeUndefined();
 			expect(emptySystem.analyzeReplay()).toBeNull();
-			
+
 			// These should not throw
 			expect(() => emptySystem.play()).not.toThrow();
 			expect(() => emptySystem.pause()).not.toThrow();
@@ -665,7 +695,7 @@ describe('ReplaySystem', () => {
 				gameId: 'test',
 				events: null, // Invalid
 			} as any;
-			
+
 			const result = replaySystem.loadReplay(malformedData);
 			expect(result).toBe(false);
 		});
@@ -675,16 +705,16 @@ describe('ReplaySystem', () => {
 		test('should auto-stop when reaching end of replay', () => {
 			const replayData = createMockReplayData();
 			replaySystem.loadReplay(replayData);
-			
+
 			// Seek to last event
 			replaySystem.seekToEvent(2);
-			
+
 			// Try to step forward (should fail and stop playback)
 			const canStep = replaySystem.stepForward();
 			expect(canStep).toBe(false);
-			
+
 			const controls = replaySystem.getControls();
 			expect(controls.canStepForward).toBe(false);
 		});
 	});
-}); 
+});

@@ -46,7 +46,12 @@ describe('ReplayAnalyzer', () => {
 				handNumber: 1,
 				phase: GamePhase.PreFlop,
 				playerId: 'player1',
-				action: { type: 'call' as any, amount: 20, playerId: 'player1', timestamp: 3000 },
+				action: {
+					type: 'call' as any,
+					amount: 20,
+					playerId: 'player1',
+					timestamp: 3000,
+				},
 				sequenceId: 4,
 				playerDecisionContext: {
 					playerId: 'player1',
@@ -66,7 +71,12 @@ describe('ReplayAnalyzer', () => {
 				handNumber: 1,
 				phase: GamePhase.PreFlop,
 				playerId: 'player2',
-				action: { type: 'raise' as any, amount: 60, playerId: 'player2', timestamp: 5000 },
+				action: {
+					type: 'raise' as any,
+					amount: 60,
+					playerId: 'player2',
+					timestamp: 5000,
+				},
 				sequenceId: 5,
 				playerDecisionContext: {
 					playerId: 'player2',
@@ -123,7 +133,10 @@ describe('ReplayAnalyzer', () => {
 		};
 	};
 
-	const createMockGameState = (handNumber: number, potAmount = 30): GameState => ({
+	const createMockGameState = (
+		handNumber: number,
+		potAmount = 30,
+	): GameState => ({
 		id: `game-${handNumber}`,
 		currentPhase: GamePhase.PreFlop,
 		handNumber,
@@ -161,7 +174,13 @@ describe('ReplayAnalyzer', () => {
 		bigBlindAmount: 20,
 		minimumRaise: 20,
 		communityCards: [],
-		pots: [{ amount: potAmount, eligiblePlayers: ['player1', 'player2'], isMainPot: true }],
+		pots: [
+			{
+				amount: potAmount,
+				eligiblePlayers: ['player1', 'player2'],
+				isMainPot: true,
+			},
+		],
 		isComplete: false,
 	});
 
@@ -172,9 +191,9 @@ describe('ReplayAnalyzer', () => {
 	describe('Complete Replay Analysis', () => {
 		test('should analyze complete replay', () => {
 			const replayData = createMockReplayData();
-			
+
 			const analysis = analyzer.analyzeReplay(replayData);
-			
+
 			expect(analysis).toBeDefined();
 			expect(analysis.handAnalysis).toBeDefined();
 			expect(analysis.playerStatistics).toBeDefined();
@@ -184,9 +203,9 @@ describe('ReplayAnalyzer', () => {
 
 		test('should return consistent analysis structure', () => {
 			const replayData = createMockReplayData();
-			
+
 			const analysis = analyzer.analyzeReplay(replayData);
-			
+
 			expect(analysis.handAnalysis).toBeInstanceOf(Array);
 			expect(analysis.playerStatistics).toBeInstanceOf(Object);
 			expect(analysis.gameFlow).toHaveProperty('totalDuration');
@@ -198,9 +217,9 @@ describe('ReplayAnalyzer', () => {
 	describe('Hand Analysis', () => {
 		test('should analyze hands correctly', () => {
 			const replayData = createMockReplayData();
-			
+
 			const handAnalysis = analyzer.analyzeHands(replayData);
-			
+
 			expect(handAnalysis).toHaveLength(1);
 			expect(handAnalysis[0]).toMatchObject({
 				handNumber: 1,
@@ -224,10 +243,10 @@ describe('ReplayAnalyzer', () => {
 					gameStateAfter: createMockGameState(1, 600),
 				},
 			];
-			
+
 			const replayData = createMockReplayData(bigPotEvents as ReplayEvent[]);
 			const handAnalysis = analyzer.analyzeHands(replayData);
-			
+
 			expect(handAnalysis[0].unusual).toBe(true);
 			expect(handAnalysis[0].potSize).toBe(600);
 		});
@@ -240,22 +259,27 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'call' as any, amount: 20, playerId: 'player1', timestamp: 3000 },
+					action: {
+						type: 'call' as any,
+						amount: 20,
+						playerId: 'player1',
+						timestamp: 3000,
+					},
 					sequenceId: 4,
 				},
 			];
-			
+
 			const replayData = createMockReplayData(incompleteEvents);
 			const handAnalysis = analyzer.analyzeHands(replayData);
-			
+
 			expect(handAnalysis).toHaveLength(0);
 		});
 
 		test('should analyze specific hand by number', () => {
 			const replayData = createMockReplayData();
-			
+
 			const handAnalysis = analyzer.analyzeHand(replayData, 1);
-			
+
 			expect(handAnalysis).toBeDefined();
 			expect(handAnalysis?.handNumber).toBe(1);
 			expect(handAnalysis?.duration).toBe(6000);
@@ -263,9 +287,9 @@ describe('ReplayAnalyzer', () => {
 
 		test('should return undefined for non-existent hand', () => {
 			const replayData = createMockReplayData();
-			
+
 			const handAnalysis = analyzer.analyzeHand(replayData, 999);
-			
+
 			expect(handAnalysis).toBeUndefined();
 		});
 	});
@@ -273,12 +297,12 @@ describe('ReplayAnalyzer', () => {
 	describe('Player Statistics', () => {
 		test('should calculate basic player statistics', () => {
 			const replayData = createMockReplayData();
-			
+
 			const playerStats = analyzer.calculatePlayerStatistics(replayData);
-			
+
 			expect(playerStats['player1']).toBeDefined();
 			expect(playerStats['player2']).toBeDefined();
-			
+
 			expect(playerStats['player1']).toMatchObject({
 				playerId: 'player1',
 				name: 'Player One',
@@ -286,7 +310,7 @@ describe('ReplayAnalyzer', () => {
 				actionsCount: 1,
 				avgDecisionTime: 2000,
 			});
-			
+
 			expect(playerStats['player2']).toMatchObject({
 				playerId: 'player2',
 				name: 'Player Two',
@@ -305,7 +329,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'raise' as any, amount: 60, playerId: 'player1', timestamp: 3000 },
+					action: {
+						type: 'raise' as any,
+						amount: 60,
+						playerId: 'player1',
+						timestamp: 3000,
+					},
 					sequenceId: 4,
 				},
 				{
@@ -314,7 +343,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player2',
-					action: { type: 'fold' as any, amount: 0, playerId: 'player2', timestamp: 4000 },
+					action: {
+						type: 'fold' as any,
+						amount: 0,
+						playerId: 'player2',
+						timestamp: 4000,
+					},
 					sequenceId: 5,
 				},
 				{
@@ -327,32 +361,40 @@ describe('ReplayAnalyzer', () => {
 					gameStateAfter: createMockGameState(1),
 				},
 			];
-			
-			const replayData = createMockReplayData(aggressiveEvents as ReplayEvent[]);
+
+			const replayData = createMockReplayData(
+				aggressiveEvents as ReplayEvent[],
+			);
 			const playerStats = analyzer.calculatePlayerStatistics(replayData);
-			
+
 			expect(playerStats['player1'].aggression).toBeGreaterThan(0);
 			expect(playerStats['player2'].tightness).toBeGreaterThan(0);
 		});
 
 		test('should track chip stack progression', () => {
 			const replayData = createMockReplayData();
-			
+
 			const playerStats = analyzer.calculatePlayerStatistics(replayData);
-			
+
 			expect(playerStats['player1'].chipStackProgression).toBeDefined();
-			expect(playerStats['player1'].chipStackProgression.length).toBeGreaterThan(0);
+			expect(
+				playerStats['player1'].chipStackProgression.length,
+			).toBeGreaterThan(0);
 		});
 
 		test('should handle empty decision times', () => {
-			const eventsWithoutContext = createMockReplayData().events.map(event => ({
-				...event,
-				playerDecisionContext: undefined,
-			}));
-			
-			const replayData = createMockReplayData(eventsWithoutContext as ReplayEvent[]);
+			const eventsWithoutContext = createMockReplayData().events.map(
+				(event) => ({
+					...event,
+					playerDecisionContext: undefined,
+				}),
+			);
+
+			const replayData = createMockReplayData(
+				eventsWithoutContext as ReplayEvent[],
+			);
 			const playerStats = analyzer.calculatePlayerStatistics(replayData);
-			
+
 			expect(playerStats['player1'].avgDecisionTime).toBe(0);
 			expect(playerStats['player2'].avgDecisionTime).toBe(0);
 		});
@@ -361,9 +403,9 @@ describe('ReplayAnalyzer', () => {
 	describe('Game Flow Analysis', () => {
 		test('should analyze action distribution', () => {
 			const replayData = createMockReplayData();
-			
+
 			const gameFlow = analyzer.analyzeGameFlow(replayData);
-			
+
 			expect(gameFlow.actionDistribution).toBeDefined();
 			expect(gameFlow.actionDistribution['call']).toBe(1);
 			expect(gameFlow.actionDistribution['raise']).toBe(1);
@@ -371,18 +413,18 @@ describe('ReplayAnalyzer', () => {
 
 		test('should analyze phase distribution', () => {
 			const replayData = createMockReplayData();
-			
+
 			const gameFlow = analyzer.analyzeGameFlow(replayData);
-			
+
 			expect(gameFlow.phaseDistribution).toBeDefined();
 			expect(gameFlow.phaseDistribution[GamePhase.PreFlop]).toBeGreaterThan(0);
 		});
 
 		test('should track pot size progression', () => {
 			const replayData = createMockReplayData();
-			
+
 			const gameFlow = analyzer.analyzeGameFlow(replayData);
-			
+
 			expect(gameFlow.potSizeProgression).toBeDefined();
 			expect(gameFlow.potSizeProgression).toHaveLength(1);
 			expect(gameFlow.potSizeProgression[0]).toMatchObject({
@@ -393,9 +435,9 @@ describe('ReplayAnalyzer', () => {
 
 		test('should calculate game duration correctly', () => {
 			const replayData = createMockReplayData();
-			
+
 			const gameFlow = analyzer.analyzeGameFlow(replayData);
-			
+
 			expect(gameFlow.totalDuration).toBe(9000);
 			expect(gameFlow.avgHandDuration).toBe(6000);
 		});
@@ -415,11 +457,11 @@ describe('ReplayAnalyzer', () => {
 					gameStateAfter: createMockGameState(1, 600),
 				},
 			];
-			
+
 			const replayData = createMockReplayData(bigPotEvents as ReplayEvent[]);
 			const moments = analyzer.findInterestingMoments(replayData);
-			
-			const bigPotMoment = moments.find(m => m.type === 'big_pot');
+
+			const bigPotMoment = moments.find((m) => m.type === 'big_pot');
 			expect(bigPotMoment).toBeDefined();
 			expect(bigPotMoment?.description).toContain('600 chips');
 		});
@@ -433,25 +475,30 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'all_in' as any, amount: 1000, playerId: 'player1', timestamp: 3000 },
+					action: {
+						type: 'all_in' as any,
+						amount: 1000,
+						playerId: 'player1',
+						timestamp: 3000,
+					},
 					sequenceId: 4,
 					gameStateBefore: createMockGameState(1),
 					gameStateAfter: createMockGameState(1),
 				},
 				...createMockReplayData().events.slice(4), // Skip the original first action_taken event
 			];
-			
+
 			const replayData = createMockReplayData(allInEvents as ReplayEvent[]);
 			const moments = analyzer.findInterestingMoments(replayData);
-			
-			const allInMoment = moments.find(m => m.type === 'all_in');
+
+			const allInMoment = moments.find((m) => m.type === 'all_in');
 			expect(allInMoment).toBeDefined();
 			expect(allInMoment?.description).toContain('went all-in');
 			expect(allInMoment?.players).toContain('player1');
 		});
 
 		test('should detect unusual long decision times', () => {
-			const longDecisionEvents = createMockReplayData().events.map(event => {
+			const longDecisionEvents = createMockReplayData().events.map((event) => {
 				if (event.playerDecisionContext) {
 					return {
 						...event,
@@ -463,24 +510,30 @@ describe('ReplayAnalyzer', () => {
 				}
 				return event;
 			});
-			
-			const replayData = createMockReplayData(longDecisionEvents as ReplayEvent[]);
+
+			const replayData = createMockReplayData(
+				longDecisionEvents as ReplayEvent[],
+			);
 			const moments = analyzer.findInterestingMoments(replayData);
-			
-			const longDecisionMoments = moments.filter(m => m.type === 'unusual_play');
+
+			const longDecisionMoments = moments.filter(
+				(m) => m.type === 'unusual_play',
+			);
 			expect(longDecisionMoments.length).toBeGreaterThan(0);
 			expect(longDecisionMoments[0].description).toContain('25s to decide');
 		});
 
 		test('should handle events without game state', () => {
-			const eventsWithoutState = createMockReplayData().events.map(event => ({
+			const eventsWithoutState = createMockReplayData().events.map((event) => ({
 				...event,
 				gameStateBefore: undefined,
 				gameStateAfter: undefined,
 			}));
-			
-			const replayData = createMockReplayData(eventsWithoutState as ReplayEvent[]);
-			
+
+			const replayData = createMockReplayData(
+				eventsWithoutState as ReplayEvent[],
+			);
+
 			// Should not throw
 			expect(() => analyzer.findInterestingMoments(replayData)).not.toThrow();
 		});
@@ -489,9 +542,13 @@ describe('ReplayAnalyzer', () => {
 	describe('Player Comparison', () => {
 		test('should compare two players successfully', () => {
 			const replayData = createMockReplayData();
-			
-			const comparison = analyzer.comparePlayerStats(replayData, 'player1', 'player2');
-			
+
+			const comparison = analyzer.comparePlayerStats(
+				replayData,
+				'player1',
+				'player2',
+			);
+
 			expect(comparison).toBeDefined();
 			expect(comparison?.player1).toBeDefined();
 			expect(comparison?.player2).toBeDefined();
@@ -501,9 +558,13 @@ describe('ReplayAnalyzer', () => {
 
 		test('should handle non-existent players', () => {
 			const replayData = createMockReplayData();
-			
-			const comparison = analyzer.comparePlayerStats(replayData, 'player1', 'non-existent');
-			
+
+			const comparison = analyzer.comparePlayerStats(
+				replayData,
+				'player1',
+				'non-existent',
+			);
+
 			expect(comparison).toBeUndefined();
 		});
 
@@ -516,7 +577,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'raise' as any, amount: 60, playerId: 'player1', timestamp: 3000 },
+					action: {
+						type: 'raise' as any,
+						amount: 60,
+						playerId: 'player1',
+						timestamp: 3000,
+					},
 					sequenceId: 4,
 				},
 				{
@@ -525,7 +591,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player2',
-					action: { type: 'call' as any, amount: 40, playerId: 'player2', timestamp: 4000 },
+					action: {
+						type: 'call' as any,
+						amount: 40,
+						playerId: 'player2',
+						timestamp: 4000,
+					},
 					sequenceId: 5,
 				},
 				{
@@ -538,10 +609,16 @@ describe('ReplayAnalyzer', () => {
 					gameStateAfter: createMockGameState(1),
 				},
 			];
-			
-			const replayData = createMockReplayData(aggressiveEvents as ReplayEvent[]);
-			const comparison = analyzer.comparePlayerStats(replayData, 'player1', 'player2');
-			
+
+			const replayData = createMockReplayData(
+				aggressiveEvents as ReplayEvent[],
+			);
+			const comparison = analyzer.comparePlayerStats(
+				replayData,
+				'player1',
+				'player2',
+			);
+
 			expect(comparison?.comparison.moreAggressive).toBe('player1');
 		});
 	});
@@ -549,9 +626,9 @@ describe('ReplayAnalyzer', () => {
 	describe('Summary Statistics', () => {
 		test('should calculate summary statistics', () => {
 			const replayData = createMockReplayData();
-			
+
 			const summary = analyzer.getSummaryStats(replayData);
-			
+
 			expect(summary).toMatchObject({
 				totalHands: 1,
 				totalActions: 2,
@@ -572,9 +649,9 @@ describe('ReplayAnalyzer', () => {
 					totalActions: 0,
 				},
 			};
-			
+
 			const summary = analyzer.getSummaryStats(emptyReplay);
-			
+
 			expect(summary.totalHands).toBe(0);
 			expect(summary.totalActions).toBe(0);
 			expect(summary.avgPotSize).toBe(0);
@@ -591,7 +668,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'raise' as any, amount: 60, playerId: 'player1', timestamp: 3000 },
+					action: {
+						type: 'raise' as any,
+						amount: 60,
+						playerId: 'player1',
+						timestamp: 3000,
+					},
 					sequenceId: 4,
 				},
 				{
@@ -600,7 +682,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'bet' as any, amount: 40, playerId: 'player1', timestamp: 4000 },
+					action: {
+						type: 'bet' as any,
+						amount: 40,
+						playerId: 'player1',
+						timestamp: 4000,
+					},
 					sequenceId: 5,
 				},
 				{
@@ -609,7 +696,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player2',
-					action: { type: 'call' as any, amount: 40, playerId: 'player2', timestamp: 5000 },
+					action: {
+						type: 'call' as any,
+						amount: 40,
+						playerId: 'player2',
+						timestamp: 5000,
+					},
 					sequenceId: 6,
 				},
 				{
@@ -622,10 +714,12 @@ describe('ReplayAnalyzer', () => {
 					gameStateAfter: createMockGameState(1),
 				},
 			];
-			
-			const replayData = createMockReplayData(multiActionEvents as ReplayEvent[]);
+
+			const replayData = createMockReplayData(
+				multiActionEvents as ReplayEvent[],
+			);
 			const summary = analyzer.getSummaryStats(replayData);
-			
+
 			expect(summary.mostActivePlayer).toBe('Player One'); // player1 has more actions
 		});
 	});
@@ -640,7 +734,12 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'bet' as any, amount: 150, playerId: 'player1', timestamp: 3000 }, // Large bet
+					action: {
+						type: 'bet' as any,
+						amount: 150,
+						playerId: 'player1',
+						timestamp: 3000,
+					}, // Large bet
 					sequenceId: 4,
 					playerDecisionContext: {
 						playerId: 'player1',
@@ -654,10 +753,10 @@ describe('ReplayAnalyzer', () => {
 				},
 				...createMockReplayData().events.slice(3),
 			];
-			
+
 			const replayData = createMockReplayData(largeBetEvents as ReplayEvent[]);
 			const handAnalysis = analyzer.analyzeHands(replayData);
-			
+
 			expect(handAnalysis[0].keyDecisions).toBeDefined();
 			expect(handAnalysis[0].keyDecisions.length).toBeGreaterThan(0);
 			expect(handAnalysis[0].keyDecisions[0].actionTaken).toBe('bet');
@@ -672,15 +771,20 @@ describe('ReplayAnalyzer', () => {
 					handNumber: 1,
 					phase: GamePhase.PreFlop,
 					playerId: 'player1',
-					action: { type: 'bet' as any, amount: 10, playerId: 'player1', timestamp: 3000 }, // Small bet
+					action: {
+						type: 'bet' as any,
+						amount: 10,
+						playerId: 'player1',
+						timestamp: 3000,
+					}, // Small bet
 					sequenceId: 4,
 				},
 				...createMockReplayData().events.slice(3),
 			];
-			
+
 			const replayData = createMockReplayData(smallBetEvents as ReplayEvent[]);
 			const handAnalysis = analyzer.analyzeHands(replayData);
-			
+
 			expect(handAnalysis[0].keyDecisions).toHaveLength(0);
 		});
 	});
@@ -694,31 +798,41 @@ describe('ReplayAnalyzer', () => {
 					playerNames: {},
 				},
 			};
-			
-			expect(() => analyzer.calculatePlayerStatistics(replayData)).not.toThrow();
+
+			expect(() =>
+				analyzer.calculatePlayerStatistics(replayData),
+			).not.toThrow();
 		});
 
 		test('should handle events without actions', () => {
-			const eventsWithoutActions = createMockReplayData().events.map(event => ({
-				...event,
-				action: undefined,
-			}));
-			
-			const replayData = createMockReplayData(eventsWithoutActions as ReplayEvent[]);
-			
+			const eventsWithoutActions = createMockReplayData().events.map(
+				(event) => ({
+					...event,
+					action: undefined,
+				}),
+			);
+
+			const replayData = createMockReplayData(
+				eventsWithoutActions as ReplayEvent[],
+			);
+
 			expect(() => analyzer.analyzeReplay(replayData)).not.toThrow();
 		});
 
 		test('should handle events without player decision context', () => {
-			const eventsWithoutContext = createMockReplayData().events.map(event => ({
-				...event,
-				playerDecisionContext: undefined,
-			}));
-			
-			const replayData = createMockReplayData(eventsWithoutContext as ReplayEvent[]);
+			const eventsWithoutContext = createMockReplayData().events.map(
+				(event) => ({
+					...event,
+					playerDecisionContext: undefined,
+				}),
+			);
+
+			const replayData = createMockReplayData(
+				eventsWithoutContext as ReplayEvent[],
+			);
 			const playerStats = analyzer.calculatePlayerStatistics(replayData);
-			
+
 			expect(playerStats['player1'].avgDecisionTime).toBe(0);
 		});
 	});
-}); 
+});

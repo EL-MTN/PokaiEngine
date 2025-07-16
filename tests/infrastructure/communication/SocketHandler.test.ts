@@ -1,11 +1,9 @@
 import { GameController } from '@/application/engine/GameController';
 import { BotAuthService } from '@/application/services/BotAuthService';
 import { Action, ActionType, GameConfig } from '@/domain/types';
-import {
-	Socket,
-	SocketHandler,
-	SocketIOServer,
-} from '@/infrastructure/communication/SocketHandler';
+import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
+
+import { MockSocket, MockSocketServer } from '../../utils/mocks';
 
 // Mock BotAuthService to avoid MongoDB dependency
 const mockBotAuthService = {
@@ -29,54 +27,6 @@ jest.mock('@/application/services/BotAuthService', () => ({
 	},
 }));
 
-/**
- * Lightweight in-memory Socket.IO mocks
- */
-class MockSocket implements Socket {
-	public handlers: Record<string, ((data: any) => void)[]> = {};
-	public outgoing: Array<{ event: string; data: any }> = [];
-
-	constructor(public id: string) {}
-
-	emit(event: string, data: any): void {
-		this.outgoing.push({ event, data });
-	}
-
-	on(event: string, callback: (...args: any[]) => void): void {
-		if (!this.handlers[event]) this.handlers[event] = [];
-		this.handlers[event].push(callback);
-	}
-
-	trigger(event: string, data: any): void {
-		(this.handlers[event] || []).forEach((cb) => cb(data));
-	}
-
-	join(): void {}
-	leave(): void {}
-
-	disconnect(): void {
-		this.trigger('disconnect', {});
-	}
-}
-
-class MockSocketServer implements SocketIOServer {
-	private connectCallbacks: ((socket: Socket) => void)[] = [];
-	public sockets: MockSocket[] = [];
-
-	on(event: string, callback: (socket: Socket) => void): void {
-		if (event === 'connection') {
-			this.connectCallbacks.push(callback);
-		}
-	}
-
-	connect(id: string): MockSocket {
-		const socket = new MockSocket(id);
-		this.sockets.push(socket);
-		this.connectCallbacks.forEach((cb) => cb(socket));
-		return socket;
-	}
-}
-
 describe('SocketHandler Comprehensive Tests', () => {
 	const gameId = 'game1';
 	const bot1Id = 'botA';
@@ -94,7 +44,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 		socket: MockSocket,
 		credentials: any,
 	): Promise<void> {
-		socket.outgoing = [];
+		socket.clearOutgoing();
 		socket.trigger('authenticate', {
 			botId: credentials.botId,
 			apiKey: credentials.apiKey,
@@ -353,8 +303,8 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const actingId = bot1Turn ? bot1Id : bot2Id;
 
 			// Clear outgoing to track only new messages
-			bot1.outgoing = [];
-			bot2.outgoing = [];
+			bot1.clearOutgoing();
+			bot2.clearOutgoing();
 
 			// Request possible actions and verify they exist
 			actingBot.trigger('requestPossibleActions', undefined);
@@ -379,8 +329,8 @@ describe('SocketHandler Comprehensive Tests', () => {
 			};
 
 			// Clear outgoing messages before taking action
-			bot1.outgoing = [];
-			bot2.outgoing = [];
+			bot1.clearOutgoing();
+			bot2.clearOutgoing();
 
 			// Take the action
 			actingBot.trigger('action', { action });
@@ -405,6 +355,16 @@ describe('SocketHandler Comprehensive Tests', () => {
 	});
 
 	describe('Authentication', () => {
+		it('should require authentication on connection', () => {
+			const socket = server.connect('test-socket');
+
+			// Should emit authRequired
+			const authRequired = socket.outgoing.find(
+				(e) => e.event === 'authRequired',
+			);
+			expect(authRequired).toBeDefined();
+		});
+
 		it('requires authentication before actions', async () => {
 			const socket = server.connect('unauthenticated');
 
@@ -414,12 +374,20 @@ describe('SocketHandler Comprehensive Tests', () => {
 			);
 			expect(authRequired).toBeDefined();
 
+			// Add error handler to prevent unhandled errors
+			socket.on('error', () => {
+				// Expected error, do nothing
+			});
+
 			// Try to identify without auth
 			socket.trigger('identify', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
 			});
+
+			// Wait for the error to be emitted
+			await new Promise((resolve) => setTimeout(resolve, 50));
 
 			// Should receive error
 			const error = socket.outgoing.find((e) => e.event === 'error');
@@ -440,6 +408,44 @@ describe('SocketHandler Comprehensive Tests', () => {
 
 			const error = socket.outgoing.find((e) => e.event === 'authError');
 			expect(error).toBeDefined();
+		});
+
+		it('should allow actions after authentication', async () => {
+			const socket = server.connect('test-socket');
+
+			// Authenticate
+			socket.trigger('authenticate', {
+				botId: bot1Id,
+				apiKey: bot1Credentials.apiKey,
+			});
+
+			// Wait for async auth
+			await new Promise((resolve) => setTimeout(resolve, 50));
+
+			// Should be authenticated
+			const authEvent = socket.outgoing.find(
+				(e) => e.event === 'authenticated',
+			);
+			expect(authEvent).toBeDefined();
+
+			// Clear outgoing
+			socket.clearOutgoing();
+
+			// Now try to join game
+			socket.trigger('identify', {
+				botName: 'TestBot',
+				gameId,
+				chipStack: 1000,
+			});
+
+			// Should succeed
+			const success = socket.outgoing.find(
+				(e) => e.event === 'identificationSuccess',
+			);
+			const error = socket.outgoing.find((e) => e.event === 'error');
+
+			expect(success).toBeDefined();
+			expect(error).toBeUndefined();
 		});
 	});
 });
