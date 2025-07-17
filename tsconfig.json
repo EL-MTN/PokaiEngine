@@ -32,6 +32,6 @@
 		"isolatedModules": true,
 		"types": ["node", "jest"]
 	},
-	"include": ["src/**/*", "tests/**/*"],
+	"include": ["src/**/*", "tests/**/*", "sdk/**/*"],
 	"exclude": ["node_modules", "dist"]
 }

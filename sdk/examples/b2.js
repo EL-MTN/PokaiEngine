@@ -15,12 +15,26 @@ async function runBasicBot() {
 	// Create bot instance
 	const bot = new PokaiBot({
 		credentials: {
-			botId: 'b2-md6khjlu-731f1824',
+			botId: 'b2-md6sktcw-3e8610c6',
 			apiKey:
-				'1acd5f66e32c36220926381d31af90f6ce09ce61aaa0aea0d0a83e0c03f587c0',
+				'ac7fae3bd5fe4517d06fcb1fed06b88b437cb704ed07938678f5595b15157b04',
 		},
+		serverUrl: 'http://localhost:3001',
 		debug: true,
 	});
+
+	let handsPlayed = 0;
+	const maxHands = 5;
+
+	const handleGameCompletion = async () => {
+		console.log(`Played ${maxHands} hands, leaving game...`);
+		await bot.leaveGame();
+		console.log('Left the game.');
+		bot.disconnect();
+		process.exit(0);
+	};
+
+	let isActing = false;
 
 	// Set up event handlers
 	bot.setEventHandlers({
@@ -29,33 +43,51 @@ async function runBasicBot() {
 		},
 
 		onTurnStart: async (data) => {
-			console.log(`🎯 My turn! (${data.timeLimit}s time limit)`);
+			if (isActing) {
+				console.log('[B2] Already acting, skipping turn start');
+				return;
+			}
+			isActing = true;
+			console.log(`[B2] 🎯 My turn! (${data.timeLimit}s time limit)`);
 			
 			try {
+				// Add a 5-second delay for debugging
+				await new Promise(resolve => setTimeout(resolve, 5000));
+
 				// Get current game state
 				const gameState = await bot.getGameState();
-				console.log(`📊 Hand: ${formatCards(gameState.playerCards)} | Pot: $${gameState.potSize}`);
+				console.log(`[B2] 📊 Hand: ${formatCards(gameState.playerCards)} | Pot: ${gameState.potSize} | Phase: ${gameState.currentPhase}`);
 				
 				// Get possible actions
 				const actions = await bot.getPossibleActions();
-				console.log(`🎲 Available: ${actions.map(a => a.type).join(', ')}`);
+				console.log(`[B2] 🎲 Available: ${actions.map(a => a.type).join(', ')}`);
 				
 				// Simple strategy: prefer check/call over folding
 				if (actions.find(a => a.type === ActionType.Check)) {
+					console.log('[B2] Choosing action: Check');
 					await bot.submitAction(ActionType.Check);
 				} else if (actions.find(a => a.type === ActionType.Call)) {
+					console.log('[B2] Choosing action: Call');
 					await bot.submitAction(ActionType.Call);
 				} else {
+					console.log('[B2] Choosing action: Fold');
 					await bot.submitAction(ActionType.Fold);
 				}
+				console.log('[B2] ✅ Action submitted successfully');
 			} catch (error) {
-				console.error('❌ Error during turn:', error.message);
+				console.error('❌ [B2] Error during turn:', error.message);
+			} finally {
+				isActing = false;
 			}
 		},
 
 		onGameEvent: (event) => {
 			if (event.type === 'hand_complete') {
 				console.log('🏁 Hand completed');
+				handsPlayed++;
+				if (handsPlayed >= maxHands) {
+					handleGameCompletion();
+				}
 			}
 		},
 

@@ -1072,7 +1072,12 @@ class PokaiDashboard {
 
 				// Show the new API key to the user
 				alert(
-					`New API key generated successfully!\n\nBot ID: ${this.currentBotId}\nNew API Key: ${result.data.apiKey}\n\nPlease save this key securely. It won't be shown again.`,
+					`New API key generated successfully!
+
+Bot ID: ${this.currentBotId}
+New API Key: ${result.data.apiKey}
+
+Please save this key securely. It won't be shown again.`,
 				);
 
 				document.getElementById('bot-details-modal').classList.remove('show');
@@ -1998,34 +2003,26 @@ class PokaiDashboard {
 		const overviewContainer = document.getElementById('game-overview');
 		if (!overviewContainer) return;
 
-		const metadata = this.replayPlayer.metadata;
 		const analysis = this.replayPlayer.analysis;
+		if (!analysis) return;
 
 		overviewContainer.innerHTML = `
-            <div class="analysis-grid">
-                <div class="analysis-stat">
-                    <div class="analysis-stat-value">${metadata.handsPlayed || 0}</div>
-                    <div class="analysis-stat-label">Hands Played</div>
+            <div class="overview-grid">
+                <div class="overview-item">
+                    <div class="overview-label">Total Hands</div>
+                    <div class="overview-value">${analysis.hands?.length || 0}</div>
                 </div>
-                <div class="analysis-stat">
-                    <div class="analysis-stat-value">${metadata.totalActions || 0}</div>
-                    <div class="analysis-stat-label">Total Actions</div>
+                <div class="overview-item">
+                    <div class="overview-label">Total Players</div>
+                    <div class="overview-value">${analysis.players?.length || 0}</div>
                 </div>
-                <div class="analysis-stat">
-                    <div class="analysis-stat-value">${metadata.playerCount || 0}</div>
-                    <div class="analysis-stat-label">Players</div>
+                <div class="overview-item">
+                    <div class="overview-label">Avg. Hand Duration</div>
+                    <div class="overview-value">${analysis.averageHandDuration?.toFixed(2) || 0}s</div>
                 </div>
-                <div class="analysis-stat">
-                    <div class="analysis-stat-value">${Math.round((metadata.duration || 0) / 1000)}s</div>
-                    <div class="analysis-stat-label">Duration</div>
-                </div>
-                <div class="analysis-stat">
-                    <div class="analysis-stat-value">${analysis.averageHandDuration || 0}s</div>
-                    <div class="analysis-stat-label">Avg Hand Time</div>
-                </div>
-                <div class="analysis-stat">
-                    <div class="analysis-stat-value">${analysis.mostCommonAction || 'N/A'}</div>
-                    <div class="analysis-stat-label">Most Common Action</div>
+                <div class="overview-item">
+                    <div class="overview-label">Most Common Action</div>
+                    <div class="overview-value">${analysis.mostCommonAction || 'N/A'}</div>
                 </div>
             </div>
         `;
@@ -2035,210 +2032,115 @@ class PokaiDashboard {
 		const handsContainer = document.getElementById('hands-breakdown');
 		if (!handsContainer) return;
 
-		const analysis = this.replayPlayer.analysis;
-		const hands = analysis.hands || [];
+		const hands = this.replayPlayer.analysis?.hands || [];
 
 		if (hands.length === 0) {
-			handsContainer.innerHTML = '<p>No hand data available</p>';
+			handsContainer.innerHTML = '<p>No hand data to display.</p>';
 			return;
 		}
 
-		const handsList = hands
-			.map(
-				(hand, index) => `
-            <div class="hand-summary" onclick="dashboard.seekToHand(${index})">
-                <div class="hand-summary-header">
-                    <div class="hand-number">Hand #${index + 1}</div>
-                    <div class="hand-winner">Winner: ${hand.winner || 'Unknown'}</div>
-                </div>
-                <div class="hand-summary-info">
-                    Pot: $${hand.finalPot || 0} | Duration: ${hand.duration || 0}s | Actions: ${hand.actionCount || 0}
-                </div>
-            </div>
-        `,
-			)
-			.join('');
-
-		handsContainer.innerHTML = `<div class="hands-list">${handsList}</div>`;
+		handsContainer.innerHTML = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Hand #</th>
+                        <th>Winner</th>
+                        <th>Final Pot</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${hands
+											.map(
+												(hand) => `
+                        <tr>
+                            <td>${hand.handNumber}</td>
+                            <td>${hand.winner}</td>
+                            <td>$${hand.finalPot}</td>
+                            <td>${hand.duration.toFixed(2)}s</td>
+                            <td>${hand.actionCount}</td>
+                        </tr>
+                    `,
+											)
+											.join('')}
+                </tbody>
+            </table>
+        `;
 	}
 
 	updateAnalysisPlayers() {
 		const playersContainer = document.getElementById('player-stats');
 		if (!playersContainer) return;
 
-		const analysis = this.replayPlayer.analysis;
-		const players = analysis.players || [];
+		const players = this.replayPlayer.analysis?.players || [];
 
 		if (players.length === 0) {
-			playersContainer.innerHTML = '<p>No player data available</p>';
+			playersContainer.innerHTML = '<p>No player data to display.</p>';
 			return;
 		}
 
-		const playerCards = players
-			.map((player) => {
-				const profit = player.finalChips - player.startingChips;
-				const profitClass = profit >= 0 ? 'positive' : 'negative';
-
-				return `
-                <div class="player-stat-card">
-                    <div class="player-stat-header">
-                        <div class="player-stat-name">${player.name}</div>
-                        <div class="player-stat-profit ${profitClass}">
-                            ${profit >= 0 ? '+' : ''}$${profit}
-                        </div>
-                    </div>
-                    <div class="player-stat-metrics">
-                        <div class="player-metric">
-                            <div class="player-metric-value">${player.handsPlayed || 0}</div>
-                            <div class="player-metric-label">Hands</div>
-                        </div>
-                        <div class="player-metric">
-                            <div class="player-metric-value">${Math.round((player.vpip || 0) * 100)}%</div>
-                            <div class="player-metric-label">VPIP</div>
-                        </div>
-                        <div class="player-metric">
-                            <div class="player-metric-value">${Math.round((player.pfr || 0) * 100)}%</div>
-                            <div class="player-metric-label">PFR</div>
-                        </div>
-                        <div class="player-metric">
-                            <div class="player-metric-value">${player.totalActions || 0}</div>
-                            <div class="player-metric-label">Actions</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-			})
-			.join('');
-
-		playersContainer.innerHTML = `<div class="player-stats-grid">${playerCards}</div>`;
+		playersContainer.innerHTML = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Hands Played</th>
+                        <th>Total Actions</th>
+                        <th>Starting Chips</th>
+                        <th>Final Chips</th>
+                        <th>VPIP</th>
+                        <th>PFR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${players
+											.map(
+												(player) => `
+                        <tr>
+                            <td>${player.name}</td>
+                            <td>${player.handsPlayed}</td>
+                            <td>${player.totalActions}</td>
+                            <td>$${player.startingChips}</td>
+                            <td>$${player.finalChips}</td>
+                            <td>${(player.vpip * 100).toFixed(1)}%</td>
+                            <td>${(player.pfr * 100).toFixed(1)}%</td>
+                        </tr>
+                    `,
+											)
+											.join('')}
+                </tbody>
+            </table>
+        `;
 	}
 
 	updateAnalysisDecisions() {
 		const decisionsContainer = document.getElementById('decision-analysis');
 		if (!decisionsContainer) return;
 
-		const analysis = this.replayPlayer.analysis;
-		const interestingMoments = analysis.interestingMoments || [];
-
-		if (interestingMoments.length === 0) {
-			decisionsContainer.innerHTML =
-				'<p>No interesting decisions identified</p>';
-			return;
-		}
-
-		const moments = interestingMoments
-			.map(
-				(moment) => `
-            <div class="decision-moment" onclick="dashboard.seekToEvent(${moment.eventIndex})">
-                <div class="decision-header">
-                    <strong>${moment.type}</strong> - ${moment.player}
-                </div>
-                <div class="decision-description">
-                    ${moment.description}
-                </div>
-                <div class="decision-context">
-                    Pot Odds: ${moment.potOdds}% | Stack: $${moment.stackSize}
-                </div>
-            </div>
-        `,
-			)
-			.join('');
-
-		decisionsContainer.innerHTML = moments;
-	}
-
-	switchAnalysisTab(tabName) {
-		// Remove active class from all tabs and panes
-		document
-			.querySelectorAll('.tab-button')
-			.forEach((btn) => btn.classList.remove('active'));
-		document
-			.querySelectorAll('.tab-pane')
-			.forEach((pane) => pane.classList.remove('active'));
-
-		// Add active class to selected tab and pane
-		const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
-		const selectedPane = document.getElementById(`analysis-${tabName}`);
-
-		if (selectedTab) selectedTab.classList.add('active');
-		if (selectedPane) selectedPane.classList.add('active');
-	}
-
-	seekToHand(handIndex) {
-		if (!this.replayPlayer) return;
-
-		// Find the event index for the start of this hand
-		const targetEvent = this.replayPlayer.events.find(
-			(event) =>
-				event.type === 'HAND_STARTED' && event.handNumber - 1 === handIndex,
-		);
-
-		if (targetEvent) {
-			const eventIndex = this.replayPlayer.events.indexOf(targetEvent);
-			this.replayPlayer.currentEventIndex = eventIndex;
-			this.updateReplayProgress();
-			this.updateGameStateDisplay();
-		}
-	}
-
-	seekToEvent(eventIndex) {
-		if (!this.replayPlayer) return;
-
-		this.replayPlayer.currentEventIndex = Math.max(
-			0,
-			Math.min(eventIndex, this.replayPlayer.events.length - 1),
-		);
-		this.updateReplayProgress();
-		this.updateGameStateDisplay();
+		decisionsContainer.innerHTML =
+			'<p>Detailed decision analysis is not yet implemented.</p>';
 	}
 
 	closeReplayViewer() {
-		this.stopReplayPlayback();
 		const modal = document.getElementById('replay-viewer-modal');
 		if (modal) {
 			modal.classList.remove('show');
 		}
+		this.stopReplayPlayback();
 		this.currentReplay = null;
 		this.replayPlayer = null;
 	}
 
 	async analyzeReplay(gameId) {
-		try {
-			const replay = this.replays.get(gameId);
-			if (!replay) {
-				throw new Error(`Replay not found: ${gameId}`);
-			}
-
-			const filenameWithoutExt = replay.filename.replace('.json', '');
-			const response = await fetch(
-				`/api/replays/${filenameWithoutExt}/analysis`,
-			);
-			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-			}
-
-			const result = await response.json();
-
-			if (result.success) {
-				this.addLog('info', `Analysis completed for replay ${gameId}`);
-				console.log('Replay Analysis:', result.data);
-			} else {
-				throw new Error(result.error || 'Analysis failed');
-			}
-		} catch (error) {
-			this.addLog('error', `Failed to analyze replay: ${error.message}`);
-		}
+		this.addLog('info', `Analyzing replay for game ${gameId}...`);
+		// For now, just opens the replay viewer
+		this.openReplayViewer(gameId);
 	}
 
 	async exportReplay(gameId) {
 		try {
-			const replay = this.replays.get(gameId);
-			if (!replay) {
-				throw new Error(`Replay not found: ${gameId}`);
-			}
-
-			const filenameWithoutExt = replay.filename.replace('.json', '');
-			const response = await fetch(`/api/replays/${filenameWithoutExt}/export`);
+			const response = await fetch(`/api/replays/${gameId}/export`);
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 			}
@@ -2246,184 +2148,159 @@ class PokaiDashboard {
 			const blob = await response.blob();
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
+			a.style.display = 'none';
 			a.href = url;
-			a.download = replay.filename;
+			a.download = `replay_${gameId}.json`;
 			document.body.appendChild(a);
 			a.click();
 			window.URL.revokeObjectURL(url);
-			document.body.removeChild(a);
-
-			this.addLog('info', `Replay ${gameId} exported successfully`);
+			this.addLog('info', `Exported replay for game ${gameId}`);
 		} catch (error) {
 			this.addLog('error', `Failed to export replay: ${error.message}`);
 		}
 	}
 
 	async deleteReplay(gameId) {
-		if (!confirm(`Are you sure you want to delete replay "${gameId}"?`)) {
+		if (!confirm(`Are you sure you want to delete replay for game "${gameId}"?`)) {
 			return;
 		}
 
 		try {
-			const replay = this.replays.get(gameId);
-			if (!replay) {
-				throw new Error(`Replay not found: ${gameId}`);
-			}
-
-			const filenameWithoutExt = replay.filename.replace('.json', '');
-			const response = await fetch(`/api/replays/${filenameWithoutExt}`, {
+			const response = await fetch(`/api/replays/${gameId}`, {
 				method: 'DELETE',
 			});
+			const result = await response.json();
 
-			if (response.ok) {
-				this.addLog('info', `Replay ${gameId} deleted successfully`);
-				this.replays.delete(gameId);
-				this.updateReplaysDisplay();
+			if (result.success) {
+				this.addLog('info', `Replay for game "${gameId}" deleted successfully`);
+				await this.loadReplays();
 			} else {
-				throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+				throw new Error(result.message || 'Failed to delete replay');
 			}
 		} catch (error) {
 			this.addLog('error', `Failed to delete replay: ${error.message}`);
 		}
 	}
 
-	// Live Game Viewer Methods
-	watchLiveGame(gameId) {
-		try {
-			// Authenticate as spectator first
-			this.authenticateAsSpectator(() => {
-				this.startSpectating(gameId);
+	// Live Game Spectator Methods
+	async watchLiveGame(gameId) {
+		this.addLog('info', `Attempting to watch game: ${gameId}`);
+		const modal = document.getElementById('live-game-modal');
+		if (!modal) return;
+
+		// Authenticate as spectator if not already
+		if (!this.isSpectatorAuthenticated) {
+			this.addLog('info', 'Authenticating as spectator...');
+			const adminKey = prompt('Enter spectator admin key:');
+			if (!adminKey) {
+				this.addLog('warn', 'Spectator key not provided.');
+				return;
+			}
+
+			this.socket.emit('spectator.auth', { adminKey });
+
+			// Wait for authentication confirmation
+			await new Promise((resolve) => {
+				this.socket.once('spectator.auth.success', () => {
+					this.isSpectatorAuthenticated = true;
+					this.addLog('info', 'Spectator authenticated successfully.');
+					resolve();
+				});
+				this.socket.once('spectator.auth.error', (data) => {
+					this.addLog('error', `Spectator authentication failed: ${data.error}`);
+					resolve(); // Resolve anyway to not hang the UI
+				});
 			});
-		} catch (error) {
-			this.addLog('error', `Failed to start watching game: ${error.message}`);
-		}
-	}
 
-	authenticateAsSpectator(callback) {
-		if (this.isSpectatorAuthenticated) {
-			callback();
-			return;
+			if (!this.isSpectatorAuthenticated) return;
 		}
 
-		// Send spectator authentication
-		this.socket.emit('spectatorAuth', {
-			adminKey: 'admin123', // In production, this should be obtained securely
-		});
+		// Setup listeners if not already done
+		if (!this.spectatorListenersSetup) {
+			this.setupSpectatorListeners();
+		}
 
-		// Handle authentication response
-		this.socket.once('spectatorAuthSuccess', () => {
-			this.isSpectatorAuthenticated = true;
-			this.addLog('info', 'Authenticated as spectator');
-			callback();
-		});
-
-		this.socket.once('spectatorAuthError', (data) => {
-			this.addLog('error', `Spectator authentication failed: ${data.error}`);
-		});
-	}
-
-	startSpectating(gameId) {
-		this.currentSpectatingGame = gameId;
-
-		// Set up spectator event listeners
-		this.setupSpectatorListeners();
-
-		// Request to spectate the game
-		this.socket.emit('spectate', { gameId });
-
-		this.socket.once('spectatingGame', () => {
-			this.addLog('info', `Started spectating game: ${gameId}`);
-			this.openLiveGameViewer(gameId);
-		});
-
-		this.socket.once('spectateError', (data) => {
-			this.addLog('error', `Failed to spectate game: ${data.error}`);
-		});
+		// Watch the selected game
+		this.socket.emit('spectator.watch', { gameId });
 	}
 
 	setupSpectatorListeners() {
-		if (this.spectatorListenersSetup) return;
+		if (!this.socket) return;
 
-		// Handle full game state updates
-		this.socket.on('fullGameState', (data) => {
-			this.updateLiveGameDisplay(data.gameId, data.gameState);
+		this.socket.on('spectator.watch.success', (data) => {
+			this.currentSpectatingGame = data.gameId;
+			this.addLog('info', `Successfully watching game ${data.gameId}`);
+			this.openLiveGameModal(data.gameId);
 		});
 
-		// Handle live game events
-		this.socket.on('spectatorGameEvent', (data) => {
-			this.handleLiveGameEvent(data.gameId, data.event);
+		this.socket.on('spectator.watch.error', (data) => {
+			this.addLog('error', `Failed to watch game: ${data.error}`);
+		});
+
+		this.socket.on('spectator.state', (data) => {
+			if (data.gameId === this.currentSpectatingGame) {
+				this.updateLiveGameView(data.gameState);
+			}
+		});
+
+		this.socket.on('spectator.event', (data) => {
+			if (data.gameId === this.currentSpectatingGame) {
+				this.addLiveGameLog(data.event);
+			}
 		});
 
 		this.spectatorListenersSetup = true;
 	}
 
-	openLiveGameViewer(gameId) {
+	openLiveGameModal(gameId) {
 		const modal = document.getElementById('live-game-modal');
-		const gameIdSpan = document.getElementById('live-game-id');
-		const closeBtn = document.getElementById('close-live-game-modal');
+		const title = document.getElementById('live-game-id');
+		if (modal && title) {
+			title.textContent = gameId;
+			modal.classList.add('show');
+		}
+
+		// Add event listener for stop spectating button
 		const stopBtn = document.getElementById('stop-spectating-btn');
-
-		if (!modal || !gameIdSpan) return;
-
-		gameIdSpan.textContent = gameId;
-		modal.classList.add('show');
-
-		// Set up close handlers
-		closeBtn.onclick = () => this.closeLiveGameViewer();
-		stopBtn.onclick = () => this.stopSpectating();
-
-		// Clear previous content
-		document.getElementById('live-community-cards').innerHTML = '';
-		document.getElementById('live-players-positions').innerHTML = '';
-		document.getElementById('live-action-log').innerHTML = '';
-		document.getElementById('live-pot-amount').textContent = '0';
-		document.getElementById('live-hand-number').textContent = '0';
-		document.getElementById('live-game-phase').textContent = '-';
-		document.getElementById('live-blinds').textContent = '-';
+		if (stopBtn) {
+			stopBtn.addEventListener('click', () => this.stopWatchingLiveGame());
+		}
 	}
 
-	closeLiveGameViewer() {
+	stopWatchingLiveGame() {
+		if (this.currentSpectatingGame) {
+			this.socket.emit('spectator.unwatch', {
+				gameId: this.currentSpectatingGame,
+			});
+			this.addLog('info', `Stopped watching game ${this.currentSpectatingGame}`);
+			this.currentSpectatingGame = null;
+		}
+
 		const modal = document.getElementById('live-game-modal');
 		if (modal) {
 			modal.classList.remove('show');
 		}
-		this.stopSpectating();
 	}
 
-	stopSpectating() {
-		if (this.currentSpectatingGame) {
-			this.socket.emit('stopSpectating', {
-				gameId: this.currentSpectatingGame,
-			});
-			this.currentSpectatingGame = null;
-			this.addLog('info', 'Stopped spectating game');
-		}
-	}
+	updateLiveGameView(gameState) {
+		if (!gameState) return;
 
-	updateLiveGameDisplay(gameId, gameState) {
-		if (gameId !== this.currentSpectatingGame) return;
+		// Update game info
+		document.getElementById('live-hand-number').textContent =
+			gameState.handNumber || 0;
+		document.getElementById('live-game-phase').textContent =
+			gameState.currentPhase || '-';
+		document.getElementById(
+			'live-blinds',
+		).textContent = `$${gameState.smallBlindAmount}/$${gameState.bigBlindAmount}`;
+		document.getElementById('live-pot-amount').textContent =
+			gameState.potSize || 0;
 
 		// Update community cards
 		this.updateLiveCommunityCards(gameState.communityCards || []);
 
-		// Update pot
-		const totalPot = gameState.pots.reduce((sum, pot) => sum + pot.amount, 0);
-		document.getElementById('live-pot-amount').textContent =
-			totalPot.toString();
-
-		// Update game info
-		document.getElementById('live-hand-number').textContent =
-			gameState.handNumber || '0';
-		document.getElementById('live-game-phase').textContent =
-			gameState.currentPhase || '-';
-		document.getElementById('live-blinds').textContent =
-			`$${gameState.smallBlindAmount}/$${gameState.bigBlindAmount}`;
-
 		// Update players
-		this.updateLivePlayersDisplay(
-			gameState.players,
-			gameState.currentPlayerToAct,
-		);
+		this.updateLivePlayers(gameState.players || []);
 	}
 
 	updateLiveCommunityCards(cards) {
@@ -2437,146 +2314,102 @@ class PokaiDashboard {
 				const suitClass = this.getSuitClass(card.suit);
 				const suitSymbol = this.getSuitSymbol(card.suit);
 				const displayRank = this.formatCardRank(card.rank);
-				cardElements.push(`
-                    <div class="card ${suitClass}">
-                        ${displayRank}${suitSymbol}
-                    </div>
-                `);
+				cardElements.push(
+					`<div class="card ${suitClass}">${displayRank}${suitSymbol}</div>`,
+				);
 			} else {
-				cardElements.push('<div class="card card-placeholder">?</div>');
+				cardElements.push('<div class="card card-placeholder"></div>');
 			}
 		}
-
 		container.innerHTML = cardElements.join('');
 	}
 
-	updateLivePlayersDisplay(players, currentPlayerToAct) {
+	updateLivePlayers(players) {
 		const container = document.getElementById('live-players-positions');
 		if (!container) return;
 
-		const playerElements = players
-			.map((player) => {
-				const isActive = player.id === currentPlayerToAct;
+		const seatElements = [];
+		for (let i = 0; i < 9; i++) {
+			// Assuming max 9 players for layout
+			const player = players.find((p) => p.position === i);
+			if (player) {
 				const isFolded = player.isFolded;
+				const isCurrent = player.id === this.currentSpectatingGame?.currentPlayer;
 
-				// Determine if we should show hole cards
-				// Dashboard always respects visibility rules from the server
-				const showHoleCards = player.holeCards && player.holeCards.length > 0;
-
-				return `
-                <div class="player-seat ${isActive ? 'active-turn' : ''} ${isFolded ? 'folded' : ''}">
-                    <div class="player-name">${player.name}</div>
-                    <div class="player-chips">$${player.chipStack}</div>
-                    ${
-											showHoleCards
-												? `
-                        <div class="player-cards">
-                            ${player.holeCards
-															.map((card) => {
-																const suitClass = this.getSuitClass(card.suit);
-																const suitSymbol = this.getSuitSymbol(
-																	card.suit,
-																);
-																const displayRank = this.formatCardRank(
-																	card.rank,
-																);
-																return `<div class="card ${suitClass}">${displayRank}${suitSymbol}</div>`;
-															})
-															.join('')}
+				seatElements.push(`
+                    <div class="player-position seat-${i} ${isFolded ? 'folded' : ''} ${isCurrent ? 'current-turn' : ''}">
+                        <div class="player-info">
+                            <div class="player-name">${player.name}</div>
+                            <div class="player-chips">$${player.chipStack}</div>
                         </div>
-                    `
-												: player.holeCards === undefined && !isFolded
-													? `
                         <div class="player-cards">
-                            <div class="card card-back">?</div>
-                            <div class="card card-back">?</div>
+                            ${
+															player.holeCards && player.holeCards.length > 0
+																? player.holeCards
+																		.map((card) => {
+																			const suitClass = this.getSuitClass(
+																				card.suit,
+																			);
+																			const suitSymbol = this.getSuitSymbol(
+																				card.suit,
+																			);
+																			const displayRank = this.formatCardRank(
+																				card.rank,
+																			);
+																			return `<div class="card ${suitClass}">${displayRank}${suitSymbol}</div>`;
+																		})
+																		.join('')
+																: '<div class="card card-back"></div><div class="card card-back"></div>'
+														}
                         </div>
-                    `
-													: ''
-										}
-                    ${
-											player.lastAction
-												? `
-                        <div class="player-action">${player.lastAction}</div>
-                    `
-												: ''
-										}
-                </div>
-            `;
-			})
-			.join('');
-
-		container.innerHTML = playerElements;
-	}
-
-	handleLiveGameEvent(gameId, event) {
-		if (gameId !== this.currentSpectatingGame) return;
-
-		// Add to action log
-		this.addLiveActionLogEntry(event);
-
-		// Update display based on event type
-		if (event.gameState || event.gameStateAfter) {
-			// Some events include updated game state
-			const gameState = event.gameStateAfter || event.gameState;
-			this.updateLiveGameDisplay(gameId, gameState);
+                        ${player.currentBet > 0 ? `<div class="player-bet-chip">${player.currentBet}</div>` : ''}
+                    </div>
+                `);
+			} else {
+				seatElements.push(`<div class="player-position seat-${i} empty"></div>`);
+			}
 		}
+		container.innerHTML = seatElements.join('');
 	}
 
-	addLiveActionLogEntry(event) {
-		const actionLog = document.getElementById('live-action-log');
-		if (!actionLog) return;
-
-		const description = this.formatLiveEventDescription(event);
-		const actionType = this.getActionType(event);
+	addLiveGameLog(event) {
+		const logContainer = document.getElementById('live-action-log');
+		if (!logContainer) return;
 
 		const entry = document.createElement('div');
-		entry.className = `action-entry ${actionType}`;
-		entry.textContent = description;
+		entry.className = 'action-entry';
+		entry.textContent = this.formatEventDescription(event);
+		logContainer.appendChild(entry);
 
-		actionLog.appendChild(entry);
-		actionLog.scrollTop = actionLog.scrollHeight;
+		// Scroll to bottom
+		logContainer.scrollTop = logContainer.scrollHeight;
 	}
 
-	formatLiveEventDescription(event) {
-		switch (event.type) {
-			case 'player_action':
-			case 'action_taken': {
-				const action = event.action || {};
-				const playerId = event.playerId || action.playerId || 'Unknown';
-				const playerName = event.playerName || playerId;
-				return `${playerName}: ${action.type} ${action.amount ? `$${action.amount}` : ''}`;
-			}
-			case 'hand_started':
-				return `Hand #${event.handNumber || 1} started`;
-			case 'hand_complete':
-			case 'hand_completed':
-				return `Hand completed`;
-			case 'phase_change':
-				return `Phase: ${event.newPhase || event.phase}`;
-			case 'flop_dealt':
-				return 'Flop dealt';
-			case 'turn_dealt':
-				return 'Turn dealt';
-			case 'river_dealt':
-				return 'River dealt';
-			case 'showdown_complete':
-				return 'Showdown complete';
-			case 'player_joined':
-				return `${event.playerName || event.playerId} joined`;
-			case 'player_left':
-				return `${event.playerName || event.playerId} left`;
-			default:
-				return event.type.replace(/_/g, ' ');
+	// Helper to switch tabs in replay analysis
+	switchAnalysisTab(tabId) {
+		// Hide all tab panes
+		document
+			.querySelectorAll('.tab-pane')
+			.forEach((pane) => pane.classList.remove('active'));
+
+		// Deactivate all tab buttons
+		document
+			.querySelectorAll('.tab-button')
+			.forEach((button) => button.classList.remove('active'));
+
+		// Show the selected tab pane
+		const selectedPane = document.getElementById(`analysis-${tabId}`);
+		if (selectedPane) {
+			selectedPane.classList.add('active');
+		}
+
+		// Activate the selected tab button
+		const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+		if (selectedButton) {
+			selectedButton.classList.add('active');
 		}
 	}
 }
 
-// Initialize dashboard when page loads
-let dashboard;
-document.addEventListener('DOMContentLoaded', () => {
-	dashboard = new PokaiDashboard();
-});
-
-// Make dashboard globally available for onclick handlers
-window.dashboard = dashboard;
+// Initialize the dashboard
+const dashboard = new PokaiDashboard();
