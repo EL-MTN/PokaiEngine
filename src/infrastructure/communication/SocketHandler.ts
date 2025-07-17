@@ -362,22 +362,7 @@ export class SocketHandler {
 			);
 
 			// Unsubscribe from events and leave room
-			if (connection.eventHandler) {
-				try {
-					this.gameController.unsubscribeFromGame(
-						connection.gameId,
-						connection.eventHandler,
-					);
-				} catch (error) {
-					// Log error but don't prevent cleanup
-					communicationLogger.error(
-						`Failed to unsubscribe from game events for player ${connection.playerId}:`,
-						error,
-					);
-				}
-				// Clear the handler reference to prevent memory leaks
-				connection.eventHandler = undefined;
-			}
+			this.unsubscribeFromGameEvents(connection);
 			if (typeof connection.socket.leave === 'function') {
 				connection.socket.leave(`game_${connection.gameId}`);
 			}
@@ -494,6 +479,9 @@ export class SocketHandler {
 	 * Subscribes to game events for a bot
 	 */
 	private subscribeToGameEvents(connection: BotConnection): void {
+		// Clean up any existing subscription first
+		this.unsubscribeFromGameEvents(connection);
+
 		const eventHandler = (event: GameEvent) => {
 			this.handleGameEvent(connection, event);
 		};
@@ -504,6 +492,21 @@ export class SocketHandler {
 		// Subscribe to game events when bot joins a game
 		if (connection.gameId) {
 			this.gameController.subscribeToGame(connection.gameId, eventHandler);
+		}
+	}
+
+	/**
+	 * Unsubscribes from game events for a bot
+	 */
+	private unsubscribeFromGameEvents(connection: BotConnection): void {
+		if (connection.eventHandler && connection.gameId) {
+			try {
+				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
+			} catch (error) {
+				// Log but don't throw - unsubscribe errors shouldn't break the flow
+				communicationLogger.warn(`Failed to unsubscribe from game events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			}
+			connection.eventHandler = undefined;
 		}
 	}
 
@@ -701,22 +704,7 @@ export class SocketHandler {
 		this.clearTurnTimer(connection.playerId);
 
 		// Unsubscribe from game events
-		if (connection.gameId && connection.eventHandler) {
-			try {
-				this.gameController.unsubscribeFromGame(
-					connection.gameId,
-					connection.eventHandler,
-				);
-			} catch (error) {
-				// Log error but don't prevent cleanup
-				communicationLogger.error(
-					`Failed to unsubscribe from game events for player ${connection.playerId}:`,
-					error,
-				);
-			}
-			// Clear the handler reference to prevent memory leaks
-			connection.eventHandler = undefined;
-		}
+		this.unsubscribeFromGameEvents(connection);
 
 		// Remove from connections
 		this.connections.delete(connection.socket.id);
@@ -891,9 +879,6 @@ export class SocketHandler {
 				playerId: connection.playerId,
 				timestamp: Date.now(),
 			});
-
-			// Subscribe to game events for this bot
-			this.subscribeToGameEvents(connection);
 
 			authLogger.info(
 				`Bot ${data.botId} (${bot.botName}) authenticated successfully`,
