@@ -154,14 +154,14 @@ describe('SocketHandler Coverage Tests', () => {
 				new Error('Service down'),
 			);
 
-			socket.trigger('authenticate', {
+			socket.trigger('auth.login', {
 				botId: 'test-bot',
 				apiKey: 'test-key',
 			});
 
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'authError');
+			const errorMsg = socket.outgoing.find((e) => e.event === 'auth.login.error');
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.message).toBe('Authentication failed');
 		});
@@ -172,14 +172,14 @@ describe('SocketHandler Coverage Tests', () => {
 			mockBotAuthService.validateBot.mockResolvedValueOnce(true);
 			mockBotAuthService.getBot.mockResolvedValueOnce(null);
 
-			socket.trigger('authenticate', {
+			socket.trigger('auth.login', {
 				botId: 'missing-bot',
 				apiKey: 'valid-key',
 			});
 
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'authError');
+			const errorMsg = socket.outgoing.find((e) => e.event === 'auth.login.error');
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.message).toBe('Bot not found');
 		});
@@ -189,7 +189,7 @@ describe('SocketHandler Coverage Tests', () => {
 
 			const socket = server.connect('bypass-bot');
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'BypassBot',
 				gameId,
 				chipStack: 1000,
@@ -198,7 +198,7 @@ describe('SocketHandler Coverage Tests', () => {
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
 			const successMsg = socket.outgoing.find(
-				(e) => e.event === 'identificationSuccess',
+				(e) => e.event === 'game.join.success',
 			);
 			expect(successMsg).toBeDefined();
 
@@ -218,10 +218,10 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should authenticate spectator with valid admin key', async () => {
 			const spectator = server.connect('spectator1');
 
-			spectator.trigger('spectatorAuth', { adminKey: 'test-admin-key' });
+			spectator.trigger('spectator.auth', { adminKey: 'test-admin-key' });
 
 			const successMsg = spectator.outgoing.find(
-				(e) => e.event === 'spectatorAuthSuccess',
+				(e) => e.event === 'spectator.auth.success',
 			);
 			expect(successMsg).toBeDefined();
 		});
@@ -229,10 +229,10 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should reject spectator with invalid admin key', async () => {
 			const spectator = server.connect('spectator1');
 
-			spectator.trigger('spectatorAuth', { adminKey: 'wrong-key' });
+			spectator.trigger('spectator.auth', { adminKey: 'wrong-key' });
 
 			const errorMsg = spectator.outgoing.find(
-				(e) => e.event === 'spectatorAuthError',
+				(e) => e.event === 'spectator.auth.error',
 			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Invalid admin key');
@@ -241,14 +241,14 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should handle spectator joining non-existent game', async () => {
 			const spectator = server.connect('spectator1');
 
-			spectator.trigger('spectatorAuth', { adminKey: 'test-admin-key' });
+			spectator.trigger('spectator.auth', { adminKey: 'test-admin-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			spectator.trigger('spectate', { gameId: 'non-existent' });
+			spectator.trigger('spectator.watch', { gameId: 'non-existent' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
 			const errorMsg = spectator.outgoing.find(
-				(e) => e.event === 'spectateError',
+				(e) => e.event === 'spectator.watch.error',
 			);
 			expect(errorMsg).toBeDefined();
 		});
@@ -259,10 +259,10 @@ describe('SocketHandler Coverage Tests', () => {
 			const socket = server.connect('test-bot');
 
 			// Authenticate and join game
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
@@ -275,22 +275,22 @@ describe('SocketHandler Coverage Tests', () => {
 				timestamp: Date.now(),
 			};
 
-			socket.trigger('action', { action });
+			socket.trigger('action.submit', { action });
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'actionError');
+			const errorMsg = socket.outgoing.find((e) => e.event === 'action.submit.error');
 			expect(errorMsg).toBeDefined();
 		});
 
 		it('should handle possible actions request for bot not in game', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('requestPossibleActions', {});
+			socket.trigger('state.actions', {});
 
 			const errorMsg = socket.outgoing.find(
-				(e) => e.event === 'possibleActionsError',
+				(e) => e.event === 'state.actions.error',
 			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Not in a game');
@@ -299,13 +299,13 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should handle leave game for bot not in game', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('leaveGame', {});
+			socket.trigger('game.leave', {});
 
 			const errorMsg = socket.outgoing.find(
-				(e) => e.event === 'leaveGameError',
+				(e) => e.event === 'game.leave.error',
 			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Bot is not in a game');
@@ -314,12 +314,12 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should handle unseat request for bot not in game', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('unseat', {});
+			socket.trigger('game.unseat', {});
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'unseatError');
+			const errorMsg = socket.outgoing.find((e) => e.event === 'game.unseat.error');
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Bot is not in a game');
 		});
@@ -329,10 +329,10 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should handle disconnection properly', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
@@ -347,10 +347,10 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should clean up inactive connections', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
@@ -380,18 +380,18 @@ describe('SocketHandler Coverage Tests', () => {
 					throw new Error('Unsubscribe failed');
 				});
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
 			});
-			socket.trigger('leaveGame', {});
+			socket.trigger('game.leave', {});
 
 			// Should still succeed despite unsubscribe error
-			const leftGameMsg = socket.outgoing.find((e) => e.event === 'leftGame');
+			const leftGameMsg = socket.outgoing.find((e) => e.event === 'game.leave.success');
 			expect(leftGameMsg).toBeDefined();
 		});
 	});
@@ -400,35 +400,35 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should handle game state requests', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
 			});
-			socket.trigger('requestGameState', {});
+			socket.trigger('state.current', {});
 
-			const gameStateMsg = socket.outgoing.find((e) => e.event === 'gameState');
+			const gameStateMsg = socket.outgoing.find((e) => e.event === 'state.current.success');
 			expect(gameStateMsg).toBeDefined();
 		});
 
 		it('should send games list on request', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('listGames', {});
+			socket.trigger('game.list', {});
 
-			const gamesListMsg = socket.outgoing.find((e) => e.event === 'gamesList');
+			const gamesListMsg = socket.outgoing.find((e) => e.event === 'game.list.success');
 			expect(gamesListMsg).toBeDefined();
 		});
 
 		it('should handle ping/pong', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('ping', {});
+			socket.trigger('system.ping', {});
 
-			const pongMsg = socket.outgoing.find((e) => e.event === 'pong');
+			const pongMsg = socket.outgoing.find((e) => e.event === 'system.ping.success');
 			expect(pongMsg).toBeDefined();
 			expect(pongMsg?.data.timestamp).toBeDefined();
 		});
@@ -443,10 +443,10 @@ describe('SocketHandler Coverage Tests', () => {
 
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
@@ -459,7 +459,7 @@ describe('SocketHandler Coverage Tests', () => {
 			}
 
 			const errorEvents = socket.outgoing.filter(
-				(e) => e.event === 'forceActionError',
+				(e) => e.event === 'turn.force.error',
 			);
 			expect(errorEvents.length).toBeGreaterThan(0);
 		});
@@ -469,10 +469,10 @@ describe('SocketHandler Coverage Tests', () => {
 		it('should handle reconnection event', async () => {
 			const socket = server.connect('test-bot');
 
-			socket.trigger('authenticate', { botId: 'test-bot', apiKey: 'test-key' });
+			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('identify', {
+			socket.trigger('game.join', {
 				botName: 'TestBot',
 				gameId,
 				chipStack: 1000,
@@ -482,11 +482,11 @@ describe('SocketHandler Coverage Tests', () => {
 			socket.outgoing = [];
 
 			// Trigger reconnection
-			socket.trigger('reconnect', {});
+			socket.trigger('system.reconnect', {});
 
 			// Should receive updated game state
 			await new Promise((resolve) => setTimeout(resolve, 50));
-			const gameState = socket.outgoing.find((e) => e.event === 'gameState');
+			const gameState = socket.outgoing.find((e) => e.event === 'state.current.success');
 			expect(gameState).toBeDefined();
 		});
 	});

@@ -45,7 +45,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 		credentials: any,
 	): Promise<void> {
 		socket.clearOutgoing();
-		socket.trigger('authenticate', {
+		socket.trigger('auth.login', {
 			botId: credentials.botId,
 			apiKey: credentials.apiKey,
 		});
@@ -106,23 +106,23 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot2 = await createAuthenticatedBot(bot2Id, bot2Credentials);
 
 			// Identify / join game
-			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
-			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+			bot1.trigger('game.join', { gameId, chipStack: 1000 });
+			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
 			// Both should receive identification success
 			const bot1Success = bot1.outgoing.find(
-				(e) => e.event === 'identificationSuccess',
+				(e) => e.event === 'game.join.success',
 			);
 			const bot2Success = bot2.outgoing.find(
-				(e) => e.event === 'identificationSuccess',
+				(e) => e.event === 'game.join.success',
 			);
 
 			expect(bot1Success).toBeDefined();
 			expect(bot2Success).toBeDefined();
 
 			// At least one bot should receive turnStart
-			const bot1TurnStart = bot1.outgoing.find((e) => e.event === 'turnStart');
-			const bot2TurnStart = bot2.outgoing.find((e) => e.event === 'turnStart');
+			const bot1TurnStart = bot1.outgoing.find((e) => e.event === 'turn.start');
+			const bot2TurnStart = bot2.outgoing.find((e) => e.event === 'turn.start');
 
 			expect(bot1TurnStart || bot2TurnStart).toBeTruthy();
 		});
@@ -131,18 +131,18 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 			const bot2 = await createAuthenticatedBot(bot2Id, bot2Credentials);
 
-			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
-			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+			bot1.trigger('game.join', { gameId, chipStack: 1000 });
+			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
 			// Find which bot has turn
-			const bot1Turn = bot1.outgoing.find((e) => e.event === 'turnStart');
+			const bot1Turn = bot1.outgoing.find((e) => e.event === 'turn.start');
 			const actingBot = bot1Turn ? bot1 : bot2;
 			const actingId = bot1Turn ? bot1Id : bot2Id;
 
 			// Request possible actions
-			actingBot.trigger('requestPossibleActions', undefined);
+			actingBot.trigger('state.actions', undefined);
 			const possibleActionsMsg = actingBot.outgoing.find(
-				(e) => e.event === 'possibleActions',
+				(e) => e.event === 'state.actions.success',
 			);
 			expect(possibleActionsMsg).toBeDefined();
 
@@ -151,17 +151,16 @@ describe('SocketHandler Comprehensive Tests', () => {
 
 			// Take action
 			const checkAction = possibleActions.find((a: any) => a.type === 'check');
-			const action: Action = {
+			const action = {
 				type: checkAction ? ActionType.Check : ActionType.Fold,
-				playerId: actingId,
 				timestamp: Date.now(),
 			};
 
-			actingBot.trigger('action', { action });
+			actingBot.trigger('action.submit', { action });
 
 			// Should receive action success
 			const actionAck = actingBot.outgoing.find(
-				(e) => e.event === 'actionSuccess',
+				(e) => e.event === 'action.submit.success',
 			);
 			expect(actionAck).toBeDefined();
 		});
@@ -172,28 +171,26 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 
 			// Try to act without identifying
-			const action: Action = {
+			const action = {
 				type: ActionType.Check,
-				playerId: bot1Id,
 				timestamp: Date.now(),
 			};
-			bot1.trigger('action', { action });
+			bot1.trigger('action.submit', { action });
 
-			const errorMsg = bot1.outgoing.find((e) => e.event === 'actionError');
+			const errorMsg = bot1.outgoing.find((e) => e.event === 'action.submit.error');
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Not in a game');
 		});
 
 		it('rejects identification to non-existent game', async () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
-			bot1.trigger('identify', {
-				botName: 'Alpha',
+			bot1.trigger('game.join', {
 				gameId: 'non-existent',
 				chipStack: 1000,
 			});
 
 			const errorMsg = bot1.outgoing.find(
-				(e) => e.event === 'identificationError',
+				(e) => e.event === 'game.join.error',
 			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toContain('not found');
@@ -204,8 +201,8 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 			const bot2 = await createAuthenticatedBot(bot2Id, bot2Credentials);
 
-			bot1.trigger('identify', { botName: 'Bot1', gameId, chipStack: 1000 });
-			bot2.trigger('identify', { botName: 'Bot2', gameId, chipStack: 1000 });
+			bot1.trigger('game.join', { gameId, chipStack: 1000 });
+			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
 			// Third bot should fail
 			const bot3Creds = botAuthService.registerBot({
@@ -214,10 +211,10 @@ describe('SocketHandler Comprehensive Tests', () => {
 				email: 'bot3@example.com',
 			});
 			const bot3 = await createAuthenticatedBot('bot3', bot3Creds);
-			bot3.trigger('identify', { botName: 'Bot3', gameId, chipStack: 1000 });
+			bot3.trigger('game.join', { gameId, chipStack: 1000 });
 
 			const errorMsg = bot3.outgoing.find(
-				(e) => e.event === 'identificationError',
+				(e) => e.event === 'game.join.error',
 			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toContain('full');
@@ -229,8 +226,8 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 			const bot2 = await createAuthenticatedBot(bot2Id, bot2Credentials);
 
-			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
-			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+			bot1.trigger('game.join', { gameId, chipStack: 1000 });
+			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
 			// Check initial stats
 			let stats = socketHandler.getConnectionStats();
@@ -248,13 +245,13 @@ describe('SocketHandler Comprehensive Tests', () => {
 
 		it('allows bot to leave game', async () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
-			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
+			bot1.trigger('game.join', { gameId, chipStack: 1000 });
 
 			// Leave game
-			bot1.trigger('leaveGame', {});
+			bot1.trigger('game.leave', {});
 
 			// Should receive confirmation
-			const leftMsg = bot1.outgoing.find((e) => e.event === 'leftGame');
+			const leftMsg = bot1.outgoing.find((e) => e.event === 'game.leave.success');
 			expect(leftMsg).toBeDefined();
 
 			// Stats should update
@@ -264,9 +261,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 
 		it('can list available games', async () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
-			bot1.trigger('listGames', {});
+			bot1.trigger('game.list', {});
 
-			const gamesMsg = bot1.outgoing.find((e) => e.event === 'gamesList');
+			const gamesMsg = bot1.outgoing.find((e) => e.event === 'game.list.success');
 			expect(gamesMsg).toBeDefined();
 			expect(Array.isArray(gamesMsg?.data.games)).toBe(true);
 			expect(gamesMsg?.data.games.length).toBeGreaterThan(0);
@@ -274,9 +271,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 
 		it('handles ping/pong', async () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
-			bot1.trigger('ping', {});
+			bot1.trigger('system.ping', {});
 
-			const pongMsg = bot1.outgoing.find((e) => e.event === 'pong');
+			const pongMsg = bot1.outgoing.find((e) => e.event === 'system.ping.success');
 			expect(pongMsg).toBeDefined();
 		});
 	});
@@ -286,15 +283,15 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 			const bot2 = await createAuthenticatedBot(bot2Id, bot2Credentials);
 
-			bot1.trigger('identify', { botName: 'Alpha', gameId, chipStack: 1000 });
-			bot2.trigger('identify', { botName: 'Beta', gameId, chipStack: 1000 });
+			bot1.trigger('game.join', { gameId, chipStack: 1000 });
+			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
 			// Wait for game initialization
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Find which bot has the turn from initial state
-			const bot1Turn = bot1.outgoing.find((e) => e.event === 'turnStart');
-			const bot2Turn = bot2.outgoing.find((e) => e.event === 'turnStart');
+			const bot1Turn = bot1.outgoing.find((e) => e.event === 'turn.start');
+			const bot2Turn = bot2.outgoing.find((e) => e.event === 'turn.start');
 
 			// Verify that one bot has the turn
 			expect(bot1Turn || bot2Turn).toBeTruthy();
@@ -307,11 +304,11 @@ describe('SocketHandler Comprehensive Tests', () => {
 			bot2.clearOutgoing();
 
 			// Request possible actions and verify they exist
-			actingBot.trigger('requestPossibleActions', undefined);
+			actingBot.trigger('state.actions', undefined);
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
 			const possibleActionsMsg = actingBot.outgoing.find(
-				(e) => e.event === 'possibleActions',
+				(e) => e.event === 'state.actions.success',
 			);
 
 			// Should have received possible actions
@@ -322,9 +319,8 @@ describe('SocketHandler Comprehensive Tests', () => {
 			);
 
 			const possibleAction = possibleActionsMsg!.data.possibleActions[0];
-			const action: Action = {
+			const action = {
 				type: possibleAction.type,
-				playerId: actingId,
 				timestamp: Date.now(),
 			};
 
@@ -333,7 +329,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 			bot2.clearOutgoing();
 
 			// Take the action
-			actingBot.trigger('action', { action });
+			actingBot.trigger('action.submit', { action });
 
 			// Wait for events to propagate
 			await new Promise((resolve) => setTimeout(resolve, 100));
@@ -341,12 +337,12 @@ describe('SocketHandler Comprehensive Tests', () => {
 			// Check for any game-related events (gameEvent, gameState, turnStart, etc.)
 			const bot1GameEvents = bot1.outgoing.filter(
 				(e) =>
-					e.event === 'gameEvent' ||
-					e.event === 'gameState' ||
-					e.event === 'actionSuccess',
+					e.event === 'event.game' ||
+					e.event === 'state.current.success' ||
+					e.event === 'action.submit.success',
 			);
 			const bot2GameEvents = bot2.outgoing.filter(
-				(e) => e.event === 'gameEvent' || e.event === 'gameState',
+				(e) => e.event === 'event.game' || e.event === 'state.current.success',
 			);
 
 			// At least the acting bot should receive actionSuccess, and both should receive some update
@@ -358,9 +354,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 		it('should require authentication on connection', () => {
 			const socket = server.connect('test-socket');
 
-			// Should emit authRequired
+			// Should emit auth.required
 			const authRequired = socket.outgoing.find(
-				(e) => e.event === 'authRequired',
+				(e) => e.event === 'auth.required',
 			);
 			expect(authRequired).toBeDefined();
 		});
@@ -368,9 +364,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 		it('requires authentication before actions', async () => {
 			const socket = server.connect('unauthenticated');
 
-			// Should receive authRequired
+			// Should receive auth.required
 			const authRequired = socket.outgoing.find(
-				(e) => e.event === 'authRequired',
+				(e) => e.event === 'auth.required',
 			);
 			expect(authRequired).toBeDefined();
 
@@ -380,8 +376,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 			});
 
 			// Try to identify without auth
-			socket.trigger('identify', {
-				botName: 'TestBot',
+			socket.trigger('game.join', {
 				gameId,
 				chipStack: 1000,
 			});
@@ -390,7 +385,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
 			// Should receive error
-			const error = socket.outgoing.find((e) => e.event === 'error');
+			const error = socket.outgoing.find((e) => e.event === 'system.error');
 			expect(error).toBeDefined();
 			expect(error?.data.code).toBe('AUTH_REQUIRED');
 		});
@@ -399,14 +394,14 @@ describe('SocketHandler Comprehensive Tests', () => {
 			mockBotAuthService.validateBot.mockResolvedValueOnce(false);
 
 			const socket = server.connect('test');
-			socket.trigger('authenticate', {
+			socket.trigger('auth.login', {
 				botId: 'invalid',
 				apiKey: 'invalid',
 			});
 
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
-			const error = socket.outgoing.find((e) => e.event === 'authError');
+			const error = socket.outgoing.find((e) => e.event === 'auth.login.error');
 			expect(error).toBeDefined();
 		});
 
@@ -414,7 +409,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const socket = server.connect('test-socket');
 
 			// Authenticate
-			socket.trigger('authenticate', {
+			socket.trigger('auth.login', {
 				botId: bot1Id,
 				apiKey: bot1Credentials.apiKey,
 			});
@@ -424,7 +419,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 
 			// Should be authenticated
 			const authEvent = socket.outgoing.find(
-				(e) => e.event === 'authenticated',
+				(e) => e.event === 'auth.login.success',
 			);
 			expect(authEvent).toBeDefined();
 
@@ -432,17 +427,16 @@ describe('SocketHandler Comprehensive Tests', () => {
 			socket.clearOutgoing();
 
 			// Now try to join game
-			socket.trigger('identify', {
-				botName: 'TestBot',
+			socket.trigger('game.join', {
 				gameId,
 				chipStack: 1000,
 			});
 
 			// Should succeed
 			const success = socket.outgoing.find(
-				(e) => e.event === 'identificationSuccess',
+				(e) => e.event === 'game.join.success',
 			);
-			const error = socket.outgoing.find((e) => e.event === 'error');
+			const error = socket.outgoing.find((e) => e.event === 'system.error');
 
 			expect(success).toBeDefined();
 			expect(error).toBeUndefined();

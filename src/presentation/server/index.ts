@@ -935,18 +935,6 @@ if (require.main === module) {
 	const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 	const server = new PokaiExpressServer(port);
 
-	process.on('SIGINT', async () => {
-		serverLogger.info('\n🛑 Shutting down gracefully...');
-		await server.shutdown();
-		process.exit(0);
-	});
-
-	process.on('SIGTERM', async () => {
-		serverLogger.info('\n🛑 Shutting down gracefully...');
-		await server.shutdown();
-		process.exit(0);
-	});
-
 	server.start();
 }
 

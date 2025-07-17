@@ -68,24 +68,24 @@ class ActionLoggingBot extends EventEmitter {
 		this.socket.on('connect', () => {
 			this.log('Connected to server, authenticating...');
 			// Authenticate first before doing anything else
-			this.socket.emit('authenticate', {
+			this.socket.emit('auth.login', {
 				botId: this.botId,
 				apiKey: this.apiKey,
 			});
 		});
 
-		this.socket.on('authenticated', (data) => {
+		this.socket.on('auth.login.success', (data) => {
 			this.authenticated = true;
 			this.playerId = data.playerId;
 			this.log(`Authenticated successfully (Player ID: ${this.playerId})`);
 		});
 
-		this.socket.on('authError', (data) => {
+		this.socket.on('auth.login.error', (data) => {
 			this.log(`❌ Authentication failed: ${data.message}`);
 			this.socket.disconnect();
 		});
 
-		this.socket.on('identificationSuccess', (data) => {
+		this.socket.on('game.join.success', (data) => {
 			// IMPORTANT: Use the server-provided player ID, not our custom one
 			this.playerId = data.playerId;
 			this.log(
@@ -93,7 +93,7 @@ class ActionLoggingBot extends EventEmitter {
 			);
 		});
 
-		this.socket.on('gameState', (payload) => {
+		this.socket.on('state.current.success', (payload) => {
 			this.gameState = payload.gameState;
 			const actualGameState = this.gameState;
 
@@ -128,12 +128,12 @@ class ActionLoggingBot extends EventEmitter {
 			}
 		});
 
-		this.socket.on('turnStart', (data) => {
+		this.socket.on('turn.start', (data) => {
 			this.log(`🎯 MY TURN! Time limit: ${data.timeLimit}s`, 'action');
 			setTimeout(() => this.makeMove(), 100); // Small delay to ensure game state is updated
 		});
 
-		this.socket.on('actionSuccess', (result) => {
+		this.socket.on('action.submit.success', (result) => {
 			this.actionCount++;
 			const actionStr = `${result.action.type.toUpperCase()}${
 				result.action.amount ? ` $${result.action.amount}` : ''
@@ -146,11 +146,11 @@ class ActionLoggingBot extends EventEmitter {
 			});
 		});
 
-		this.socket.on('actionError', (result) => {
+		this.socket.on('action.submit.error', (result) => {
 			this.log(`❌ Action FAILED: ${result.error}`, 'action');
 		});
 
-		this.socket.on('gameEvent', (payload) => {
+		this.socket.on('event.game', (payload) => {
 			const gameEvent = payload.event;
 
 			// Opponent action
@@ -209,15 +209,15 @@ class ActionLoggingBot extends EventEmitter {
 			}
 		});
 
-		this.socket.on('turnWarning', (data) => {
+		this.socket.on('turn.warning', (data) => {
 			this.log(`⚠️ Time warning: ${data.timeRemaining}s remaining!`);
 		});
 
-		this.socket.on('identificationError', (data) => {
+		this.socket.on('game.join.error', (data) => {
 			this.log(`❌ Failed to join: ${data.error}`);
 		});
 
-		this.socket.on('error', (data) => {
+		this.socket.on('system.error', (data) => {
 			if (data.code === 'AUTH_REQUIRED') {
 				this.log(`❌ Authentication required: ${data.message}`);
 			} else {
@@ -244,8 +244,7 @@ class ActionLoggingBot extends EventEmitter {
 			return;
 		}
 		this.log(`Attempting to join game: ${gameId}`);
-		this.socket.emit('identify', {
-			botName: this.name,
+		this.socket.emit('game.join', {
 			gameId: gameId,
 			chipStack: 1000,
 		});
@@ -293,7 +292,6 @@ class ActionLoggingBot extends EventEmitter {
 
 		const action = {
 			type: chosenAction.type,
-			playerId: this.playerId,
 			timestamp: Date.now(),
 		};
 
@@ -310,7 +308,7 @@ class ActionLoggingBot extends EventEmitter {
 		);
 
 		// Wrap action in data object as expected by server
-		this.socket.emit('action', { action: action });
+		this.socket.emit('action.submit', { action: action });
 	}
 
 	getStats() {

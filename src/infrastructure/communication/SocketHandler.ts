@@ -100,7 +100,7 @@ export class SocketHandler {
 		this.setupBotEventListeners(socket, connection);
 
 		// Send authentication required message
-		socket.emit('authRequired', {
+		socket.emit('auth.required', {
 			message: 'Please authenticate using your bot credentials',
 			timestamp: Date.now(),
 		});
@@ -119,7 +119,7 @@ export class SocketHandler {
 	): void {
 		// Authentication handler - must be called first
 		socket.on(
-			'authenticate',
+			'auth.login',
 			async (data: { botId: string; apiKey: string }) => {
 				await this.handleAuthentication(connection, data);
 			},
@@ -127,51 +127,51 @@ export class SocketHandler {
 
 		// Bot identification and game joining (requires authentication)
 		socket.on(
-			'identify',
-			(data: { botName: string; gameId: GameId; chipStack: number }) => {
+			'game.join',
+			(data: { gameId: GameId; chipStack: number }) => {
 				if (!this.requireAuth(connection)) return;
 				this.handleBotIdentification(connection, data);
 			},
 		);
 
 		// Bot actions (requires authentication)
-		socket.on('action', (data: { action: Action }) => {
+		socket.on('action.submit', (data: { action: Omit<Action, 'playerId'> }) => {
 			if (!this.requireAuth(connection)) return;
 			this.handleBotAction(connection, data.action);
 		});
 
 		// Game state requests (requires authentication)
-		socket.on('requestGameState', () => {
+		socket.on('state.current', () => {
 			if (!this.requireAuth(connection)) return;
 			this.sendGameState(connection);
 		});
 
 		// Possible actions request (requires authentication)
-		socket.on('requestPossibleActions', () => {
+		socket.on('state.actions', () => {
 			if (!this.requireAuth(connection)) return;
 			this.sendPossibleActions(connection);
 		});
 
 		// Leave game (requires authentication)
-		socket.on('leaveGame', () => {
+		socket.on('game.leave', () => {
 			if (!this.requireAuth(connection)) return;
 			this.handleLeaveGame(connection);
 		});
 
 		// Request to unseat after current hand / immediately if possible (requires authentication)
-		socket.on('unseat', () => {
+		socket.on('game.unseat', () => {
 			if (!this.requireAuth(connection)) return;
 			this.handleUnseatRequest(connection);
 		});
 
 		// List available games
-		socket.on('listGames', () => {
+		socket.on('game.list', () => {
 			this.sendGamesList(socket);
 		});
 
 		// Ping/pong for connection monitoring
-		socket.on('ping', () => {
-			socket.emit('pong', { timestamp: Date.now() });
+		socket.on('system.ping', () => {
+			socket.emit('system.ping.success', { timestamp: Date.now() });
 		});
 
 		// Handle disconnection
@@ -180,26 +180,26 @@ export class SocketHandler {
 		});
 
 		// Handle reconnection
-		socket.on('reconnect', () => {
+		socket.on('system.reconnect', () => {
 			this.handleReconnection(connection);
 		});
 
 		// Spectator events
-		socket.on('spectatorAuth', (data: { adminKey?: string }) => {
+		socket.on('spectator.auth', (data: { adminKey?: string }) => {
 			this.handleSpectatorAuth(connection, data);
 		});
 
-		socket.on('spectate', (data: { gameId: GameId }) => {
+		socket.on('spectator.watch', (data: { gameId: GameId }) => {
 			if (!this.requireSpectatorAuth(connection)) return;
 			this.handleSpectateGame(connection, data.gameId);
 		});
 
-		socket.on('stopSpectating', (data: { gameId: GameId }) => {
+		socket.on('spectator.unwatch', (data: { gameId: GameId }) => {
 			if (!this.requireSpectatorAuth(connection)) return;
 			this.handleStopSpectating(connection, data.gameId);
 		});
 
-		socket.on('listActiveGames', () => {
+		socket.on('spectator.games', () => {
 			if (!this.requireSpectatorAuth(connection)) return;
 			this.sendActiveGamesList(connection);
 		});
@@ -210,7 +210,7 @@ export class SocketHandler {
 	 */
 	private handleBotIdentification(
 		connection: BotConnection,
-		data: { botName: string; gameId: GameId; chipStack: number },
+		data: { gameId: GameId; chipStack: number },
 	): void {
 		try {
 			// Check if game exists
@@ -218,6 +218,9 @@ export class SocketHandler {
 			if (!game) {
 				throw new Error(`Game ${data.gameId} not found`);
 			}
+
+			// Use the botName from the authenticated connection, fallback to botId or playerId
+			const botName = connection.botName || connection.botId || connection.playerId;
 
 			// Check if this is a reconnection (player already in the game)
 			const existingGameId = this.gameController.getPlayerGameId(
@@ -248,11 +251,11 @@ export class SocketHandler {
 					);
 				}
 
-				// Join the game
+				// Join the game using the authenticated bot's name
 				this.gameController.addPlayerToGame(
 					data.gameId,
 					connection.playerId,
-					data.botName,
+					botName,
 					data.chipStack,
 				);
 
@@ -268,10 +271,10 @@ export class SocketHandler {
 			}
 
 			// Send success confirmation
-			connection.socket.emit('identificationSuccess', {
+			connection.socket.emit('game.join.success', {
 				playerId: connection.playerId,
 				gameId: data.gameId,
-				botName: data.botName,
+				botName: botName,
 				chipStack: data.chipStack,
 				timestamp: Date.now(),
 			});
@@ -288,7 +291,7 @@ export class SocketHandler {
 				this.startTurnTimer(connection);
 			}
 		} catch (error) {
-			connection.socket.emit('identificationError', {
+			connection.socket.emit('game.join.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
@@ -298,9 +301,9 @@ export class SocketHandler {
 	/**
 	 * Handles bot actions
 	 */
-	private handleBotAction(connection: BotConnection, action: Action): void {
+	private handleBotAction(connection: BotConnection, actionData: Omit<Action, 'playerId'>): void {
 		if (!connection.gameId) {
-			connection.socket.emit('actionError', {
+			connection.socket.emit('action.submit.error', {
 				error: 'Not in a game',
 				timestamp: Date.now(),
 			});
@@ -311,10 +314,11 @@ export class SocketHandler {
 			// Clear turn timer for this player
 			this.clearTurnTimer(connection.playerId);
 
-			// Validate action belongs to this bot
-			if (action.playerId !== connection.playerId) {
-				throw new Error('Action must be from the connected bot');
-			}
+			// Create action with the connection's playerId
+			const action: Action = {
+				...actionData,
+				playerId: connection.playerId,
+			};
 
 			// Process the action
 			this.gameController.processAction(connection.gameId, action);
@@ -323,14 +327,17 @@ export class SocketHandler {
 			connection.lastAction = Date.now();
 
 			// Send action confirmation
-			connection.socket.emit('actionSuccess', {
+			connection.socket.emit('action.submit.success', {
 				action,
 				timestamp: Date.now(),
 			});
 		} catch (error) {
-			connection.socket.emit('actionError', {
+			connection.socket.emit('action.submit.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
-				action,
+				action: {
+					...actionData,
+					playerId: connection.playerId,
+				},
 				timestamp: Date.now(),
 			});
 		}
@@ -341,7 +348,7 @@ export class SocketHandler {
 	 */
 	private handleLeaveGame(connection: BotConnection): void {
 		if (!connection.gameId) {
-			connection.socket.emit('leaveGameError', {
+			connection.socket.emit('game.leave.error', {
 				error: 'Bot is not in a game',
 				timestamp: Date.now(),
 			});
@@ -377,11 +384,11 @@ export class SocketHandler {
 
 			connection.gameId = undefined;
 
-			connection.socket.emit('leftGame', {
+			connection.socket.emit('game.leave.success', {
 				timestamp: Date.now(),
 			});
 		} catch (error) {
-			connection.socket.emit('leaveGameError', {
+			connection.socket.emit('game.leave.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
@@ -393,7 +400,7 @@ export class SocketHandler {
 	 */
 	private handleUnseatRequest(connection: BotConnection): void {
 		if (!connection.gameId) {
-			connection.socket.emit('unseatError', {
+			connection.socket.emit('game.unseat.error', {
 				error: 'Bot is not in a game',
 				timestamp: Date.now(),
 			});
@@ -403,13 +410,13 @@ export class SocketHandler {
 		try {
 			this.gameController.requestUnseat(connection.gameId, connection.playerId);
 
-			connection.socket.emit('unseatConfirmed', {
+			connection.socket.emit('game.unseat.success', {
 				timestamp: Date.now(),
 			});
 
 			// Optional: If removed immediately, we can send updated game state
 		} catch (error) {
-			connection.socket.emit('unseatError', {
+			connection.socket.emit('game.unseat.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
@@ -421,7 +428,7 @@ export class SocketHandler {
 	 */
 	private sendGamesList(socket: Socket): void {
 		const games = this.gameController.listGames();
-		socket.emit('gamesList', {
+		socket.emit('game.list.success', {
 			games,
 			timestamp: Date.now(),
 		});
@@ -432,7 +439,7 @@ export class SocketHandler {
 	 */
 	private sendPossibleActions(connection: BotConnection): void {
 		if (!connection.gameId) {
-			connection.socket.emit('possibleActionsError', {
+			connection.socket.emit('state.actions.error', {
 				error: 'Not in a game',
 				timestamp: Date.now(),
 			});
@@ -445,12 +452,12 @@ export class SocketHandler {
 				connection.playerId,
 			);
 
-			connection.socket.emit('possibleActions', {
+			connection.socket.emit('state.actions.success', {
 				possibleActions,
 				timestamp: Date.now(),
 			});
 		} catch (error) {
-			connection.socket.emit('possibleActionsError', {
+			connection.socket.emit('state.actions.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
@@ -471,12 +478,12 @@ export class SocketHandler {
 				connection.playerId,
 			);
 
-			connection.socket.emit('gameState', {
+			connection.socket.emit('state.current.success', {
 				gameState,
 				timestamp: Date.now(),
 			});
 		} catch (error) {
-			connection.socket.emit('gameStateError', {
+			connection.socket.emit('state.current.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
@@ -509,7 +516,7 @@ export class SocketHandler {
 		}
 
 		// Send event to the bot
-		connection.socket.emit('gameEvent', {
+		connection.socket.emit('event.game', {
 			event,
 			timestamp: Date.now(),
 		});
@@ -571,7 +578,7 @@ export class SocketHandler {
 		const warningDelayMs = timeLimitMs * 0.7; // send warning when 70% of time has elapsed
 
 		// Turn start notification
-		connection.socket.emit('turnStart', {
+		connection.socket.emit('turn.start', {
 			timeLimit: timeLimitMs / 1000,
 			timestamp: Date.now(),
 		});
@@ -581,7 +588,7 @@ export class SocketHandler {
 		if (timeLimitMs > 1000) {
 			// Only warn if timeout is longer than 1 second
 			warningTimer = setTimeout(() => {
-				connection.socket.emit('turnWarning', {
+				connection.socket.emit('turn.warning', {
 					timeRemaining: (timeLimitMs - warningDelayMs) / 1000,
 					timestamp: Date.now(),
 				});
@@ -631,7 +638,7 @@ export class SocketHandler {
 		this.clearTurnTimer(connection.playerId);
 
 		// Send timeout notification
-		connection.socket.emit('turnTimeout', {
+		connection.socket.emit('turn.timeout', {
 			timestamp: Date.now(),
 		});
 
@@ -649,7 +656,7 @@ export class SocketHandler {
 			);
 
 			// Notify the player that force action failed
-			connection.socket.emit('forceActionError', {
+			connection.socket.emit('turn.force.error', {
 				error: error instanceof Error ? error.message : 'Unknown error',
 				timestamp: Date.now(),
 			});
@@ -852,7 +859,7 @@ export class SocketHandler {
 			);
 
 			if (!isValid) {
-				connection.socket.emit('authError', {
+				connection.socket.emit('auth.login.error', {
 					message: 'Invalid bot credentials',
 					timestamp: Date.now(),
 				});
@@ -865,7 +872,7 @@ export class SocketHandler {
 			// Get bot information
 			const bot = await this.botAuthService.getBot(data.botId);
 			if (!bot) {
-				connection.socket.emit('authError', {
+				connection.socket.emit('auth.login.error', {
 					message: 'Bot not found',
 					timestamp: Date.now(),
 				});
@@ -878,7 +885,7 @@ export class SocketHandler {
 			connection.botName = bot.botName;
 
 			// Send success response
-			connection.socket.emit('authenticated', {
+			connection.socket.emit('auth.login.success', {
 				botId: data.botId,
 				botName: bot.botName,
 				playerId: connection.playerId,
@@ -893,7 +900,7 @@ export class SocketHandler {
 			);
 		} catch (error) {
 			authLogger.error(`Authentication error for bot ${data.botId}:`, error);
-			connection.socket.emit('authError', {
+			connection.socket.emit('auth.login.error', {
 				message: 'Authentication failed',
 				timestamp: Date.now(),
 			});
@@ -911,7 +918,7 @@ export class SocketHandler {
 		}
 
 		if (!connection.authenticated) {
-			connection.socket.emit('error', {
+			connection.socket.emit('system.error', {
 				code: 'AUTH_REQUIRED',
 				message: 'Authentication required. Please authenticate first.',
 				timestamp: Date.now(),
@@ -947,7 +954,7 @@ export class SocketHandler {
 			connection.connectionType = 'spectator';
 			connection.spectatingGames = new Set();
 
-			connection.socket.emit('spectatorAuthSuccess', {
+			connection.socket.emit('spectator.auth.success', {
 				message: 'Authenticated as spectator',
 				timestamp: Date.now(),
 			});
@@ -956,7 +963,7 @@ export class SocketHandler {
 				`Spectator authenticated: ${connection.socket.id}`,
 			);
 		} else {
-			connection.socket.emit('spectatorAuthError', {
+			connection.socket.emit('spectator.auth.error', {
 				error: 'Invalid admin key',
 				timestamp: Date.now(),
 			});
@@ -971,7 +978,7 @@ export class SocketHandler {
 			!connection.authenticated ||
 			connection.connectionType !== 'spectator'
 		) {
-			connection.socket.emit('spectatorAuthRequired', {
+			connection.socket.emit('spectator.auth.required', {
 				error: 'Spectator authentication required',
 				timestamp: Date.now(),
 			});
@@ -1016,7 +1023,7 @@ export class SocketHandler {
 			// Send current full game state
 			this.sendFullGameState(connection, gameId);
 
-			connection.socket.emit('spectatingGame', {
+			connection.socket.emit('spectator.watch.success', {
 				gameId,
 				message: `Now spectating game ${gameId}`,
 				timestamp: Date.now(),
@@ -1026,7 +1033,7 @@ export class SocketHandler {
 				`Spectator ${connection.socket.id} started spectating game ${gameId}`,
 			);
 		} catch (error) {
-			connection.socket.emit('spectateError', {
+			connection.socket.emit('spectator.watch.error', {
 				error:
 					error instanceof Error ? error.message : 'Failed to spectate game',
 				timestamp: Date.now(),
@@ -1059,7 +1066,7 @@ export class SocketHandler {
 					connection.eventHandler = undefined;
 				}
 
-				connection.socket.emit('stoppedSpectating', {
+				connection.socket.emit('spectator.unwatch.success', {
 					gameId,
 					message: `Stopped spectating game ${gameId}`,
 					timestamp: Date.now(),
@@ -1070,7 +1077,7 @@ export class SocketHandler {
 				);
 			}
 		} catch (error) {
-			connection.socket.emit('stopSpectatingError', {
+			connection.socket.emit('spectator.unwatch.error', {
 				error:
 					error instanceof Error ? error.message : 'Failed to stop spectating',
 				timestamp: Date.now(),
@@ -1089,7 +1096,7 @@ export class SocketHandler {
 			playerNames: this.getPlayerNamesForGame(game.id),
 		}));
 
-		connection.socket.emit('activeGamesList', {
+		connection.socket.emit('spectator.games.success', {
 			games: activeGames,
 			timestamp: Date.now(),
 		});
@@ -1131,13 +1138,13 @@ export class SocketHandler {
 				};
 			}
 
-			connection.socket.emit('fullGameState', {
+			connection.socket.emit('spectator.state', {
 				gameId,
 				gameState: spectatorGameState,
 				timestamp: Date.now(),
 			});
 		} catch (error) {
-			connection.socket.emit('gameStateError', {
+			connection.socket.emit('state.current.error', {
 				error:
 					error instanceof Error ? error.message : 'Failed to get game state',
 				timestamp: Date.now(),
@@ -1158,7 +1165,7 @@ export class SocketHandler {
 		}
 
 		// Send the event with full visibility
-		connection.socket.emit('spectatorGameEvent', {
+		connection.socket.emit('spectator.event', {
 			gameId,
 			event: {
 				...event,

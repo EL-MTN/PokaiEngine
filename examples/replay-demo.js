@@ -52,25 +52,25 @@ class SimpleBot extends EventEmitter {
 			this.log('Connected to server');
 		});
 
-		this.socket.on('identificationSuccess', (data) => {
+		this.socket.on('game.join.success', (data) => {
 			this.playerId = data.playerId;
 			this.log(`Joined game successfully (Player ID: ${this.playerId})`);
 		});
 
-		this.socket.on('gameState', (payload) => {
+		this.socket.on('state.current.success', (payload) => {
 			this.gameState = payload.gameState;
 		});
 
-		this.socket.on('turnStart', (data) => {
+		this.socket.on('turn.start', (data) => {
 			this.log(`It's my turn! Time limit: ${data.timeLimit}s`);
 			setTimeout(() => this.makeMove(), 500); // Small delay
 		});
 
-		this.socket.on('actionSuccess', (result) => {
+		this.socket.on('action.submit.success', (result) => {
 			this.log(`Action successful: ${result.action.type.toUpperCase()}`);
 		});
 
-		this.socket.on('gameEvent', (payload) => {
+		this.socket.on('event.game', (payload) => {
 			const event = payload.event;
 
 			if (event.type === 'hand_started') {
@@ -91,8 +91,7 @@ class SimpleBot extends EventEmitter {
 
 	joinGame(gameId) {
 		this.log(`Joining game: ${gameId}`);
-		this.socket.emit('identify', {
-			botName: this.name,
+		this.socket.emit('game.join', {
 			gameId: gameId,
 			chipStack: 1000,
 		});
@@ -127,7 +126,6 @@ class SimpleBot extends EventEmitter {
 
 		const action = {
 			type: chosenAction.type,
-			playerId: this.playerId,
 			timestamp: Date.now(),
 		};
 
@@ -136,7 +134,7 @@ class SimpleBot extends EventEmitter {
 		}
 
 		this.log(`Making action: ${action.type.toUpperCase()}`);
-		this.socket.emit('action', { action: action });
+		this.socket.emit('action.submit', { action: action });
 	}
 }
 
