@@ -1,10 +1,17 @@
 /**
  * PokaiEngine Bot SDK - Utility Functions
- * 
+ *
  * Helper functions for poker calculations and strategy
  */
 
-import { ActionType, BotDecision, Card, Player, PossibleAction, PotOdds } from './types.js';
+import {
+	ActionType,
+	BotDecision,
+	Card,
+	Player,
+	PossibleAction,
+	PotOdds,
+} from './types.js';
 
 // === Card Utilities ===
 
@@ -39,7 +46,7 @@ export function isPair(cards: Card[]): boolean {
  */
 export function isSuited(cards: Card[]): boolean {
 	if (cards.length < 2) return false;
-	return cards.every(card => card.suit === cards[0].suit);
+	return cards.every((card) => card.suit === cards[0].suit);
 }
 
 /**
@@ -47,12 +54,18 @@ export function isSuited(cards: Card[]): boolean {
  */
 export function isConnected(cards: Card[]): boolean {
 	if (cards.length < 2) return false;
-	const ranks = cards.map(c => c.rank).sort((a, b) => a - b);
-	
+	const ranks = cards.map((c) => c.rank).sort((a, b) => a - b);
+
 	for (let i = 1; i < ranks.length; i++) {
-		if (ranks[i] - ranks[i-1] !== 1) {
+		if (ranks[i] - ranks[i - 1] !== 1) {
 			// Check for ace-low straight possibility
-			if (!(ranks[0] === 2 && ranks[ranks.length-1] === 14 && ranks[ranks.length-2] === 5)) {
+			if (
+				!(
+					ranks[0] === 2 &&
+					ranks[ranks.length - 1] === 14 &&
+					ranks[ranks.length - 2] === 5
+				)
+			) {
 				return false;
 			}
 		}
@@ -69,21 +82,24 @@ export function calculatePotOdds(potSize: number, betToCall: number): PotOdds {
 	const totalPot = potSize + betToCall;
 	const odds = totalPot / betToCall;
 	const percentage = (betToCall / totalPot) * 100;
-	
+
 	return {
 		potSize,
 		betToCall,
 		odds,
-		percentage
+		percentage,
 	};
 }
 
 /**
  * Calculate if a call is profitable based on equity
  */
-export function isProfitableCall(potOdds: PotOdds, winProbability: number): boolean {
+export function isProfitableCall(
+	potOdds: PotOdds,
+	winProbability: number,
+): boolean {
 	const requiredEquity = potOdds.percentage;
-	return (winProbability * 100) > requiredEquity;
+	return winProbability * 100 > requiredEquity;
 }
 
 // === Position Utilities ===
@@ -91,11 +107,14 @@ export function isProfitableCall(potOdds: PotOdds, winProbability: number): bool
 /**
  * Get position name relative to dealer
  */
-export function getPositionName(position: number, totalPlayers: number): string {
+export function getPositionName(
+	position: number,
+	totalPlayers: number,
+): string {
 	if (totalPlayers <= 2) {
 		return position === 0 ? 'Button/SB' : 'BB';
 	}
-	
+
 	const positions = ['Button', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'CO'];
 	const adjustedPosition = (position + totalPlayers - 1) % totalPlayers;
 	return positions[adjustedPosition] || `Position ${adjustedPosition}`;
@@ -104,11 +123,14 @@ export function getPositionName(position: number, totalPlayers: number): string 
 /**
  * Check if position is early, middle, or late
  */
-export function getPositionType(position: number, totalPlayers: number): 'early' | 'middle' | 'late' {
+export function getPositionType(
+	position: number,
+	totalPlayers: number,
+): 'early' | 'middle' | 'late' {
 	if (totalPlayers <= 3) return 'late';
-	
+
 	const adjustedPosition = (position + totalPlayers - 1) % totalPlayers;
-	
+
 	if (adjustedPosition <= 1) return 'late'; // Button, SB
 	if (adjustedPosition === 2) return 'middle'; // BB
 	if (adjustedPosition <= 4) return 'early'; // UTG, UTG+1
@@ -120,8 +142,11 @@ export function getPositionType(position: number, totalPlayers: number): 'early'
 /**
  * Find specific action from possible actions
  */
-export function findAction(possibleActions: PossibleAction[], actionType: ActionType): PossibleAction | null {
-	return possibleActions.find(action => action.type === actionType) || null;
+export function findAction(
+	possibleActions: PossibleAction[],
+	actionType: ActionType,
+): PossibleAction | null {
+	return possibleActions.find((action) => action.type === actionType) || null;
 }
 
 /**
@@ -130,8 +155,8 @@ export function findAction(possibleActions: PossibleAction[], actionType: Action
 export function getMinBetAmount(possibleActions: PossibleAction[]): number {
 	const betAction = findAction(possibleActions, ActionType.Bet);
 	const raiseAction = findAction(possibleActions, ActionType.Raise);
-	
-	return (betAction?.minAmount || raiseAction?.minAmount || 0);
+
+	return betAction?.minAmount || raiseAction?.minAmount || 0;
 }
 
 /**
@@ -140,8 +165,8 @@ export function getMinBetAmount(possibleActions: PossibleAction[]): number {
 export function getMaxBetAmount(possibleActions: PossibleAction[]): number {
 	const betAction = findAction(possibleActions, ActionType.Bet);
 	const raiseAction = findAction(possibleActions, ActionType.Raise);
-	
-	return (betAction?.maxAmount || raiseAction?.maxAmount || 0);
+
+	return betAction?.maxAmount || raiseAction?.maxAmount || 0;
 }
 
 /**
@@ -157,28 +182,33 @@ export function calculateBetSize(potSize: number, percentage: number): number {
  * Find player by ID
  */
 export function findPlayer(players: Player[], playerId: string): Player | null {
-	return players.find(player => player.id === playerId) || null;
+	return players.find((player) => player.id === playerId) || null;
 }
 
 /**
  * Get active players (not folded, not all-in)
  */
 export function getActivePlayers(players: Player[]): Player[] {
-	return players.filter(player => player.isActive && !player.hasFolded && !player.isAllIn);
+	return players.filter(
+		(player) => player.isActive && !player.hasFolded && !player.isAllIn,
+	);
 }
 
 /**
  * Get players still in hand (not folded)
  */
 export function getPlayersInHand(players: Player[]): Player[] {
-	return players.filter(player => !player.hasFolded);
+	return players.filter((player) => !player.hasFolded);
 }
 
 /**
  * Calculate total pot including all current bets
  */
 export function calculateTotalPot(players: Player[], potSize: number): number {
-	const currentBets = players.reduce((sum, player) => sum + player.currentBet, 0);
+	const currentBets = players.reduce(
+		(sum, player) => sum + player.currentBet,
+		0,
+	);
 	return potSize + currentBets;
 }
 
@@ -187,37 +217,43 @@ export function calculateTotalPot(players: Player[], potSize: number): number {
 /**
  * Create a simple aggressive decision
  */
-export function createAggressiveDecision(possibleActions: PossibleAction[], confidence: number = 0.7): BotDecision {
+export function createAggressiveDecision(
+	possibleActions: PossibleAction[],
+	confidence: number = 0.7,
+): BotDecision {
 	// Prefer raise/bet > call > check > fold
 	let action = findAction(possibleActions, ActionType.Raise);
 	if (!action) action = findAction(possibleActions, ActionType.Bet);
 	if (!action) action = findAction(possibleActions, ActionType.Call);
 	if (!action) action = findAction(possibleActions, ActionType.Check);
 	if (!action) action = possibleActions[0]; // Fallback
-	
+
 	return {
 		action: action.type,
 		amount: action.minAmount,
 		confidence,
-		reasoning: 'Aggressive play style'
+		reasoning: 'Aggressive play style',
 	};
 }
 
 /**
  * Create a simple conservative decision
  */
-export function createConservativeDecision(possibleActions: PossibleAction[], confidence: number = 0.6): BotDecision {
+export function createConservativeDecision(
+	possibleActions: PossibleAction[],
+	confidence: number = 0.6,
+): BotDecision {
 	// Prefer check > call > fold > bet/raise
 	let action = findAction(possibleActions, ActionType.Check);
 	if (!action) action = findAction(possibleActions, ActionType.Call);
 	if (!action) action = findAction(possibleActions, ActionType.Fold);
 	if (!action) action = possibleActions[0]; // Fallback
-	
+
 	return {
 		action: action.type,
 		amount: action.minAmount,
 		confidence,
-		reasoning: 'Conservative play style'
+		reasoning: 'Conservative play style',
 	};
 }
 
@@ -225,16 +261,16 @@ export function createConservativeDecision(possibleActions: PossibleAction[], co
  * Create a pot odds based decision
  */
 export function createPotOddsDecision(
-	possibleActions: PossibleAction[], 
-	potSize: number, 
-	winProbability: number
+	possibleActions: PossibleAction[],
+	potSize: number,
+	winProbability: number,
 ): BotDecision {
 	const callAction = findAction(possibleActions, ActionType.Call);
-	
+
 	if (callAction && callAction.minAmount) {
 		const potOdds = calculatePotOdds(potSize, callAction.minAmount);
 		const profitable = isProfitableCall(potOdds, winProbability);
-		
+
 		if (profitable) {
 			// If profitable, consider raising with high confidence
 			if (winProbability > 0.7) {
@@ -244,35 +280,35 @@ export function createPotOddsDecision(
 						action: ActionType.Raise,
 						amount: raiseAction.minAmount,
 						confidence: winProbability,
-						reasoning: `Strong hand (${(winProbability * 100).toFixed(1)}% equity), pot odds favor aggression`
+						reasoning: `Strong hand (${(winProbability * 100).toFixed(1)}% equity), pot odds favor aggression`,
 					};
 				}
 			}
-			
+
 			return {
 				action: ActionType.Call,
 				amount: callAction.minAmount,
 				confidence: winProbability,
-				reasoning: `Pot odds favorable (${potOdds.odds.toFixed(1)}:1, need ${potOdds.percentage.toFixed(1)}% equity)`
+				reasoning: `Pot odds favorable (${potOdds.odds.toFixed(1)}:1, need ${potOdds.percentage.toFixed(1)}% equity)`,
 			};
 		}
 	}
-	
+
 	// Not profitable to call, check if we can check
 	const checkAction = findAction(possibleActions, ActionType.Check);
 	if (checkAction) {
 		return {
 			action: ActionType.Check,
 			confidence: 0.5,
-			reasoning: 'Pot odds unfavorable, checking for free card'
+			reasoning: 'Pot odds unfavorable, checking for free card',
 		};
 	}
-	
+
 	// Must fold
 	return {
 		action: ActionType.Fold,
 		confidence: 1 - winProbability,
-		reasoning: 'Pot odds unfavorable, folding'
+		reasoning: 'Pot odds unfavorable, folding',
 	};
 }
 
@@ -281,20 +317,29 @@ export function createPotOddsDecision(
 /**
  * Validate that an action is possible
  */
-export function isActionValid(action: ActionType, possibleActions: PossibleAction[]): boolean {
-	return possibleActions.some(pa => pa.type === action);
+export function isActionValid(
+	action: ActionType,
+	possibleActions: PossibleAction[],
+): boolean {
+	return possibleActions.some((pa) => pa.type === action);
 }
 
 /**
  * Validate bet amount is within limits
  */
-export function isBetAmountValid(action: ActionType, amount: number, possibleActions: PossibleAction[]): boolean {
+export function isBetAmountValid(
+	action: ActionType,
+	amount: number,
+	possibleActions: PossibleAction[],
+): boolean {
 	const actionData = findAction(possibleActions, action);
 	if (!actionData) return false;
-	
-	if (actionData.minAmount !== undefined && amount < actionData.minAmount) return false;
-	if (actionData.maxAmount !== undefined && amount > actionData.maxAmount) return false;
-	
+
+	if (actionData.minAmount !== undefined && amount < actionData.minAmount)
+		return false;
+	if (actionData.maxAmount !== undefined && amount > actionData.maxAmount)
+		return false;
+
 	return true;
 }
 
@@ -303,9 +348,12 @@ export function isBetAmountValid(action: ActionType, amount: number, possibleAct
 /**
  * Add random delay to make bot behavior more human-like
  */
-export function addRandomDelay(minMs: number = 500, maxMs: number = 2000): Promise<void> {
+export function addRandomDelay(
+	minMs: number = 500,
+	maxMs: number = 2000,
+): Promise<void> {
 	const delay = Math.random() * (maxMs - minMs) + minMs;
-	return new Promise(resolve => setTimeout(resolve, delay));
+	return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
 /**

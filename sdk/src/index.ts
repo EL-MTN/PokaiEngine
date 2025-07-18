@@ -1,20 +1,20 @@
 /**
  * PokaiEngine Bot SDK
- * 
+ *
  * A comprehensive TypeScript/JavaScript SDK for building poker bots
  * that connect to PokaiEngine servers.
- * 
+ *
  * @example
  * ```typescript
  * import { PokaiBot, ActionType } from 'pokai-bot-sdk';
- * 
+ *
  * const bot = new PokaiBot({
  *   credentials: {
  *     botId: 'your-bot-id',
  *     apiKey: 'your-api-key'
  *   }
  * });
- * 
+ *
  * await bot.connect();
  * await bot.joinGame({ gameId: 'game-1', chipStack: 1000 });
  * ```
@@ -33,26 +33,26 @@ export type {
 	GameState,
 	GameEvent,
 	GameInfo,
-	
+
 	// Configuration types
 	BotCredentials,
 	BotConfig,
 	JoinGameOptions,
 	BotEventHandlers,
-	
+
 	// Response types
 	SocketResponse,
 	AuthResponse,
 	GameListResponse,
-	
+
 	// Strategy types
 	HandStrength,
 	PotOdds,
 	BotDecision,
-	
+
 	// Utility types
 	Logger,
-	LogLevel
+	LogLevel,
 } from './types.js';
 
 // Enum exports
@@ -63,7 +63,7 @@ export {
 	PokaiError,
 	AuthenticationError,
 	GameError,
-	ConnectionError
+	ConnectionError,
 } from './types.js';
 
 // Utility exports
@@ -74,39 +74,39 @@ export {
 	isPair,
 	isSuited,
 	isConnected,
-	
+
 	// Pot odds
 	calculatePotOdds,
 	isProfitableCall,
-	
+
 	// Position utilities
 	getPositionName,
 	getPositionType,
-	
+
 	// Betting utilities
 	findAction,
 	getMinBetAmount,
 	getMaxBetAmount,
 	calculateBetSize,
-	
+
 	// Player utilities
 	findPlayer,
 	getActivePlayers,
 	getPlayersInHand,
 	calculateTotalPot,
-	
+
 	// Decision helpers
 	createAggressiveDecision,
 	createConservativeDecision,
 	createPotOddsDecision,
-	
+
 	// Validation
 	isActionValid,
 	isBetAmountValid,
-	
+
 	// Timing
 	addRandomDelay,
-	createActionTimeout
+	createActionTimeout,
 } from './utils.js';
 
 // SDK version

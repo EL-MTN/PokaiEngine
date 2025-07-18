@@ -17,7 +17,9 @@ This guide provides comprehensive documentation for testing PokaiEngine's Socket
 ## Authentication Flow
 
 ### 1. Initial Connection
+
 Upon connecting, you'll receive:
+
 ```json
 Event: "authRequired"
 Data: {
@@ -27,16 +29,19 @@ Data: {
 ```
 
 ### 2. Bot Authentication
+
 **Event:** `auth.login`  
 **Send:**
+
 ```json
 {
-  "botId": "your-bot-id",
-  "apiKey": "your-api-key"
+	"botId": "your-bot-id",
+	"apiKey": "your-api-key"
 }
 ```
 
 **Success Response:**
+
 ```json
 Event: "auth.login.success"
 Data: {
@@ -48,6 +53,7 @@ Data: {
 ```
 
 **Error Response:**
+
 ```json
 Event: "auth.login.error"
 Data: {
@@ -59,10 +65,12 @@ Data: {
 ## Game Management Events
 
 ### List Available Games
+
 **Event:** `game.list`  
 **Send:** (no data required)
 
 **Response:**
+
 ```json
 Event: "game.list.success"
 Data: {
@@ -81,16 +89,19 @@ Data: {
 ```
 
 ### Join a Game
+
 **Event:** `game.join`  
-**Send:
+\*\*Send:
+
 ```json
 {
-  "gameId": "test-game",
-  "chipStack": 1000
+	"gameId": "test-game",
+	"chipStack": 1000
 }
 ```
 
 **Success Response:**
+
 ```json
 Event: "game.join.success"
 Data: {
@@ -103,10 +114,12 @@ Data: {
 ```
 
 ### Leave a Game
+
 **Event:** `game.leave`  
 **Send:** (no data required)
 
 **Response:**
+
 ```json
 Event: "game.leave.success"
 Data: {
@@ -117,10 +130,12 @@ Data: {
 ## Game State Events
 
 ### Request Current Game State
+
 **Event:** `state.current`  
 **Send:** (no data required)
 
 **Response:**
+
 ```json
 Event: "state.current.success"
 Data: {
@@ -149,10 +164,12 @@ Data: {
 ```
 
 ### Request Possible Actions
+
 **Event:** `state.actions`  
 **Send:** (no data required)
 
 **Response:**
+
 ```json
 Event: "state.actions.success"
 Data: {
@@ -168,19 +185,22 @@ Data: {
 ## Game Actions
 
 ### Submit an Action
+
 **Event:** `action.submit`  
-**Send:
+\*\*Send:
+
 ```json
 {
-  "action": {
-    "type": "call",
-    "amount": 100,
-    "timestamp": 1234567890
-  }
+	"action": {
+		"type": "call",
+		"amount": 100,
+		"timestamp": 1234567890
+	}
 }
 ```
 
 **Action Types:**
+
 - `fold` - No amount required
 - `check` - No amount required
 - `call` - Amount required
@@ -189,6 +209,7 @@ Data: {
 - `all-in` - No amount required
 
 **Success Response:**
+
 ```json
 Event: "action.submit.success"
 Data: {
@@ -207,6 +228,7 @@ Data: {
 You'll automatically receive these events while in a game:
 
 ### Turn Start
+
 ```json
 Event: "turn.start"
 Data: {
@@ -216,6 +238,7 @@ Data: {
 ```
 
 ### Turn Warning
+
 ```json
 Event: "turn.warning"
 Data: {
@@ -225,6 +248,7 @@ Data: {
 ```
 
 ### Game Events
+
 ```json
 Event: "event.game"
 Data: {
@@ -242,6 +266,7 @@ Data: {
 ```
 
 **Event Types:**
+
 - `hand_started` - New hand begins
 - `action_taken` - Player took an action
 - `flop_dealt` - Flop cards revealed
@@ -253,10 +278,12 @@ Data: {
 ## Utility Events
 
 ### Ping/Pong (Keep-alive)
+
 **Event:** `system.ping`  
 **Send:** (no data required)
 
 **Response:**
+
 ```json
 Event: "system.ping.success"
 Data: {
@@ -267,28 +294,34 @@ Data: {
 ## Spectator Mode
 
 ### Spectator Authentication
+
 **Event:** `spectator.auth`  
-**Send:
+\*\*Send:
+
 ```json
 {
-  "adminKey": "optional-admin-key"
+	"adminKey": "optional-admin-key"
 }
 ```
 
 ### Start Spectating
+
 **Event:** `spectator.watch`  
-**Send:
+\*\*Send:
+
 ```json
 {
-  "gameId": "test-game"
+	"gameId": "test-game"
 }
 ```
 
 ### List Active Games (Spectator)
+
 **Event:** `spectator.games`  
 **Send:** (no data required)
 
 **Response:**
+
 ```json
 Event: "spectator.games.success"
 Data: {
@@ -311,6 +344,7 @@ Data: {
 ## Error Handling
 
 ### General Error Format
+
 ```json
 Event: "system.error"
 Data: {
@@ -321,6 +355,7 @@ Data: {
 ```
 
 **Common Error Codes:**
+
 - `AUTH_REQUIRED` - Must authenticate before this action
 - `NOT_IN_GAME` - Bot is not in a game
 - `INVALID_ACTION` - Action is not valid in current state
@@ -341,6 +376,7 @@ Data: {
 ## Environment Variables (Optional)
 
 For development/testing, you can set:
+
 - `SKIP_BOT_AUTH=true` - Bypass authentication requirements
 
 ## Tips for Postman Testing

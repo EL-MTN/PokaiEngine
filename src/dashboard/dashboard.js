@@ -2161,7 +2161,9 @@ Please save this key securely. It won't be shown again.`,
 	}
 
 	async deleteReplay(gameId) {
-		if (!confirm(`Are you sure you want to delete replay for game "${gameId}"?`)) {
+		if (
+			!confirm(`Are you sure you want to delete replay for game "${gameId}"?`)
+		) {
 			return;
 		}
 
@@ -2207,7 +2209,10 @@ Please save this key securely. It won't be shown again.`,
 					resolve();
 				});
 				this.socket.once('spectator.auth.error', (data) => {
-					this.addLog('error', `Spectator authentication failed: ${data.error}`);
+					this.addLog(
+						'error',
+						`Spectator authentication failed: ${data.error}`,
+					);
 					resolve(); // Resolve anyway to not hang the UI
 				});
 			});
@@ -2272,7 +2277,10 @@ Please save this key securely. It won't be shown again.`,
 			this.socket.emit('spectator.unwatch', {
 				gameId: this.currentSpectatingGame,
 			});
-			this.addLog('info', `Stopped watching game ${this.currentSpectatingGame}`);
+			this.addLog(
+				'info',
+				`Stopped watching game ${this.currentSpectatingGame}`,
+			);
 			this.currentSpectatingGame = null;
 		}
 
@@ -2290,9 +2298,8 @@ Please save this key securely. It won't be shown again.`,
 			gameState.handNumber || 0;
 		document.getElementById('live-game-phase').textContent =
 			gameState.currentPhase || '-';
-		document.getElementById(
-			'live-blinds',
-		).textContent = `$${gameState.smallBlindAmount}/$${gameState.bigBlindAmount}`;
+		document.getElementById('live-blinds').textContent =
+			`$${gameState.smallBlindAmount}/$${gameState.bigBlindAmount}`;
 		document.getElementById('live-pot-amount').textContent =
 			gameState.potSize || 0;
 
@@ -2334,7 +2341,8 @@ Please save this key securely. It won't be shown again.`,
 			const player = players.find((p) => p.position === i);
 			if (player) {
 				const isFolded = player.isFolded;
-				const isCurrent = player.id === this.currentSpectatingGame?.currentPlayer;
+				const isCurrent =
+					player.id === this.currentSpectatingGame?.currentPlayer;
 
 				seatElements.push(`
                     <div class="player-position seat-${i} ${isFolded ? 'folded' : ''} ${isCurrent ? 'current-turn' : ''}">
@@ -2366,7 +2374,9 @@ Please save this key securely. It won't be shown again.`,
                     </div>
                 `);
 			} else {
-				seatElements.push(`<div class="player-position seat-${i} empty"></div>`);
+				seatElements.push(
+					`<div class="player-position seat-${i} empty"></div>`,
+				);
 			}
 		}
 		container.innerHTML = seatElements.join('');
@@ -2404,7 +2414,9 @@ Please save this key securely. It won't be shown again.`,
 		}
 
 		// Activate the selected tab button
-		const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+		const selectedButton = document.querySelector(
+			`.tab-button[data-tab="${tabId}"]`,
+		);
 		if (selectedButton) {
 			selectedButton.classList.add('active');
 		}

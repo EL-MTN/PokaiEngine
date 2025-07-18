@@ -176,7 +176,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			};
 			bot1.trigger('action.submit', { action });
 
-			const errorMsg = bot1.outgoing.find((e) => e.event === 'action.submit.error');
+			const errorMsg = bot1.outgoing.find(
+				(e) => e.event === 'action.submit.error',
+			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Not in a game');
 		});
@@ -188,9 +190,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 				chipStack: 1000,
 			});
 
-			const errorMsg = bot1.outgoing.find(
-				(e) => e.event === 'game.join.error',
-			);
+			const errorMsg = bot1.outgoing.find((e) => e.event === 'game.join.error');
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toContain('not found');
 		});
@@ -212,9 +212,7 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot3 = await createAuthenticatedBot('bot3', bot3Creds);
 			bot3.trigger('game.join', { gameId, chipStack: 1000 });
 
-			const errorMsg = bot3.outgoing.find(
-				(e) => e.event === 'game.join.error',
-			);
+			const errorMsg = bot3.outgoing.find((e) => e.event === 'game.join.error');
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toContain('full');
 		});
@@ -250,7 +248,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			bot1.trigger('game.leave', {});
 
 			// Should receive confirmation
-			const leftMsg = bot1.outgoing.find((e) => e.event === 'game.leave.success');
+			const leftMsg = bot1.outgoing.find(
+				(e) => e.event === 'game.leave.success',
+			);
 			expect(leftMsg).toBeDefined();
 
 			// Stats should update
@@ -262,7 +262,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 			bot1.trigger('game.list', {});
 
-			const gamesMsg = bot1.outgoing.find((e) => e.event === 'game.list.success');
+			const gamesMsg = bot1.outgoing.find(
+				(e) => e.event === 'game.list.success',
+			);
 			expect(gamesMsg).toBeDefined();
 			expect(Array.isArray(gamesMsg?.data.games)).toBe(true);
 			expect(gamesMsg?.data.games.length).toBeGreaterThan(0);
@@ -272,7 +274,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			const bot1 = await createAuthenticatedBot(bot1Id, bot1Credentials);
 			bot1.trigger('system.ping', {});
 
-			const pongMsg = bot1.outgoing.find((e) => e.event === 'system.ping.success');
+			const pongMsg = bot1.outgoing.find(
+				(e) => e.event === 'system.ping.success',
+			);
 			expect(pongMsg).toBeDefined();
 		});
 	});

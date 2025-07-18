@@ -1,9 +1,6 @@
 import { GameController } from '@/engine/game/GameController';
 import { BotAuthService } from '@/services/auth/BotAuthService';
-import {
-	authLogger,
-	communicationLogger,
-} from '@/services/logging/Logger';
+import { authLogger, communicationLogger } from '@/services/logging/Logger';
 import { Action, GameEvent, GameId, PlayerId } from '@/types';
 
 import { BotInterface } from './BotInterface';
@@ -22,6 +19,7 @@ export interface Socket {
 // SocketIO Server interface for compatibility
 export interface SocketIOServer {
 	on(event: string, callback: (socket: Socket) => void): void;
+	to(room: string): { emit(event: string, data: any): void };
 }
 
 export interface BotConnection {
@@ -118,21 +116,15 @@ export class SocketHandler {
 		connection: BotConnection,
 	): void {
 		// Authentication handler - must be called first
-		socket.on(
-			'auth.login',
-			async (data: { botId: string; apiKey: string }) => {
-				await this.handleAuthentication(connection, data);
-			},
-		);
+		socket.on('auth.login', async (data: { botId: string; apiKey: string }) => {
+			await this.handleAuthentication(connection, data);
+		});
 
 		// Bot identification and game joining (requires authentication)
-		socket.on(
-			'game.join',
-			(data: { gameId: GameId; chipStack: number }) => {
-				if (!this.requireAuth(connection)) return;
-				this.handleBotIdentification(connection, data);
-			},
-		);
+		socket.on('game.join', (data: { gameId: GameId; chipStack: number }) => {
+			if (!this.requireAuth(connection)) return;
+			this.handleBotIdentification(connection, data);
+		});
 
 		// Bot actions (requires authentication)
 		socket.on('action.submit', (data: { action: Omit<Action, 'playerId'> }) => {
@@ -220,7 +212,8 @@ export class SocketHandler {
 			}
 
 			// Use the botName from the authenticated connection, fallback to botId or playerId
-			const botName = connection.botName || connection.botId || connection.playerId;
+			const botName =
+				connection.botName || connection.botId || connection.playerId;
 
 			// Check if this is a reconnection (player already in the game)
 			const existingGameId = this.gameController.getPlayerGameId(
@@ -301,7 +294,10 @@ export class SocketHandler {
 	/**
 	 * Handles bot actions
 	 */
-	private handleBotAction(connection: BotConnection, actionData: Omit<Action, 'playerId'>): void {
+	private handleBotAction(
+		connection: BotConnection,
+		actionData: Omit<Action, 'playerId'>,
+	): void {
 		if (!connection.gameId) {
 			connection.socket.emit('action.submit.error', {
 				error: 'Not in a game',
@@ -501,10 +497,15 @@ export class SocketHandler {
 	private unsubscribeFromGameEvents(connection: BotConnection): void {
 		if (connection.eventHandler && connection.gameId) {
 			try {
-				this.gameController.unsubscribeFromGame(connection.gameId, connection.eventHandler);
+				this.gameController.unsubscribeFromGame(
+					connection.gameId,
+					connection.eventHandler,
+				);
 			} catch (error) {
 				// Log but don't throw - unsubscribe errors shouldn't break the flow
-				communicationLogger.warn(`Failed to unsubscribe from game events: ${error instanceof Error ? error.message : 'Unknown error'}`);
+				communicationLogger.warn(
+					`Failed to unsubscribe from game events: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				);
 			}
 			connection.eventHandler = undefined;
 		}
@@ -757,10 +758,9 @@ export class SocketHandler {
 	 * Broadcasts an event to all connected bots in a game
 	 */
 	broadcastToGame(gameId: GameId, event: string, data: any): void {
-		for (const connection of this.connections.values()) {
-			if (connection.gameId === gameId && connection.isConnected) {
-				connection.socket.emit(event, data);
-			}
+		const room = `game_${gameId}`;
+		if (this.io.to) {
+			this.io.to(room).emit(event, data);
 		}
 	}
 

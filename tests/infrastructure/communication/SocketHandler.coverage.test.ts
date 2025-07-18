@@ -1,9 +1,5 @@
 import { GameController } from '@/engine/game/GameController';
-import {
-	Socket,
-	SocketHandler,
-	SocketIOServer,
-} from '@/socket/SocketHandler';
+import { Socket, SocketHandler, SocketIOServer } from '@/socket/SocketHandler';
 import { Action, ActionType, GameConfig } from '@/types';
 
 // Mock BotAuthService at the module level BEFORE any imports
@@ -161,7 +157,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'auth.login.error');
+			const errorMsg = socket.outgoing.find(
+				(e) => e.event === 'auth.login.error',
+			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.message).toBe('Authentication failed');
 		});
@@ -179,7 +177,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			await new Promise((resolve) => setTimeout(resolve, 50));
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'auth.login.error');
+			const errorMsg = socket.outgoing.find(
+				(e) => e.event === 'auth.login.error',
+			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.message).toBe('Bot not found');
 		});
@@ -277,7 +277,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			socket.trigger('action.submit', { action });
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'action.submit.error');
+			const errorMsg = socket.outgoing.find(
+				(e) => e.event === 'action.submit.error',
+			);
 			expect(errorMsg).toBeDefined();
 		});
 
@@ -319,7 +321,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			socket.trigger('game.unseat', {});
 
-			const errorMsg = socket.outgoing.find((e) => e.event === 'game.unseat.error');
+			const errorMsg = socket.outgoing.find(
+				(e) => e.event === 'game.unseat.error',
+			);
 			expect(errorMsg).toBeDefined();
 			expect(errorMsg?.data.error).toBe('Bot is not in a game');
 		});
@@ -391,7 +395,9 @@ describe('SocketHandler Coverage Tests', () => {
 			socket.trigger('game.leave', {});
 
 			// Should still succeed despite unsubscribe error
-			const leftGameMsg = socket.outgoing.find((e) => e.event === 'game.leave.success');
+			const leftGameMsg = socket.outgoing.find(
+				(e) => e.event === 'game.leave.success',
+			);
 			expect(leftGameMsg).toBeDefined();
 		});
 	});
@@ -410,7 +416,9 @@ describe('SocketHandler Coverage Tests', () => {
 			});
 			socket.trigger('state.current', {});
 
-			const gameStateMsg = socket.outgoing.find((e) => e.event === 'state.current.success');
+			const gameStateMsg = socket.outgoing.find(
+				(e) => e.event === 'state.current.success',
+			);
 			expect(gameStateMsg).toBeDefined();
 		});
 
@@ -419,7 +427,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			socket.trigger('game.list', {});
 
-			const gamesListMsg = socket.outgoing.find((e) => e.event === 'game.list.success');
+			const gamesListMsg = socket.outgoing.find(
+				(e) => e.event === 'game.list.success',
+			);
 			expect(gamesListMsg).toBeDefined();
 		});
 
@@ -428,7 +438,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			socket.trigger('system.ping', {});
 
-			const pongMsg = socket.outgoing.find((e) => e.event === 'system.ping.success');
+			const pongMsg = socket.outgoing.find(
+				(e) => e.event === 'system.ping.success',
+			);
 			expect(pongMsg).toBeDefined();
 			expect(pongMsg?.data.timestamp).toBeDefined();
 		});
@@ -486,7 +498,9 @@ describe('SocketHandler Coverage Tests', () => {
 
 			// Should receive updated game state
 			await new Promise((resolve) => setTimeout(resolve, 50));
-			const gameState = socket.outgoing.find((e) => e.event === 'state.current.success');
+			const gameState = socket.outgoing.find(
+				(e) => e.event === 'state.current.success',
+			);
 			expect(gameState).toBeDefined();
 		});
 	});

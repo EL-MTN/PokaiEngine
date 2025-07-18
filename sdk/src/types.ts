@@ -1,6 +1,6 @@
 /**
  * PokaiEngine Bot SDK - Type Definitions
- * 
+ *
  * Comprehensive TypeScript types for bot development
  */
 
@@ -17,7 +17,7 @@ export enum ActionType {
 	Call = 'call',
 	Bet = 'bet',
 	Raise = 'raise',
-	AllIn = 'all-in'
+	AllIn = 'all-in',
 }
 
 export interface Action {
@@ -100,7 +100,12 @@ export interface JoinGameOptions {
 // === Event Handlers ===
 
 export interface BotEventHandlers {
-	onGameJoined?: (data: { playerId: string; gameId: string; botName: string; chipStack: number }) => void;
+	onGameJoined?: (data: {
+		playerId: string;
+		gameId: string;
+		botName: string;
+		chipStack: number;
+	}) => void;
 	onTurnStart?: (data: { timeLimit: number }) => void;
 	onTurnWarning?: (data: { timeRemaining: number }) => void;
 	onGameState?: (gameState: GameState) => void;
@@ -162,7 +167,7 @@ export class PokaiError extends Error {
 	constructor(
 		message: string,
 		public code?: string,
-		public details?: any
+		public details?: any,
 	) {
 		super(message);
 		this.name = 'PokaiError';

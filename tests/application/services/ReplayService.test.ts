@@ -2,10 +2,7 @@ import fs from 'fs/promises';
 
 import { ReplayService } from '@/services/replay/ReplayService';
 import { DatabaseConnection } from '@/services/storage/database';
-import {
-	IGameEvent,
-	IReplay,
-} from '@/services/storage/models/Replay';
+import { IGameEvent, IReplay } from '@/services/storage/models/Replay';
 import { ReplayRepository } from '@/services/storage/repositories/ReplayRepository';
 import { GamePhase } from '@/types';
 

@@ -1,64 +1,64 @@
 {
-  "name": "pokai-bot-sdk",
-  "version": "1.0.0",
-  "description": "Official TypeScript/JavaScript SDK for building PokaiEngine poker bots",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": [
-    "dist/**/*",
-    "examples/**/*",
-    "docs/**/*",
-    "README.md"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build",
-    "example:basic": "node examples/basic-bot.js",
-    "example:aggressive": "node examples/aggressive-bot.js",
-    "example:conservative": "node examples/conservative-bot.js",
-    "example:advanced": "node examples/advanced-bot.js"
-  },
-  "keywords": [
-    "poker",
-    "bot",
-    "sdk",
-    "pokai",
-    "texas-holdem",
-    "gambling",
-    "game",
-    "ai",
-    "typescript",
-    "javascript"
-  ],
-  "author": "PokaiEngine Team",
-  "license": "MIT",
-  "dependencies": {
-    "socket.io-client": "^4.7.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-org/pokai-engine.git",
-    "directory": "sdk"
-  },
-  "bugs": {
-    "url": "https://github.com/your-org/pokai-engine/issues"
-  },
-  "homepage": "https://github.com/your-org/pokai-engine/tree/main/sdk#readme"
+	"name": "pokai-bot-sdk",
+	"version": "1.0.0",
+	"description": "Official TypeScript/JavaScript SDK for building PokaiEngine poker bots",
+	"main": "dist/index.js",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"require": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist/**/*",
+		"examples/**/*",
+		"docs/**/*",
+		"README.md"
+	],
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"clean": "rm -rf dist",
+		"prepublishOnly": "npm run clean && npm run build",
+		"example:basic": "node examples/basic-bot.js",
+		"example:aggressive": "node examples/aggressive-bot.js",
+		"example:conservative": "node examples/conservative-bot.js",
+		"example:advanced": "node examples/advanced-bot.js"
+	},
+	"keywords": [
+		"poker",
+		"bot",
+		"sdk",
+		"pokai",
+		"texas-holdem",
+		"gambling",
+		"game",
+		"ai",
+		"typescript",
+		"javascript"
+	],
+	"author": "PokaiEngine Team",
+	"license": "MIT",
+	"dependencies": {
+		"socket.io-client": "^4.7.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"typescript": "^5.0.0"
+	},
+	"engines": {
+		"node": ">=16.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/your-org/pokai-engine.git",
+		"directory": "sdk"
+	},
+	"bugs": {
+		"url": "https://github.com/your-org/pokai-engine/issues"
+	},
+	"homepage": "https://github.com/your-org/pokai-engine/tree/main/sdk#readme"
 }

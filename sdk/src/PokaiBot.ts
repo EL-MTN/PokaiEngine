@@ -1,6 +1,6 @@
 /**
  * PokaiEngine Bot SDK - Core Bot Client
- * 
+ *
  * A comprehensive, developer-friendly client for building poker bots
  */
 
@@ -23,14 +23,17 @@ import {
 	JoinGameOptions,
 	Logger,
 	LogLevel,
-	PossibleAction
+	PossibleAction,
 } from './types.js';
 
 /**
  * Default logger implementation
  */
 class DefaultLogger implements Logger {
-	constructor(private level: LogLevel = 'info', private prefix: string = '[PokaiBot]') {}
+	constructor(
+		private level: LogLevel = 'info',
+		private prefix: string = '[PokaiBot]',
+	) {}
 
 	private shouldLog(level: LogLevel): boolean {
 		const levels = ['debug', 'info', 'warn', 'error'];
@@ -38,19 +41,23 @@ class DefaultLogger implements Logger {
 	}
 
 	debug(message: string, ...args: any[]): void {
-		if (this.shouldLog('debug')) console.debug(`${this.prefix} ${message}`, ...args);
+		if (this.shouldLog('debug'))
+			console.debug(`${this.prefix} ${message}`, ...args);
 	}
 
 	info(message: string, ...args: any[]): void {
-		if (this.shouldLog('info')) console.info(`${this.prefix} ${message}`, ...args);
+		if (this.shouldLog('info'))
+			console.info(`${this.prefix} ${message}`, ...args);
 	}
 
 	warn(message: string, ...args: any[]): void {
-		if (this.shouldLog('warn')) console.warn(`${this.prefix} ${message}`, ...args);
+		if (this.shouldLog('warn'))
+			console.warn(`${this.prefix} ${message}`, ...args);
 	}
 
 	error(message: string, ...args: any[]): void {
-		if (this.shouldLog('error')) console.error(`${this.prefix} ${message}`, ...args);
+		if (this.shouldLog('error'))
+			console.error(`${this.prefix} ${message}`, ...args);
 	}
 }
 
@@ -79,13 +86,15 @@ export class PokaiBot extends EventEmitter {
 			reconnectAttempts: config.reconnectAttempts || 5,
 			reconnectDelay: config.reconnectDelay || 2000,
 			actionTimeout: config.actionTimeout || 25000, // 25 seconds (5s buffer before server timeout)
-			debug: config.debug ?? false
+			debug: config.debug ?? false,
 		};
 
-		this.logger = logger || new DefaultLogger(
-			this.config.debug ? 'debug' : 'info',
-			`[PokaiBot:${this.config.credentials.botId}]`
-		);
+		this.logger =
+			logger ||
+			new DefaultLogger(
+				this.config.debug ? 'debug' : 'info',
+				`[PokaiBot:${this.config.credentials.botId}]`,
+			);
 
 		this.logger.debug('Bot client initialized', { config: this.config });
 	}
@@ -111,7 +120,7 @@ export class PokaiBot extends EventEmitter {
 			this.socket = io(this.config.serverUrl, {
 				transports: ['websocket', 'polling'],
 				reconnection: false, // We handle reconnection manually
-				timeout: 10000
+				timeout: 10000,
 			});
 
 			this.setupSocketHandlers();
@@ -177,7 +186,9 @@ export class PokaiBot extends EventEmitter {
 				clearTimeout(timeout);
 				this.isAuthenticated = true;
 				this.currentPlayerId = data.playerId;
-				this.logger.info(`Authenticated successfully as ${data.botName} (${data.playerId})`);
+				this.logger.info(
+					`Authenticated successfully as ${data.botName} (${data.playerId})`,
+				);
 				resolve();
 			};
 
@@ -192,7 +203,7 @@ export class PokaiBot extends EventEmitter {
 
 			this.socket!.emit('auth.login', {
 				botId: this.config.credentials.botId,
-				apiKey: this.config.credentials.apiKey
+				apiKey: this.config.credentials.apiKey,
 			});
 		});
 	}
@@ -234,7 +245,9 @@ export class PokaiBot extends EventEmitter {
 			throw new GameError('Already in a game. Leave current game first.');
 		}
 
-		this.logger.info(`Joining game ${options.gameId} with ${options.chipStack} chips`);
+		this.logger.info(
+			`Joining game ${options.gameId} with ${options.chipStack} chips`,
+		);
 
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
@@ -260,7 +273,7 @@ export class PokaiBot extends EventEmitter {
 
 			this.socket!.emit('game.join', {
 				gameId: options.gameId,
-				chipStack: options.chipStack
+				chipStack: options.chipStack,
 			});
 		});
 	}
@@ -315,10 +328,12 @@ export class PokaiBot extends EventEmitter {
 		const action: Action = {
 			type: actionType,
 			timestamp: Date.now(),
-			...(amount && { amount })
+			...(amount && { amount }),
 		};
 
-		this.logger.debug(`Submitting action: ${actionType}${amount ? ` (${amount})` : ''}`);
+		this.logger.debug(
+			`Submitting action: ${actionType}${amount ? ` (${amount})` : ''}`,
+		);
 
 		return new Promise((resolve, reject) => {
 			const timeout = setTimeout(() => {
@@ -328,7 +343,9 @@ export class PokaiBot extends EventEmitter {
 			const onSuccess = (data: { action: Action }) => {
 				clearTimeout(timeout);
 				this.clearActionTimeout();
-				this.logger.info(`Action successful: ${data.action.type}${data.action.amount ? ` (${data.action.amount})` : ''}`);
+				this.logger.info(
+					`Action successful: ${data.action.type}${data.action.amount ? ` (${data.action.amount})` : ''}`,
+				);
 				resolve();
 			};
 
@@ -505,11 +522,13 @@ export class PokaiBot extends EventEmitter {
 
 	private startActionTimeout(timeLimit: number): void {
 		this.clearActionTimeout();
-		
+
 		// Set timeout for 80% of time limit to give buffer for action submission
 		const timeoutMs = timeLimit * 800;
 		this.actionTimeout = setTimeout(() => {
-			this.logger.warn('Action timeout approaching, consider implementing automatic fallback action');
+			this.logger.warn(
+				'Action timeout approaching, consider implementing automatic fallback action',
+			);
 		}, timeoutMs);
 	}
 
@@ -521,14 +540,19 @@ export class PokaiBot extends EventEmitter {
 	}
 
 	private async handleReconnection(): Promise<void> {
-		if (this.isReconnecting || this.reconnectAttempts >= this.config.reconnectAttempts) {
+		if (
+			this.isReconnecting ||
+			this.reconnectAttempts >= this.config.reconnectAttempts
+		) {
 			return;
 		}
 
 		this.isReconnecting = true;
 		this.reconnectAttempts++;
 
-		this.logger.info(`Attempting reconnection ${this.reconnectAttempts}/${this.config.reconnectAttempts}`);
+		this.logger.info(
+			`Attempting reconnection ${this.reconnectAttempts}/${this.config.reconnectAttempts}`,
+		);
 
 		setTimeout(async () => {
 			try {
@@ -543,7 +567,11 @@ export class PokaiBot extends EventEmitter {
 					this.handleReconnection();
 				} else {
 					this.logger.error('Max reconnection attempts reached');
-					this.emit('error', 'Max reconnection attempts reached', 'RECONNECTION_FAILED');
+					this.emit(
+						'error',
+						'Max reconnection attempts reached',
+						'RECONNECTION_FAILED',
+					);
 				}
 			}
 		}, this.config.reconnectDelay);

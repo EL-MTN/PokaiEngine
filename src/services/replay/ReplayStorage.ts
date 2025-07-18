@@ -6,10 +6,7 @@ import { Card as CardClass } from '@/engine/poker/Card';
 import { HandEvaluator } from '@/engine/poker/HandEvaluator';
 import { replayLogger } from '@/services/logging/Logger';
 import { ReplayService } from '@/services/replay/ReplayService';
-import {
-	IGameEvent,
-	IGameMetadata,
-} from '@/services/storage/models/Replay';
+import { IGameEvent, IGameMetadata } from '@/services/storage/models/Replay';
 import {
 	Card,
 	GameId,

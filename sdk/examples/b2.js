@@ -2,7 +2,7 @@
 
 /**
  * Basic Bot Example - PokaiEngine SDK
- * 
+ *
  * Demonstrates the simplest possible bot implementation
  */
 
@@ -49,24 +49,28 @@ async function runBasicBot() {
 			}
 			isActing = true;
 			console.log(`[B2] 🎯 My turn! (${data.timeLimit}s time limit)`);
-			
+
 			try {
 				// Add a 5-second delay for debugging
-				await new Promise(resolve => setTimeout(resolve, 5000));
+				await new Promise((resolve) => setTimeout(resolve, 5000));
 
 				// Get current game state
 				const gameState = await bot.getGameState();
-				console.log(`[B2] 📊 Hand: ${formatCards(gameState.playerCards)} | Pot: ${gameState.potSize} | Phase: ${gameState.currentPhase}`);
-				
+				console.log(
+					`[B2] 📊 Hand: ${formatCards(gameState.playerCards)} | Pot: ${gameState.potSize} | Phase: ${gameState.currentPhase}`,
+				);
+
 				// Get possible actions
 				const actions = await bot.getPossibleActions();
-				console.log(`[B2] 🎲 Available: ${actions.map(a => a.type).join(', ')}`);
-				
+				console.log(
+					`[B2] 🎲 Available: ${actions.map((a) => a.type).join(', ')}`,
+				);
+
 				// Simple strategy: prefer check/call over folding
-				if (actions.find(a => a.type === ActionType.Check)) {
+				if (actions.find((a) => a.type === ActionType.Check)) {
 					console.log('[B2] Choosing action: Check');
 					await bot.submitAction(ActionType.Check);
-				} else if (actions.find(a => a.type === ActionType.Call)) {
+				} else if (actions.find((a) => a.type === ActionType.Call)) {
 					console.log('[B2] Choosing action: Call');
 					await bot.submitAction(ActionType.Call);
 				} else {
@@ -97,7 +101,7 @@ async function runBasicBot() {
 
 		onDisconnected: (reason) => {
 			console.log(`🔌 Disconnected: ${reason}`);
-		}
+		},
 	});
 
 	try {
@@ -110,7 +114,7 @@ async function runBasicBot() {
 		console.log('📋 Getting available games...');
 		const games = await bot.getGames();
 		console.log(`Found ${games.length} games`);
-		
+
 		if (games.length === 0) {
 			console.log('❌ No games available');
 			return;
@@ -122,13 +126,12 @@ async function runBasicBot() {
 		console.log('gameToJoin', gameToJoin);
 		await bot.joinGame({
 			gameId: gameToJoin.id,
-			chipStack: 1000
+			chipStack: 1000,
 		});
 
 		// Keep the bot running
 		console.log('🚀 Bot is now active and playing...');
 		console.log('Press Ctrl+C to stop');
-
 	} catch (error) {
 		console.error('❌ Bot failed:', error.message);
 	}

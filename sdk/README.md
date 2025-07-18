@@ -12,10 +12,10 @@ npm install pokai-bot-sdk
 import { PokaiBot, ActionType } from 'pokai-bot-sdk';
 
 const bot = new PokaiBot({
-  credentials: {
-    botId: 'your-bot-id',
-    apiKey: 'your-api-key'
-  }
+	credentials: {
+		botId: 'your-bot-id',
+		apiKey: 'your-api-key',
+	},
 });
 
 await bot.connect();
@@ -53,12 +53,12 @@ pnpm add pokai-bot-sdk
 import { PokaiBot } from 'pokai-bot-sdk';
 
 const bot = new PokaiBot({
-  credentials: {
-    botId: 'your-bot-id',
-    apiKey: 'your-api-key'
-  },
-  serverUrl: 'http://localhost:3000', // Optional
-  debug: true // Optional
+	credentials: {
+		botId: 'your-bot-id',
+		apiKey: 'your-api-key',
+	},
+	serverUrl: 'http://localhost:3000', // Optional
+	debug: true, // Optional
 });
 ```
 
@@ -74,32 +74,32 @@ console.log(`Found ${games.length} games`);
 
 // Join a game
 await bot.joinGame({
-  gameId: games[0].gameId,
-  chipStack: 1000
+	gameId: games[0].gameId,
+	chipStack: 1000,
 });
 
 // Set up event handlers
 bot.setEventHandlers({
-  onTurnStart: async (data) => {
-    console.log(`My turn! Time limit: ${data.timeLimit}s`);
-    
-    // Get game state and possible actions
-    const gameState = await bot.getGameState();
-    const actions = await bot.getPossibleActions();
-    
-    // Make a decision
-    if (actions.find(a => a.type === 'check')) {
-      await bot.submitAction('check');
-    } else {
-      await bot.submitAction('fold');
-    }
-  },
-  
-  onGameEvent: (event) => {
-    if (event.type === 'hand_complete') {
-      console.log('Hand finished!');
-    }
-  }
+	onTurnStart: async (data) => {
+		console.log(`My turn! Time limit: ${data.timeLimit}s`);
+
+		// Get game state and possible actions
+		const gameState = await bot.getGameState();
+		const actions = await bot.getPossibleActions();
+
+		// Make a decision
+		if (actions.find((a) => a.type === 'check')) {
+			await bot.submitAction('check');
+		} else {
+			await bot.submitAction('fold');
+		}
+	},
+
+	onGameEvent: (event) => {
+		if (event.type === 'hand_complete') {
+			console.log('Hand finished!');
+		}
+	},
 });
 ```
 
@@ -111,15 +111,15 @@ bot.setEventHandlers({
 
 ```typescript
 interface BotConfig {
-  credentials: {
-    botId: string;
-    apiKey: string;
-  };
-  serverUrl?: string;           // Default: 'http://localhost:3000'
-  reconnectAttempts?: number;   // Default: 5
-  reconnectDelay?: number;      // Default: 2000ms
-  actionTimeout?: number;       // Default: 25000ms
-  debug?: boolean;              // Default: false
+	credentials: {
+		botId: string;
+		apiKey: string;
+	};
+	serverUrl?: string; // Default: 'http://localhost:3000'
+	reconnectAttempts?: number; // Default: 5
+	reconnectDelay?: number; // Default: 2000ms
+	actionTimeout?: number; // Default: 25000ms
+	debug?: boolean; // Default: false
 }
 ```
 
@@ -127,44 +127,64 @@ interface BotConfig {
 
 ```javascript
 // Connection management
-await bot.connect()
-bot.disconnect()
-bot.isReady() // returns boolean
+await bot.connect();
+bot.disconnect();
+bot.isReady(); // returns boolean
 
 // Game management
-const games = await bot.getGames()
-await bot.joinGame({ gameId: 'game-1', chipStack: 1000 })
-await bot.leaveGame()
+const games = await bot.getGames();
+await bot.joinGame({ gameId: 'game-1', chipStack: 1000 });
+await bot.leaveGame();
 
 // Game actions
-await bot.submitAction(ActionType.Call)
-await bot.submitAction(ActionType.Bet, 100)
-await bot.submitAction(ActionType.Raise, 200)
+await bot.submitAction(ActionType.Call);
+await bot.submitAction(ActionType.Bet, 100);
+await bot.submitAction(ActionType.Raise, 200);
 
 // Game state
-const gameState = await bot.getGameState()
-const actions = await bot.getPossibleActions()
+const gameState = await bot.getGameState();
+const actions = await bot.getPossibleActions();
 
 // Utility
-const gameId = bot.getCurrentGameId()
-const playerId = bot.getCurrentPlayerId()
-const cachedState = bot.getCachedGameState()
+const gameId = bot.getCurrentGameId();
+const playerId = bot.getCurrentPlayerId();
+const cachedState = bot.getCachedGameState();
 ```
 
 #### Event Handlers
 
 ```javascript
 bot.setEventHandlers({
-  onGameJoined: (data) => { /* Game joined successfully */ },
-  onTurnStart: (data) => { /* Your turn to act */ },
-  onTurnWarning: (data) => { /* Time running out */ },
-  onGameState: (gameState) => { /* Game state updated */ },
-  onGameEvent: (event) => { /* Game event occurred */ },
-  onActionSuccess: (action) => { /* Action succeeded */ },
-  onActionError: (error) => { /* Action failed */ },
-  onError: (error, code) => { /* General error */ },
-  onDisconnected: (reason) => { /* Connection lost */ },
-  onReconnected: () => { /* Reconnected */ }
+	onGameJoined: (data) => {
+		/* Game joined successfully */
+	},
+	onTurnStart: (data) => {
+		/* Your turn to act */
+	},
+	onTurnWarning: (data) => {
+		/* Time running out */
+	},
+	onGameState: (gameState) => {
+		/* Game state updated */
+	},
+	onGameEvent: (event) => {
+		/* Game event occurred */
+	},
+	onActionSuccess: (action) => {
+		/* Action succeeded */
+	},
+	onActionError: (error) => {
+		/* Action failed */
+	},
+	onError: (error, code) => {
+		/* General error */
+	},
+	onDisconnected: (reason) => {
+		/* Connection lost */
+	},
+	onReconnected: () => {
+		/* Reconnected */
+	},
 });
 ```
 
@@ -173,31 +193,31 @@ bot.setEventHandlers({
 ```javascript
 import { ActionType } from 'pokai-bot-sdk';
 
-ActionType.Fold    // 'fold'
-ActionType.Check   // 'check'  
-ActionType.Call    // 'call'
-ActionType.Bet     // 'bet'
-ActionType.Raise   // 'raise'
-ActionType.AllIn   // 'all-in'
+ActionType.Fold; // 'fold'
+ActionType.Check; // 'check'
+ActionType.Call; // 'call'
+ActionType.Bet; // 'bet'
+ActionType.Raise; // 'raise'
+ActionType.AllIn; // 'all-in'
 ```
 
 ### Game State Structure
 
 ```typescript
 interface GameState {
-  gameId: string;
-  currentPhase: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
-  currentPlayerToAct: string | null;
-  potSize: number;
-  communityCards: Card[];
-  playerCards: Card[];
-  possibleActions: PossibleAction[];
-  players: Player[];
-  dealerPosition: number;
-  smallBlindPosition: number;
-  bigBlindPosition: number;
-  handNumber: number;
-  timeLimit?: number;
+	gameId: string;
+	currentPhase: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
+	currentPlayerToAct: string | null;
+	potSize: number;
+	communityCards: Card[];
+	playerCards: Card[];
+	possibleActions: PossibleAction[];
+	players: Player[];
+	dealerPosition: number;
+	smallBlindPosition: number;
+	bigBlindPosition: number;
+	handNumber: number;
+	timeLimit?: number;
 }
 ```
 
@@ -209,22 +229,22 @@ interface GameState {
 import { PokaiBot, ActionType } from 'pokai-bot-sdk';
 
 const bot = new PokaiBot({
-  credentials: { botId: 'basic-bot', apiKey: 'your-key' }
+	credentials: { botId: 'basic-bot', apiKey: 'your-key' },
 });
 
 bot.setEventHandlers({
-  onTurnStart: async () => {
-    const actions = await bot.getPossibleActions();
-    
-    // Simple strategy: check/call when possible, fold otherwise
-    if (actions.find(a => a.type === ActionType.Check)) {
-      await bot.submitAction(ActionType.Check);
-    } else if (actions.find(a => a.type === ActionType.Call)) {
-      await bot.submitAction(ActionType.Call);
-    } else {
-      await bot.submitAction(ActionType.Fold);
-    }
-  }
+	onTurnStart: async () => {
+		const actions = await bot.getPossibleActions();
+
+		// Simple strategy: check/call when possible, fold otherwise
+		if (actions.find((a) => a.type === ActionType.Check)) {
+			await bot.submitAction(ActionType.Check);
+		} else if (actions.find((a) => a.type === ActionType.Call)) {
+			await bot.submitAction(ActionType.Call);
+		} else {
+			await bot.submitAction(ActionType.Fold);
+		}
+	},
 });
 
 await bot.connect();
@@ -233,59 +253,59 @@ await bot.connect();
 ### 2. Aggressive Bot
 
 ```javascript
-import { 
-  PokaiBot, 
-  ActionType, 
-  createAggressiveDecision,
-  findAction 
+import {
+	PokaiBot,
+	ActionType,
+	createAggressiveDecision,
+	findAction,
 } from 'pokai-bot-sdk';
 
 const bot = new PokaiBot({
-  credentials: { botId: 'aggressive-bot', apiKey: 'your-key' }
+	credentials: { botId: 'aggressive-bot', apiKey: 'your-key' },
 });
 
 bot.setEventHandlers({
-  onTurnStart: async () => {
-    const actions = await bot.getPossibleActions();
-    const decision = createAggressiveDecision(actions, 0.8);
-    
-    await bot.submitAction(decision.action, decision.amount);
-  }
+	onTurnStart: async () => {
+		const actions = await bot.getPossibleActions();
+		const decision = createAggressiveDecision(actions, 0.8);
+
+		await bot.submitAction(decision.action, decision.amount);
+	},
 });
 ```
 
 ### 3. Pot Odds Bot
 
 ```javascript
-import { 
-  PokaiBot, 
-  ActionType,
-  calculatePotOdds,
-  isProfitableCall
+import {
+	PokaiBot,
+	ActionType,
+	calculatePotOdds,
+	isProfitableCall,
 } from 'pokai-bot-sdk';
 
 const bot = new PokaiBot({
-  credentials: { botId: 'pot-odds-bot', apiKey: 'your-key' }
+	credentials: { botId: 'pot-odds-bot', apiKey: 'your-key' },
 });
 
 bot.setEventHandlers({
-  onTurnStart: async () => {
-    const gameState = await bot.getGameState();
-    const actions = await bot.getPossibleActions();
-    
-    const callAction = actions.find(a => a.type === ActionType.Call);
-    
-    if (callAction && callAction.minAmount) {
-      const potOdds = calculatePotOdds(gameState.potSize, callAction.minAmount);
-      const winProbability = 0.4; // Your hand evaluation logic here
-      
-      if (isProfitableCall(potOdds, winProbability)) {
-        await bot.submitAction(ActionType.Call);
-      } else {
-        await bot.submitAction(ActionType.Fold);
-      }
-    }
-  }
+	onTurnStart: async () => {
+		const gameState = await bot.getGameState();
+		const actions = await bot.getPossibleActions();
+
+		const callAction = actions.find((a) => a.type === ActionType.Call);
+
+		if (callAction && callAction.minAmount) {
+			const potOdds = calculatePotOdds(gameState.potSize, callAction.minAmount);
+			const winProbability = 0.4; // Your hand evaluation logic here
+
+			if (isProfitableCall(potOdds, winProbability)) {
+				await bot.submitAction(ActionType.Call);
+			} else {
+				await bot.submitAction(ActionType.Fold);
+			}
+		}
+	},
 });
 ```
 
@@ -296,16 +316,22 @@ The SDK includes utility functions to help with common poker calculations:
 ### Card Analysis
 
 ```javascript
-import { formatCard, formatCards, isPair, isSuited, isConnected } from 'pokai-bot-sdk';
+import {
+	formatCard,
+	formatCards,
+	isPair,
+	isSuited,
+	isConnected,
+} from 'pokai-bot-sdk';
 
 const hand = [
-  { suit: 'H', rank: 14 }, // Ace of Hearts
-  { suit: 'H', rank: 13 }  // King of Hearts
+	{ suit: 'H', rank: 14 }, // Ace of Hearts
+	{ suit: 'H', rank: 13 }, // King of Hearts
 ];
 
 console.log(formatCards(hand)); // "A♥ K♥"
-console.log(isPair(hand));      // false
-console.log(isSuited(hand));    // true
+console.log(isPair(hand)); // false
+console.log(isSuited(hand)); // true
 console.log(isConnected(hand)); // true
 ```
 
@@ -333,7 +359,7 @@ console.log(profitable); // true (25% > 16.67%)
 import { getPositionName, getPositionType } from 'pokai-bot-sdk';
 
 const position = getPositionName(0, 6); // "Button"
-const type = getPositionType(0, 6);     // "late"
+const type = getPositionType(0, 6); // "late"
 ```
 
 ### Betting Helpers
@@ -352,23 +378,23 @@ const potBet = calculateBetSize(gameState.potSize, 75); // 75% pot bet
 The SDK includes specific error types for different failure scenarios:
 
 ```javascript
-import { 
-  PokaiError, 
-  AuthenticationError, 
-  GameError, 
-  ConnectionError 
+import {
+	PokaiError,
+	AuthenticationError,
+	GameError,
+	ConnectionError,
 } from 'pokai-bot-sdk';
 
 try {
-  await bot.connect();
+	await bot.connect();
 } catch (error) {
-  if (error instanceof AuthenticationError) {
-    console.error('Authentication failed:', error.message);
-  } else if (error instanceof ConnectionError) {
-    console.error('Connection failed:', error.message);
-  } else if (error instanceof GameError) {
-    console.error('Game error:', error.message);
-  }
+	if (error instanceof AuthenticationError) {
+		console.error('Authentication failed:', error.message);
+	} else if (error instanceof ConnectionError) {
+		console.error('Connection failed:', error.message);
+	} else if (error instanceof GameError) {
+		console.error('Game error:', error.message);
+	}
 }
 ```
 
@@ -378,8 +404,8 @@ Enable debug mode for detailed logging:
 
 ```javascript
 const bot = new PokaiBot({
-  credentials: { botId: 'debug-bot', apiKey: 'your-key' },
-  debug: true
+	credentials: { botId: 'debug-bot', apiKey: 'your-key' },
+	debug: true,
 });
 ```
 
@@ -389,10 +415,10 @@ Or provide your own logger:
 import { PokaiBot } from 'pokai-bot-sdk';
 
 const customLogger = {
-  debug: (msg, ...args) => console.debug(`[DEBUG] ${msg}`, ...args),
-  info: (msg, ...args) => console.info(`[INFO] ${msg}`, ...args),
-  warn: (msg, ...args) => console.warn(`[WARN] ${msg}`, ...args),
-  error: (msg, ...args) => console.error(`[ERROR] ${msg}`, ...args)
+	debug: (msg, ...args) => console.debug(`[DEBUG] ${msg}`, ...args),
+	info: (msg, ...args) => console.info(`[INFO] ${msg}`, ...args),
+	warn: (msg, ...args) => console.warn(`[WARN] ${msg}`, ...args),
+	error: (msg, ...args) => console.error(`[ERROR] ${msg}`, ...args),
 };
 
 const bot = new PokaiBot(config, customLogger);
@@ -406,20 +432,20 @@ The SDK is written in TypeScript and includes full type definitions:
 import { PokaiBot, GameState, ActionType, BotConfig } from 'pokai-bot-sdk';
 
 const config: BotConfig = {
-  credentials: {
-    botId: 'typed-bot',
-    apiKey: 'your-api-key'
-  },
-  debug: true
+	credentials: {
+		botId: 'typed-bot',
+		apiKey: 'your-api-key',
+	},
+	debug: true,
 };
 
 const bot = new PokaiBot(config);
 
 bot.setEventHandlers({
-  onTurnStart: async (data: { timeLimit: number }) => {
-    const gameState: GameState = await bot.getGameState();
-    await bot.submitAction(ActionType.Check);
-  }
+	onTurnStart: async (data: { timeLimit: number }) => {
+		const gameState: GameState = await bot.getGameState();
+		await bot.submitAction(ActionType.Check);
+	},
 });
 ```
 
@@ -429,19 +455,19 @@ bot.setEventHandlers({
 
 ```javascript
 const bot = new PokaiBot({
-  credentials: { botId: 'resilient-bot', apiKey: 'your-key' },
-  reconnectAttempts: 10,
-  reconnectDelay: 3000,
-  actionTimeout: 20000
+	credentials: { botId: 'resilient-bot', apiKey: 'your-key' },
+	reconnectAttempts: 10,
+	reconnectDelay: 3000,
+	actionTimeout: 20000,
 });
 
 bot.setEventHandlers({
-  onDisconnected: (reason) => {
-    console.log(`Lost connection: ${reason}`);
-  },
-  onReconnected: () => {
-    console.log('Reconnected successfully');
-  }
+	onDisconnected: (reason) => {
+		console.log(`Lost connection: ${reason}`);
+	},
+	onReconnected: () => {
+		console.log('Reconnected successfully');
+	},
 });
 ```
 
@@ -451,13 +477,13 @@ bot.setEventHandlers({
 import { addRandomDelay } from 'pokai-bot-sdk';
 
 bot.setEventHandlers({
-  onTurnStart: async () => {
-    // Add realistic thinking time
-    await addRandomDelay(1000, 3000);
-    
-    const actions = await bot.getPossibleActions();
-    // Make decision...
-  }
+	onTurnStart: async () => {
+		// Add realistic thinking time
+		await addRandomDelay(1000, 3000);
+
+		const actions = await bot.getPossibleActions();
+		// Make decision...
+	},
 });
 ```
 
