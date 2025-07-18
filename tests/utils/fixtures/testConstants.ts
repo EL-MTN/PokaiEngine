@@ -1,4 +1,4 @@
-import { BlindLevel, GameConfig } from '@core/types';
+import { BlindLevel, GameConfig } from '@/types';
 
 export const TEST_GAME_CONFIG: GameConfig = {
 	maxPlayers: 6,

@@ -1,9 +1,9 @@
-import { GameController } from '@/application/engine/GameController';
-import { GameEngine } from '@/application/engine/GameEngine';
-import { ActionType, GameConfig } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
+import { GameEngine } from '@/engine/game/GameEngine';
+import { ActionType, GameConfig } from '@/types';
 
 // Mock the GameEngine class
-jest.mock('@/application/engine/GameEngine');
+jest.mock('@/engine/game/GameEngine');
 
 const createConfig = (overrides: Partial<GameConfig> = {}): GameConfig => ({
 	maxPlayers: 9,

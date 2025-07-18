@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
 
-import { GameController } from '@/application/engine/GameController';
-import { GameConfig } from '@/domain/types';
-import { BotInterface } from '@/infrastructure/communication/BotInterface';
+import { GameController } from '@/engine/game/GameController';
+import { BotInterface } from '@/socket/BotInterface';
+import { GameConfig } from '@/types';
 
 /**
  * Test the Express API endpoints using the existing infrastructure

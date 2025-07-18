@@ -5,14 +5,14 @@ import {
 	IReplay,
 	IReplayAnalytics,
 	Replay,
-} from '@/infrastructure/persistence/models/Replay';
+} from '@/services/storage/models/Replay';
 import {
 	ReplayRepository,
 	ReplaySearchFilters,
-} from '@/infrastructure/persistence/repositories/ReplayRepository';
+} from '@/services/storage/repositories/ReplayRepository';
 
 // Mock mongoose and the Replay model
-jest.mock('@/infrastructure/persistence/models/Replay');
+jest.mock('@/services/storage/models/Replay');
 
 describe('ReplayRepository', () => {
 	let repository: ReplayRepository;

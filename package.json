@@ -2,7 +2,7 @@
 	"name": "pokai-engine",
 	"version": "1.0.0",
 	"description": "A **robust, production-ready Texas Hold'em poker engine** designed for bot battles and real-time poker tournaments. Built with TypeScript, featuring comprehensive game logic, Socket.io integration, and complete logging/replay capabilities.",
-	"main": "dist/presentation/server/index.js",
+	"main": "dist/index.js",
 	"dependencies": {
 		"axios": "^1.10.0",
 		"express": "^5.1.0",
@@ -15,8 +15,8 @@
 	"scripts": {
 		"test": "jest",
 		"build": "tsc && tsc-alias",
-		"start": "node dist/presentation/server/index.js",
-		"dev": "tsx watch src/presentation/server/index.ts",
+		"start": "node dist/index.js",
+		"dev": "tsx watch src/index.ts",
 		"dev:build": "npm run build && npm run start",
 		"test:watch": "jest --watch",
 		"test:coverage": "jest --coverage",

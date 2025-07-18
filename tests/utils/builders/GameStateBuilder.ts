@@ -1,7 +1,7 @@
-import { Card } from '@core/poker/cards/Card';
-import { GameState } from '@core/poker/game/GameState';
-import { Player } from '@core/poker/game/Player';
-import { BlindLevel, GamePhase, Rank, Suit } from '@core/types';
+import { GameState } from '@/engine/game/GameState';
+import { Card } from '@/engine/poker/Card';
+import { Player } from '@/engine/poker/Player';
+import { BlindLevel, GamePhase, Rank, Suit } from '@/types';
 
 export class GameStateBuilder {
 	private gameId: string = 'test-game-123';

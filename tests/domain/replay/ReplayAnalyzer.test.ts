@@ -1,4 +1,4 @@
-import { ReplayAnalyzer } from '@/domain/replay/ReplayAnalyzer';
+import { ReplayAnalyzer } from '@/engine/replay/ReplayAnalyzer';
 import {
 	GamePhase,
 	GameState,
@@ -6,7 +6,7 @@ import {
 	Position,
 	ReplayData,
 	ReplayEvent,
-} from '@/domain/types';
+} from '@/types';
 
 describe('ReplayAnalyzer', () => {
 	let analyzer: ReplayAnalyzer;

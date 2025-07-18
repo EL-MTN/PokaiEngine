@@ -1,6 +1,6 @@
-import { Card } from '@/domain/poker/cards/Card';
-import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
-import { HandRank } from '@/domain/types';
+import { Card } from '@/engine/poker/Card';
+import { HandEvaluator } from '@/engine/poker/HandEvaluator';
+import { HandRank } from '@/types';
 
 describe('HandEvaluator', () => {
 	// Helper to create a hand from strings

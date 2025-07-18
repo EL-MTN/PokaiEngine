@@ -1,5 +1,5 @@
 // Mock all loggers globally
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	authLogger: {
 		info: jest.fn(),
 		error: jest.fn(),

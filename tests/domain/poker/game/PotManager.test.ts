@@ -1,5 +1,5 @@
-import { Player } from '@/domain/poker/game/Player';
-import { PotManager } from '@/domain/poker/game/PotManager';
+import { Player } from '@/engine/poker/Player';
+import { PotManager } from '@/engine/poker/PotManager';
 
 describe('PotManager', () => {
 	describe('Constructor and Reset', () => {

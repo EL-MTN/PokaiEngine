@@ -5,26 +5,25 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { io, Socket } from 'socket.io-client';
+
 import {
-	BotConfig,
-	BotCredentials,
-	JoinGameOptions,
-	GameState,
 	Action,
 	ActionType,
-	PossibleAction,
-	GameEvent,
-	GameInfo,
-	BotEventHandlers,
-	AuthResponse,
-	GameListResponse,
-	PokaiError,
 	AuthenticationError,
-	GameError,
+	AuthResponse,
+	BotConfig,
+	BotEventHandlers,
 	ConnectionError,
+	GameError,
+	GameInfo,
+	GameListResponse,
+	GameState,
+	JoinGameOptions,
 	Logger,
-	LogLevel
+	LogLevel,
+	PossibleAction
 } from './types.js';
 
 /**

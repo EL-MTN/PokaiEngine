@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
-import { BotAuthService } from '@/application/services/BotAuthService';
-import { Bot } from '@/infrastructure/persistence/models/Bot';
+import { BotAuthService } from '@/services/auth/BotAuthService';
+import { Bot } from '@/services/storage/models/Bot';
 
 // Mock the logger
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	authLogger: {
 		info: jest.fn(),
 		error: jest.fn(),

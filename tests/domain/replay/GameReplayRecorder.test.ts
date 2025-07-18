@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import { GameReplayRecorder } from '@/domain/replay/GameReplayRecorder';
+import { GameReplayRecorder } from '@/engine/replay/GameReplayRecorder';
 import {
 	Action,
 	ActionType,
@@ -13,10 +13,10 @@ import {
 	PossibleAction,
 	Rank,
 	Suit,
-} from '@/domain/types';
+} from '@/types';
 
 // Mock the logger
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	replayLogger: {
 		info: jest.fn(),
 		error: jest.fn(),

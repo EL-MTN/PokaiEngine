@@ -1,5 +1,5 @@
-import { GameController } from '@/application/engine/GameController';
-import { ActionType, GameConfig, GameEvent } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
+import { ActionType, GameConfig, GameEvent } from '@/types';
 
 describe('Hand Start Delay', () => {
 	let gameController: GameController;

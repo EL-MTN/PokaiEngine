@@ -6,7 +6,7 @@ import {
 	IGameMetadata,
 	IReplay,
 	Replay,
-} from '@/infrastructure/persistence/models/Replay';
+} from '@/services/storage/models/Replay';
 
 // Setup in-memory MongoDB for testing
 

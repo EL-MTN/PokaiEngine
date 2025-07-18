@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as zlib from 'zlib';
 
-import { GameState, Rank, ReplayData, Suit } from '@/domain/types';
-import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
+import { ReplayStorage } from '@/services/replay/ReplayStorage';
+import { GameState, Rank, ReplayData, Suit } from '@/types';
 
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	replayLogger: {
 		info: jest.fn(),
 		error: jest.fn(),

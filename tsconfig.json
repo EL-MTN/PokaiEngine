@@ -7,11 +7,11 @@
 		"baseUrl": "./src",
 		"paths": {
 			"@/*": ["*"],
-			"@core/*": ["domain/*"],
-			"@engine/*": ["application/engine/*"],
-			"@services/*": ["application/services/*"],
-			"@infra/*": ["infrastructure/*"],
-			"@models/*": ["infrastructure/persistence/models/*"],
+			"@engine/*": ["engine/*"],
+			"@socket/*": ["socket/*"],
+			"@services/*": ["services/*"],
+			"@types/*": ["types/*"],
+			"@dashboard/*": ["dashboard/*"],
 			"@utils/*": ["utils/*"],
 			"@tests/*": ["../tests/*"]
 		},

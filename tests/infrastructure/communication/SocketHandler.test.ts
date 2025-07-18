@@ -1,7 +1,7 @@
-import { GameController } from '@/application/engine/GameController';
-import { BotAuthService } from '@/application/services/BotAuthService';
-import { Action, ActionType, GameConfig } from '@/domain/types';
-import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
+import { GameController } from '@/engine/game/GameController';
+import { BotAuthService } from '@/services/auth/BotAuthService';
+import { SocketHandler } from '@/socket/SocketHandler';
+import { ActionType, GameConfig } from '@/types';
 
 import { MockSocket, MockSocketServer } from '../../utils/mocks';
 
@@ -21,7 +21,7 @@ const mockBotAuthService = {
 	clearAllCache: jest.fn(),
 };
 
-jest.mock('@/application/services/BotAuthService', () => ({
+jest.mock('@/services/auth/BotAuthService', () => ({
 	BotAuthService: {
 		getInstance: () => mockBotAuthService,
 	},
@@ -137,7 +137,6 @@ describe('SocketHandler Comprehensive Tests', () => {
 			// Find which bot has turn
 			const bot1Turn = bot1.outgoing.find((e) => e.event === 'turn.start');
 			const actingBot = bot1Turn ? bot1 : bot2;
-			const actingId = bot1Turn ? bot1Id : bot2Id;
 
 			// Request possible actions
 			actingBot.trigger('state.actions', undefined);
@@ -297,7 +296,6 @@ describe('SocketHandler Comprehensive Tests', () => {
 			expect(bot1Turn || bot2Turn).toBeTruthy();
 
 			const actingBot = bot1Turn ? bot1 : bot2;
-			const actingId = bot1Turn ? bot1Id : bot2Id;
 
 			// Clear outgoing to track only new messages
 			bot1.clearOutgoing();

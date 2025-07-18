@@ -1,8 +1,8 @@
-import { Card } from '@/domain/poker/cards/Card';
-import { GameState } from '@/domain/poker/game/GameState';
-import { Player } from '@/domain/poker/game/Player';
-import { GamePhase, Rank, Suit } from '@/domain/types';
-import { shouldShowHoleCards } from '@/domain/types/visibility';
+import { GameState } from '@/engine/game/GameState';
+import { Card } from '@/engine/poker/Card';
+import { Player } from '@/engine/poker/Player';
+import { GamePhase, Rank, Suit } from '@/types';
+import { shouldShowHoleCards } from '@/types/visibility';
 
 describe('Hole Card Visibility System', () => {
 	let gameState: GameState;

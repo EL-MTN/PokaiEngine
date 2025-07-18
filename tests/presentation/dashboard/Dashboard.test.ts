@@ -1,6 +1,6 @@
 import request from 'supertest';
 
-import PokaiExpressServer from '@/presentation/server';
+import PokaiExpressServer from '@/services/server';
 
 describe('Dashboard API', () => {
 	let server: PokaiExpressServer;

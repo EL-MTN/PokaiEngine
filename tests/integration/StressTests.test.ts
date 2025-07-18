@@ -1,6 +1,6 @@
-import { GameController } from '@/application/engine/GameController';
-import { ActionType, GameConfig } from '@/domain/types';
-import { SocketHandler } from '@/infrastructure/communication/SocketHandler';
+import { GameController } from '@/engine/game/GameController';
+import { SocketHandler } from '@/socket/SocketHandler';
+import { ActionType, GameConfig } from '@/types';
 
 import { MockSocket, MockSocketServer } from '../utils/mocks';
 

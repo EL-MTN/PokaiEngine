@@ -1,5 +1,5 @@
-import { GameController } from '@/application/engine/GameController';
-import { ActionType, GameConfig } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
+import { ActionType, GameConfig } from '@/types';
 
 describe('Player Elimination with 0 Chips', () => {
 	let gameController: GameController;

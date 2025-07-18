@@ -1,5 +1,5 @@
-import { Card } from '@core/poker/cards/Card';
-import { Rank, Suit } from '@core/types';
+import { Card } from '@/engine/poker/Card';
+import { Rank, Suit } from '@/types';
 
 export class CardBuilder {
 	static card(suit: Suit, rank: Rank): Card {

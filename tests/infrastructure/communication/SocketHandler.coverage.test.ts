@@ -1,10 +1,10 @@
-import { GameController } from '@/application/engine/GameController';
-import { Action, ActionType, GameConfig } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
 import {
 	Socket,
 	SocketHandler,
 	SocketIOServer,
-} from '@/infrastructure/communication/SocketHandler';
+} from '@/socket/SocketHandler';
+import { Action, ActionType, GameConfig } from '@/types';
 
 // Mock BotAuthService at the module level BEFORE any imports
 const mockBotAuthService = {
@@ -16,14 +16,14 @@ const mockBotAuthService = {
 	}),
 };
 
-jest.mock('@/application/services/BotAuthService', () => ({
+jest.mock('@/services/auth/BotAuthService', () => ({
 	BotAuthService: {
 		getInstance: () => mockBotAuthService,
 	},
 }));
 
 // Mock logger dependencies
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	communicationLogger: {
 		info: jest.fn(),
 		error: jest.fn(),

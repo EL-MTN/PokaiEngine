@@ -1,7 +1,7 @@
-import { ActionValidator } from '@/domain/poker/betting/ActionValidator';
-import { GameState } from '@/domain/poker/game/GameState';
-import { Player } from '@/domain/poker/game/Player';
-import { Action, ActionType, GamePhase } from '@/domain/types';
+import { GameState } from '@/engine/game/GameState';
+import { ActionValidator } from '@/engine/poker/ActionValidator';
+import { Player } from '@/engine/poker/Player';
+import { Action, ActionType, GamePhase } from '@/types';
 
 // Helper to create a predictable game state.
 const createTestGameState = (

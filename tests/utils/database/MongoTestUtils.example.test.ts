@@ -5,15 +5,15 @@
 
 import { Types } from 'mongoose';
 
-import { Bot } from '@/infrastructure/persistence/models/Bot';
-import { Replay } from '@/infrastructure/persistence/models/Replay';
+import { Bot } from '@/services/storage/models/Bot';
+import { Replay } from '@/services/storage/models/Replay';
 
 import {
+	JestMongoSetup,
 	MongoMockUtils,
 	MongoTestData,
 	MongoTestSetup,
 	MongoTestUtils,
-	withMongoDB,
 } from './index';
 
 // Example 1: Using in-memory MongoDB with automatic setup
@@ -323,18 +323,20 @@ describe('Error Handling Examples', () => {
 	});
 });
 
-// Example 5: Using withMongoDB helper (alternative approach)
-// eslint-disable-next-line jest/valid-describe-callback
-describe(
-	'WithMongoDB Helper Example',
-	withMongoDB(() => {
-		it('should work with automatic setup', async () => {
-			// MongoDB is automatically set up and torn down
-			const bot = new Bot(MongoTestData.createTestBot());
-			await bot.save();
+// Example 5: Using MongoDB setup directly
+describe('MongoDB Direct Setup Example', () => {
+	const setup = JestMongoSetup.setupTestSuite();
 
-			const found = await Bot.findOne({ botId: bot.botId });
-			expect(found).toBeTruthy();
-		});
-	}),
-);
+	beforeAll(setup.beforeAll);
+	afterAll(setup.afterAll);
+	beforeEach(setup.beforeEach);
+
+	it('should work with direct setup', async () => {
+		// MongoDB is automatically set up and torn down
+		const bot = new Bot(MongoTestData.createTestBot());
+		await bot.save();
+
+		const found = await Bot.findOne({ botId: bot.botId });
+		expect(found).toBeTruthy();
+	});
+});

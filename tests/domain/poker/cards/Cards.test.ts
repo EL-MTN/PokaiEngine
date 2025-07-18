@@ -1,6 +1,6 @@
-import { Card } from '@/domain/poker/cards/Card';
-import { Deck } from '@/domain/poker/cards/Deck';
-import { Rank, Suit } from '@/domain/types';
+import { Card } from '@/engine/poker/Card';
+import { Deck } from '@/engine/poker/Deck';
+import { Rank, Suit } from '@/types';
 
 describe('Cards', () => {
 	describe('Card', () => {

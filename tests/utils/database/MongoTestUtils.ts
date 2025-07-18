@@ -1,7 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 
-import { DatabaseConnection } from '@/infrastructure/persistence/database/connection';
+import { DatabaseConnection } from '@/services/storage/database';
 
 /**
  * Shared MongoDB test utilities for consistent database testing

@@ -5,11 +5,11 @@ import {
 	DatabaseConnection,
 	getDefaultDatabaseConfig,
 	initializeDatabase,
-} from '@/infrastructure/persistence/database/connection';
+} from '@/services/storage/database';
 
 // Mock mongoose
 jest.mock('mongoose');
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	dbLogger: {
 		info: jest.fn(),
 		error: jest.fn(),

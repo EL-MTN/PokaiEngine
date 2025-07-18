@@ -1,16 +1,16 @@
 import fs from 'fs/promises';
 
-import { ReplayService } from '@/application/services/ReplayService';
-import { GamePhase } from '@/domain/types';
-import { DatabaseConnection } from '@/infrastructure/persistence/database/connection';
+import { ReplayService } from '@/services/replay/ReplayService';
+import { DatabaseConnection } from '@/services/storage/database';
 import {
 	IGameEvent,
 	IReplay,
-} from '@/infrastructure/persistence/models/Replay';
-import { ReplayRepository } from '@/infrastructure/persistence/repositories/ReplayRepository';
+} from '@/services/storage/models/Replay';
+import { ReplayRepository } from '@/services/storage/repositories/ReplayRepository';
+import { GamePhase } from '@/types';
 
-jest.mock('@/infrastructure/persistence/database/connection');
-jest.mock('@/infrastructure/persistence/repositories/ReplayRepository');
+jest.mock('@/services/storage/database');
+jest.mock('@/services/storage/repositories/ReplayRepository');
 jest.mock('fs/promises');
 
 describe('ReplayService', () => {

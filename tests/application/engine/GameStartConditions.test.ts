@@ -1,5 +1,5 @@
-import { GameController } from '@/application/engine/GameController';
-import { GameConfig, StartSettings } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
+import { GameConfig, StartSettings } from '@/types';
 
 describe('Game Start Conditions', () => {
 	let gameController: GameController;

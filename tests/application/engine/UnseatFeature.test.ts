@@ -1,5 +1,5 @@
-import { GameController } from '@/application/engine/GameController';
-import { ActionType } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
+import { ActionType } from '@/types';
 
 describe('Unseat Feature', () => {
 	describe('Deferred unseat after current hand', () => {

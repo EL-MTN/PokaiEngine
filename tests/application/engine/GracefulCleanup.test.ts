@@ -1,5 +1,5 @@
-import { GameController } from '@/application/engine/GameController';
-import { GameConfig } from '@/domain/types';
+import { GameController } from '@/engine/game/GameController';
+import { GameConfig } from '@/types';
 
 describe('Graceful Game Cleanup', () => {
 	let gameController: GameController;

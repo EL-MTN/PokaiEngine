@@ -1,11 +1,11 @@
 import request from 'supertest';
 
-import { BotAuthService } from '@/application/services/BotAuthService';
-import { ActionType } from '@/domain/types';
-import PokaiExpressServer from '@/presentation/server';
+import { BotAuthService } from '@/services/auth/BotAuthService';
+import PokaiExpressServer from '@/services/server';
+import { ActionType } from '@/types';
 
 // Mock the logger to avoid actual file writes during tests
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/services/logging/Logger', () => ({
 	serverLogger: {
 		info: jest.fn(),
 		error: jest.fn(),
@@ -26,13 +26,13 @@ jest.mock('@/infrastructure/logging/Logger', () => ({
 }));
 
 // Mock MongoDB connection for BotAuthService
-jest.mock('@/infrastructure/persistence/database/connection', () => ({
+jest.mock('@/services/storage/database', () => ({
 	connectDatabase: jest.fn().mockResolvedValue(undefined),
 	disconnectDatabase: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock ReplayStorage
-jest.mock('@/infrastructure/storage/ReplayStorage', () => ({
+jest.mock('@/services/replay/ReplayStorage', () => ({
 	ReplayStorage: jest.fn().mockImplementation(() => ({
 		saveReplay: jest.fn().mockResolvedValue({
 			fileSuccess: true,
@@ -49,7 +49,7 @@ jest.mock('@/infrastructure/storage/ReplayStorage', () => ({
 }));
 
 // Mock ReplayRepository
-jest.mock('@/infrastructure/persistence/repositories/ReplayRepository', () => ({
+jest.mock('@/services/storage/repositories/ReplayRepository', () => ({
 	ReplayRepository: jest.fn().mockImplementation(() => ({
 		save: jest.fn().mockResolvedValue({ _id: 'test-id' }),
 		findByGameId: jest.fn().mockResolvedValue(null),
@@ -74,7 +74,7 @@ const mockReplaySystem = {
 	})),
 };
 
-jest.mock('@/infrastructure/logging/ReplaySystem', () => ({
+jest.mock('@/services/logging/ReplaySystem', () => ({
 	ReplaySystem: jest.fn().mockImplementation(() => mockReplaySystem),
 }));
 
@@ -162,7 +162,7 @@ const mockReplayManager = {
 	}),
 };
 
-jest.mock('@/domain/replay/ReplayManager', () => ({
+jest.mock('@/engine/replay/ReplayManager', () => ({
 	ReplayManager: jest.fn().mockImplementation(() => mockReplayManager),
 }));
 

@@ -1,4 +1,4 @@
-import { GameState } from '@core/poker/game/GameState';
+import { GameState } from '@/engine/game/GameState';
 
 import { CardBuilder, GameStateBuilder, PlayerBuilder } from '../builders';
 

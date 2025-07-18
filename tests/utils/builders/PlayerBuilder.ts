@@ -1,6 +1,6 @@
-import { Card } from '@core/poker/cards/Card';
-import { Player } from '@core/poker/game/Player';
-import { Rank, Suit } from '@core/types';
+import { Card } from '@/engine/poker/Card';
+import { Player } from '@/engine/poker/Player';
+import { Rank, Suit } from '@/types';
 
 export class PlayerBuilder {
 	private id: string = 'player-1';

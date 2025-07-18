@@ -1,6 +1,6 @@
-import { GameEngine } from '@/application/engine/GameEngine';
-import { Card } from '@/domain/poker/cards/Card';
-import { HandEvaluator } from '@/domain/poker/cards/HandEvaluator';
+import { GameEngine } from '@/engine/game/GameEngine';
+import { Card } from '@/engine/poker/Card';
+import { HandEvaluator } from '@/engine/poker/HandEvaluator';
 import {
 	ActionType,
 	GameConfig,
@@ -8,7 +8,7 @@ import {
 	HandRank,
 	Rank,
 	Suit,
-} from '@/domain/types';
+} from '@/types';
 
 // Helper to build a standard game config
 const createConfig = (overrides?: Partial<GameConfig>): GameConfig => ({

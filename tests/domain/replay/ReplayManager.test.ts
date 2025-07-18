@@ -1,8 +1,9 @@
 import { jest } from '@jest/globals';
 
-import { GameReplayRecorder } from '@/domain/replay/GameReplayRecorder';
-import { ReplayAnalyzer } from '@/domain/replay/ReplayAnalyzer';
-import { ReplayManager } from '@/domain/replay/ReplayManager';
+import { GameReplayRecorder } from '@/engine/replay/GameReplayRecorder';
+import { ReplayAnalyzer } from '@/engine/replay/ReplayAnalyzer';
+import { ReplayManager } from '@/engine/replay/ReplayManager';
+import { ReplayStorage } from '@/services/replay/ReplayStorage';
 import {
 	ActionType,
 	GameConfig,
@@ -12,14 +13,13 @@ import {
 	PlayerInfo,
 	Position,
 	ReplayData,
-} from '@/domain/types';
-import { ReplayStorage } from '@/infrastructure/storage/ReplayStorage';
+} from '@/types';
 
 // Mock dependencies
-jest.mock('@/domain/replay/GameReplayRecorder');
-jest.mock('@/domain/replay/ReplayAnalyzer');
-jest.mock('@/infrastructure/storage/ReplayStorage');
-jest.mock('@/infrastructure/logging/Logger', () => ({
+jest.mock('@/engine/replay/GameReplayRecorder');
+jest.mock('@/engine/replay/ReplayAnalyzer');
+jest.mock('@/services/replay/ReplayStorage');
+jest.mock('@/services/logging/Logger', () => ({
 	replayLogger: {
 		info: jest.fn(),
 		error: jest.fn(),
