@@ -27,10 +27,6 @@ export interface BotConnection {
 	playerId: PlayerId;
 	gameId?: GameId;
 	isConnected: boolean;
-	/** Active timeout for forced action */
-	turnTimer?: NodeJS.Timeout;
-	/** Warning timer before timeout */
-	warningTimer?: NodeJS.Timeout;
 	lastAction?: number;
 	eventHandler?: (event: GameEvent) => void;
 	/** Authentication status */
@@ -283,7 +279,8 @@ export class SocketHandler {
 			const joinedGame = this.gameController.getGame(data.gameId);
 			if (
 				joinedGame &&
-				joinedGame.getGameState().currentPlayerToAct === connection.playerId
+				joinedGame.getGameState().currentPlayerToAct === connection.playerId &&
+				!this.timerOperationInProgress.has(connection.playerId)
 			) {
 				this.startTurnTimer(connection).catch((error) => {
 					communicationLogger.error(
@@ -534,13 +531,6 @@ export class SocketHandler {
 			timestamp: Date.now(),
 		});
 
-		// Debug logging for timer-related events
-		if (event.gameState?.currentPlayerToAct === connection.playerId) {
-			communicationLogger.debug(
-				`Event ${event.type} has currentPlayerToAct=${connection.playerId}, phase=${event.gameState?.currentPhase}`,
-			);
-		}
-
 		// Handle specific events
 		switch (event.type) {
 			case 'hand_started':
@@ -548,7 +538,8 @@ export class SocketHandler {
 				// Immediately start timer if it's this player's turn after blinds
 				// Verify we're in preflop phase to avoid stale state issues
 				if (event.gameState?.currentPlayerToAct === connection.playerId &&
-				    event.gameState?.currentPhase === GamePhase.PreFlop) {
+				    event.gameState?.currentPhase === GamePhase.PreFlop &&
+				    !this.timerOperationInProgress.has(connection.playerId)) {
 					this.startTurnTimer(connection).catch((error) => {
 						communicationLogger.error(
 							`Failed to start turn timer for player ${connection.playerId}:`,
@@ -563,7 +554,8 @@ export class SocketHandler {
 
 				// Check if it's this bot's turn and we're not in hand_complete phase
 				if (event.gameState?.currentPlayerToAct === connection.playerId &&
-				    event.gameState?.currentPhase !== GamePhase.HandComplete) {
+				    event.gameState?.currentPhase !== GamePhase.HandComplete &&
+				    !this.timerOperationInProgress.has(connection.playerId)) {
 					this.startTurnTimer(connection).catch((error) => {
 						communicationLogger.error(
 							`Failed to start turn timer for player ${connection.playerId}:`,
@@ -579,7 +571,8 @@ export class SocketHandler {
 				this.sendGameState(connection);
 				// Only start timer if game is running and we're not in hand_complete phase
 				if (event.gameState?.currentPlayerToAct === connection.playerId &&
-				    event.gameState?.currentPhase !== GamePhase.HandComplete) {
+				    event.gameState?.currentPhase !== GamePhase.HandComplete &&
+				    !this.timerOperationInProgress.has(connection.playerId)) {
 					this.startTurnTimer(connection).catch((error) => {
 						communicationLogger.error(
 							`Failed to start turn timer for player ${connection.playerId}:`,
@@ -696,10 +689,8 @@ export class SocketHandler {
 			// Store timers
 			if (warningTimer) {
 				this.warningTimers.set(connection.playerId, warningTimer);
-				connection.warningTimer = warningTimer;
 			}
 			this.turnTimers.set(connection.playerId, timeoutTimer);
-			connection.turnTimer = timeoutTimer;
 		} finally {
 			this.timerOperationInProgress.delete(connection.playerId);
 		}
@@ -725,8 +716,8 @@ export class SocketHandler {
 			this.turnTimers.delete(playerId);
 		}
 
-		// Small delay to ensure timer callbacks have been processed
-		await new Promise(resolve => setTimeout(resolve, 10));
+		// Use setImmediate to ensure any pending timer callbacks in the event loop are processed
+		await new Promise<void>((resolve) => setImmediate(() => resolve()));
 	}
 
 	/**
@@ -848,6 +839,10 @@ export class SocketHandler {
 		// First handle regular disconnection cleanup
 		this.handleDisconnection(connection);
 
+		// Clean up timer-related Maps to prevent memory leaks
+		this.timerVersions.delete(connection.playerId);
+		this.timerOperationInProgress.delete(connection.playerId);
+
 		// Then remove player from game entirely
 		if (connection.gameId) {
 			try {
@@ -956,6 +951,20 @@ export class SocketHandler {
 		// Remove inactive connections
 		for (const connection of connectionsToRemove) {
 			this.handlePermanentDisconnection(connection);
+		}
+
+		// Clean up orphaned timer versions (players no longer in any connection)
+		const activePlayerIds = new Set<PlayerId>();
+		for (const connection of this.connections.values()) {
+			activePlayerIds.add(connection.playerId);
+		}
+
+		// Remove timer versions for players that are no longer connected
+		for (const playerId of this.timerVersions.keys()) {
+			if (!activePlayerIds.has(playerId)) {
+				this.timerVersions.delete(playerId);
+				this.timerOperationInProgress.delete(playerId);
+			}
 		}
 	}
 
