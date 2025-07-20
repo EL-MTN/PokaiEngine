@@ -127,10 +127,13 @@ export class SocketHandler {
 		});
 
 		// Bot actions (requires authentication)
-		socket.on('action.submit', async (data: { action: Omit<Action, 'playerId'> }) => {
-			if (!this.requireAuth(connection)) return;
-			await this.handleBotAction(connection, data.action);
-		});
+		socket.on(
+			'action.submit',
+			async (data: { action: Omit<Action, 'playerId'> }) => {
+				if (!this.requireAuth(connection)) return;
+				await this.handleBotAction(connection, data.action);
+			},
+		);
 
 		// Game state requests (requires authentication)
 		socket.on('state.current', () => {
@@ -537,9 +540,11 @@ export class SocketHandler {
 				this.sendGameState(connection);
 				// Immediately start timer if it's this player's turn after blinds
 				// Verify we're in preflop phase to avoid stale state issues
-				if (event.gameState?.currentPlayerToAct === connection.playerId &&
-				    event.gameState?.currentPhase === GamePhase.PreFlop &&
-				    !this.timerOperationInProgress.has(connection.playerId)) {
+				if (
+					event.gameState?.currentPlayerToAct === connection.playerId &&
+					event.gameState?.currentPhase === GamePhase.PreFlop &&
+					!this.timerOperationInProgress.has(connection.playerId)
+				) {
 					this.startTurnTimer(connection).catch((error) => {
 						communicationLogger.error(
 							`Failed to start turn timer for player ${connection.playerId}:`,
@@ -553,9 +558,11 @@ export class SocketHandler {
 				this.sendGameState(connection);
 
 				// Check if it's this bot's turn and we're not in hand_complete phase
-				if (event.gameState?.currentPlayerToAct === connection.playerId &&
-				    event.gameState?.currentPhase !== GamePhase.HandComplete &&
-				    !this.timerOperationInProgress.has(connection.playerId)) {
+				if (
+					event.gameState?.currentPlayerToAct === connection.playerId &&
+					event.gameState?.currentPhase !== GamePhase.HandComplete &&
+					!this.timerOperationInProgress.has(connection.playerId)
+				) {
 					this.startTurnTimer(connection).catch((error) => {
 						communicationLogger.error(
 							`Failed to start turn timer for player ${connection.playerId}:`,
@@ -570,9 +577,11 @@ export class SocketHandler {
 			case 'river_dealt':
 				this.sendGameState(connection);
 				// Only start timer if game is running and we're not in hand_complete phase
-				if (event.gameState?.currentPlayerToAct === connection.playerId &&
-				    event.gameState?.currentPhase !== GamePhase.HandComplete &&
-				    !this.timerOperationInProgress.has(connection.playerId)) {
+				if (
+					event.gameState?.currentPlayerToAct === connection.playerId &&
+					event.gameState?.currentPhase !== GamePhase.HandComplete &&
+					!this.timerOperationInProgress.has(connection.playerId)
+				) {
 					this.startTurnTimer(connection).catch((error) => {
 						communicationLogger.error(
 							`Failed to start turn timer for player ${connection.playerId}:`,
@@ -617,7 +626,8 @@ export class SocketHandler {
 
 		try {
 			// Increment timer version to invalidate any pending timer callbacks
-			const currentVersion = (this.timerVersions.get(connection.playerId) || 0) + 1;
+			const currentVersion =
+				(this.timerVersions.get(connection.playerId) || 0) + 1;
 			this.timerVersions.set(connection.playerId, currentVersion);
 
 			// Clear existing timers first
@@ -630,7 +640,7 @@ export class SocketHandler {
 			}
 
 			const gameState = game.getGameState();
-			
+
 			// Double-check the player is still the current actor after async operations
 			if (gameState.currentPlayerToAct !== connection.playerId) {
 				communicationLogger.info(
@@ -640,7 +650,10 @@ export class SocketHandler {
 			}
 
 			// Prevent starting timers during hand_complete phase or when game is not running
-			if (gameState.currentPhase === GamePhase.HandComplete || !game.isGameRunning()) {
+			if (
+				gameState.currentPhase === GamePhase.HandComplete ||
+				!game.isGameRunning()
+			) {
 				communicationLogger.info(
 					`Skipping timer for player ${connection.playerId} - game phase: ${gameState.currentPhase}, running: ${game.isGameRunning()}`,
 				);
@@ -744,7 +757,10 @@ export class SocketHandler {
 
 			// Verify the game state hasn't changed
 			const game = this.gameController.getGame(connection.gameId);
-			if (!game || game.getGameState().currentPlayerToAct !== connection.playerId) {
+			if (
+				!game ||
+				game.getGameState().currentPlayerToAct !== connection.playerId
+			) {
 				communicationLogger.info(
 					`Player ${connection.playerId} is no longer the current actor, skipping timeout`,
 				);
@@ -1066,9 +1082,18 @@ export class SocketHandler {
 		connection: BotConnection,
 		data: { adminKey?: string },
 	): void {
-		// For now, we'll use a simple admin key check
-		// In production, this should integrate with a proper auth system
-		const validAdminKey = process.env.SPECTATOR_ADMIN_KEY || 'admin123';
+		// Require SPECTATOR_ADMIN_KEY to be set in environment variables
+		const validAdminKey = process.env.SPECTATOR_ADMIN_KEY;
+
+		if (!validAdminKey) {
+			connection.socket.emit('spectator.auth.error', {
+				error: 'Spectator authentication is not configured',
+			});
+			communicationLogger.error(
+				'SPECTATOR_ADMIN_KEY environment variable not set',
+			);
+			return;
+		}
 
 		if (data.adminKey === validAdminKey) {
 			connection.authenticated = true;

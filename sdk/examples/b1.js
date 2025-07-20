@@ -19,7 +19,7 @@ async function runBasicBot() {
 			apiKey:
 				'0a1a50d33cdd435b6c876d8fd3963b3a546abfa9ca60fa9a3b4c000bb5598dc7',
 		},
-		serverUrl: 'http://localhost:3001',
+		serverUrl: 'http://localhost:3000',
 		debug: true,
 	});
 

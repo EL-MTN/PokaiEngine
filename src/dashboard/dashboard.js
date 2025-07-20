@@ -25,6 +25,19 @@ class PokaiDashboard {
 		this.init();
 	}
 
+	// HTML escape utility to prevent XSS attacks
+	escapeHtml(unsafe) {
+		if (unsafe === null || unsafe === undefined) {
+			return '';
+		}
+		return String(unsafe)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
 	init() {
 		this.connectWebSocket();
 		this.setupEventListeners();
@@ -375,49 +388,49 @@ class PokaiDashboard {
 		activeGamesContainer.innerHTML = gamesWithState
 			.map(
 				(game) => `
-            <div class="game-card" data-game-id="${game.gameId}">
+            <div class="game-card" data-game-id="${this.escapeHtml(game.gameId)}">
                 <div class="game-card-header">
-                    <div class="game-card-title">${game.gameId}</div>
-                    <div class="game-card-status status-${game.status || 'waiting'}">
-                        ${(game.status || 'waiting').toUpperCase()}
+                    <div class="game-card-title">${this.escapeHtml(game.gameId)}</div>
+                    <div class="game-card-status status-${this.escapeHtml(game.status || 'waiting')}">
+                        ${this.escapeHtml((game.status || 'waiting').toUpperCase())}
                     </div>
                 </div>
                 <div class="game-card-info">
                     <div class="info-item">
                         <div class="info-label">Players</div>
-                        <div class="info-value">${game.players ? game.players.length : game.playerCount}/${game.maxPlayers}</div>
+                        <div class="info-value">${this.escapeHtml(game.players ? game.players.length : game.playerCount)}/${this.escapeHtml(game.maxPlayers)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Blinds</div>
-                        <div class="info-value">$${game.smallBlind}/$${game.bigBlind}</div>
+                        <div class="info-value">$${this.escapeHtml(game.smallBlind)}/$${this.escapeHtml(game.bigBlind)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Pot</div>
-                        <div class="info-value">$${game.potSize || 0}</div>
+                        <div class="info-value">$${this.escapeHtml(game.potSize || 0)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Phase</div>
-                        <div class="info-value">${game.currentPhase || 'waiting'}</div>
+                        <div class="info-value">${this.escapeHtml(game.currentPhase || 'waiting')}</div>
                     </div>
                 </div>
                 <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                    <button class="btn btn-secondary btn-small" onclick="dashboard.viewGameDetails('${game.gameId}')">
+                    <button class="btn btn-secondary btn-small" onclick="dashboard.viewGameDetails('${this.escapeHtml(game.gameId)}')">
                         <i class="fas fa-eye"></i> View
                     </button>
                     ${
 											game.status === 'running'
 												? `
-                        <button class="btn btn-primary btn-small" onclick="dashboard.watchLiveGame('${game.gameId}')">
+                        <button class="btn btn-primary btn-small" onclick="dashboard.watchLiveGame('${this.escapeHtml(game.gameId)}')">
                             <i class="fas fa-broadcast-tower"></i> Watch Live
                         </button>
                     `
 												: `
-                        <button class="btn btn-success btn-small" onclick="dashboard.startGame('${game.gameId}')">
+                        <button class="btn btn-success btn-small" onclick="dashboard.startGame('${this.escapeHtml(game.gameId)}')">
                             <i class="fas fa-play"></i> Start
                         </button>
                     `
 										}
-                    <button class="btn btn-danger btn-small" onclick="dashboard.deleteGame('${game.gameId}')">
+                    <button class="btn btn-danger btn-small" onclick="dashboard.deleteGame('${this.escapeHtml(game.gameId)}')">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
@@ -461,29 +474,29 @@ class PokaiDashboard {
 											.map(
 												(game) => `
                         <tr>
-                            <td><strong>${game.gameId}</strong></td>
-                            <td>${game.players ? game.players.length : game.playerCount}/${game.maxPlayers}</td>
-                            <td>$${game.smallBlind}/$${game.bigBlind}</td>
+                            <td><strong>${this.escapeHtml(game.gameId)}</strong></td>
+                            <td>${this.escapeHtml(game.players ? game.players.length : game.playerCount)}/${this.escapeHtml(game.maxPlayers)}</td>
+                            <td>$${this.escapeHtml(game.smallBlind)}/$${this.escapeHtml(game.bigBlind)}</td>
                             <td>
-                                <span class="game-card-status status-${game.status || 'waiting'}">
-                                    ${(game.status || 'waiting').toUpperCase()}
+                                <span class="game-card-status status-${this.escapeHtml(game.status || 'waiting')}">
+                                    ${this.escapeHtml((game.status || 'waiting').toUpperCase())}
                                 </span>
                             </td>
-                            <td>${game.isTournament ? 'Tournament' : 'Cash'}</td>
+                            <td>${this.escapeHtml(game.isTournament ? 'Tournament' : 'Cash')}</td>
                             <td>
-                                <button class="btn btn-secondary btn-small" onclick="dashboard.viewGameDetails('${game.gameId}')">
+                                <button class="btn btn-secondary btn-small" onclick="dashboard.viewGameDetails('${this.escapeHtml(game.gameId)}')">
                                     View
                                 </button>
                                 ${
 																	game.status !== 'running'
 																		? `
-                                    <button class="btn btn-success btn-small" onclick="dashboard.startGame('${game.gameId}')">
+                                    <button class="btn btn-success btn-small" onclick="dashboard.startGame('${this.escapeHtml(game.gameId)}')">
                                         Start
                                     </button>
                                 `
 																		: ''
 																}
-                                <button class="btn btn-danger btn-small" onclick="dashboard.deleteGame('${game.gameId}')">
+                                <button class="btn btn-danger btn-small" onclick="dashboard.deleteGame('${this.escapeHtml(game.gameId)}')">
                                     Delete
                                 </button>
                             </td>
@@ -615,7 +628,7 @@ class PokaiDashboard {
 
 		if (!modal || !title || !content) return;
 
-		title.textContent = `Game Details - ${game.gameId}`;
+		title.textContent = `Game Details - ${this.escapeHtml(game.gameId)}`;
 
 		content.innerHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
@@ -623,27 +636,27 @@ class PokaiDashboard {
                     <h4>Game Configuration</h4>
                     <div class="info-item">
                         <div class="info-label">Game ID</div>
-                        <div class="info-value">${game.gameId}</div>
+                        <div class="info-value">${this.escapeHtml(game.gameId)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Max Players</div>
-                        <div class="info-value">${game.maxPlayers}</div>
+                        <div class="info-value">${this.escapeHtml(game.maxPlayers)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Small Blind</div>
-                        <div class="info-value">$${game.smallBlind}</div>
+                        <div class="info-value">$${this.escapeHtml(game.smallBlind)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Big Blind</div>
-                        <div class="info-value">$${game.bigBlind}</div>
+                        <div class="info-value">$${this.escapeHtml(game.bigBlind)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Turn Time Limit</div>
-                        <div class="info-value">${game.turnTimeLimit}s</div>
+                        <div class="info-value">${this.escapeHtml(game.turnTimeLimit)}s</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Type</div>
-                        <div class="info-value">${game.isTournament ? 'Tournament' : 'Cash Game'}</div>
+                        <div class="info-value">${this.escapeHtml(game.isTournament ? 'Tournament' : 'Cash Game')}</div>
                     </div>
                     
                     <!-- Visibility Settings Display -->
@@ -652,15 +665,15 @@ class PokaiDashboard {
 												? `
                         <div class="info-item">
                             <div class="info-label">Showdown Policy</div>
-                            <div class="info-value">${game.visibilitySettings.showdownPolicy}</div>
+                            <div class="info-value">${this.escapeHtml(game.visibilitySettings.showdownPolicy)}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Replay Visibility</div>
-                            <div class="info-value">${game.visibilitySettings.replayVisibility}</div>
+                            <div class="info-value">${this.escapeHtml(game.visibilitySettings.replayVisibility)}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Spectator Mode</div>
-                            <div class="info-value">${game.visibilitySettings.spectatorMode}</div>
+                            <div class="info-value">${this.escapeHtml(game.visibilitySettings.spectatorMode)}</div>
                         </div>
                     `
 												: ''
@@ -670,23 +683,23 @@ class PokaiDashboard {
                     <h4>Current State</h4>
                     <div class="info-item">
                         <div class="info-label">Status</div>
-                        <div class="info-value">${game.status || 'waiting'}</div>
+                        <div class="info-value">${this.escapeHtml(game.status || 'waiting')}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Players</div>
-                        <div class="info-value">${game.players.length}/${game.maxPlayers}</div>
+                        <div class="info-value">${this.escapeHtml(game.players.length)}/${this.escapeHtml(game.maxPlayers)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Current Phase</div>
-                        <div class="info-value">${game.currentPhase || 'N/A'}</div>
+                        <div class="info-value">${this.escapeHtml(game.currentPhase || 'N/A')}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Pot Size</div>
-                        <div class="info-value">$${game.potSize || 0}</div>
+                        <div class="info-value">$${this.escapeHtml(game.potSize || 0)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Hand Number</div>
-                        <div class="info-value">${game.handNumber || 0}</div>
+                        <div class="info-value">${this.escapeHtml(game.handNumber || 0)}</div>
                     </div>
                 </div>
             </div>
@@ -711,11 +724,11 @@ class PokaiDashboard {
 															.map(
 																(player) => `
                                 <tr>
-                                    <td>${player.id}</td>
-                                    <td>${player.name}</td>
-                                    <td>$${player.chipStack}</td>
-                                    <td>${player.position}</td>
-                                    <td>${player.isActive ? 'Active' : 'Inactive'}</td>
+                                    <td>${this.escapeHtml(player.id)}</td>
+                                    <td>${this.escapeHtml(player.name)}</td>
+                                    <td>$${this.escapeHtml(player.chipStack)}</td>
+                                    <td>${this.escapeHtml(player.position)}</td>
+                                    <td>${this.escapeHtml(player.isActive ? 'Active' : 'Inactive')}</td>
                                 </tr>
                             `,
 															)
@@ -801,17 +814,17 @@ class PokaiDashboard {
 											.map(
 												(bot) => `
                         <tr>
-                            <td><strong>${bot.botId}</strong></td>
-                            <td>${bot.name}</td>
-                            <td>${bot.owner}</td>
+                            <td><strong>${this.escapeHtml(bot.botId)}</strong></td>
+                            <td>${this.escapeHtml(bot.name)}</td>
+                            <td>${this.escapeHtml(bot.owner)}</td>
                             <td>
-                                <span class="status-indicator ${bot.status}">
-                                    ${bot.status.toUpperCase()}
+                                <span class="status-indicator ${this.escapeHtml(bot.status)}">
+                                    ${this.escapeHtml(bot.status.toUpperCase())}
                                 </span>
                             </td>
-                            <td>${bot.lastConnected ? new Date(bot.lastConnected).toLocaleString() : 'Never'}</td>
+                            <td>${bot.lastConnected ? this.escapeHtml(new Date(bot.lastConnected).toLocaleString()) : 'Never'}</td>
                             <td>
-                                <button class="btn btn-secondary btn-small" onclick="dashboard.viewBotDetails('${bot.botId}')">
+                                <button class="btn btn-secondary btn-small" onclick="dashboard.viewBotDetails('${this.escapeHtml(bot.botId)}')">
                                     <i class="fas fa-info-circle"></i> Details
                                 </button>
                             </td>
@@ -855,7 +868,7 @@ class PokaiDashboard {
 		// Store current bot ID for actions
 		this.currentBotId = bot.botId;
 
-		title.textContent = `Bot Details - ${bot.name}`;
+		title.textContent = `Bot Details - ${this.escapeHtml(bot.name)}`;
 
 		// Show/hide appropriate buttons based on status
 		if (suspendBtn && reactivateBtn) {
@@ -886,54 +899,54 @@ class PokaiDashboard {
                     <h4>Bot Information</h4>
                     <div class="info-item">
                         <div class="info-label">Bot ID</div>
-                        <div class="info-value">${bot.botId}</div>
+                        <div class="info-value">${this.escapeHtml(bot.botId)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Name</div>
-                        <div class="info-value">${bot.name}</div>
+                        <div class="info-value">${this.escapeHtml(bot.name)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Owner</div>
-                        <div class="info-value">${bot.owner}</div>
+                        <div class="info-value">${this.escapeHtml(bot.owner)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Status</div>
                         <div class="info-value">
-                            <span class="status-indicator ${bot.status}">
-                                ${bot.status.toUpperCase()}
+                            <span class="status-indicator ${this.escapeHtml(bot.status)}">
+                                ${this.escapeHtml(bot.status.toUpperCase())}
                             </span>
                         </div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Created</div>
-                        <div class="info-value">${new Date(bot.createdAt).toLocaleString()}</div>
+                        <div class="info-value">${this.escapeHtml(new Date(bot.createdAt).toLocaleString())}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Last Connected</div>
-                        <div class="info-value">${bot.lastConnected ? new Date(bot.lastConnected).toLocaleString() : 'Never'}</div>
+                        <div class="info-value">${bot.lastConnected ? this.escapeHtml(new Date(bot.lastConnected).toLocaleString()) : 'Never'}</div>
                     </div>
                 </div>
                 <div>
                     <h4>Statistics</h4>
                     <div class="info-item">
                         <div class="info-label">Games Played</div>
-                        <div class="info-value">${bot.stats?.gamesPlayed || 0}</div>
+                        <div class="info-value">${this.escapeHtml(bot.stats?.gamesPlayed || 0)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Hands Played</div>
-                        <div class="info-value">${bot.stats?.handsPlayed || 0}</div>
+                        <div class="info-value">${this.escapeHtml(bot.stats?.handsPlayed || 0)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Total Winnings</div>
-                        <div class="info-value">$${bot.stats?.totalWinnings || 0}</div>
+                        <div class="info-value">$${this.escapeHtml(bot.stats?.totalWinnings || 0)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Win Rate</div>
-                        <div class="info-value">${bot.stats?.winRate || 0}%</div>
+                        <div class="info-value">${this.escapeHtml(bot.stats?.winRate || 0)}%</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Avg Profit/Game</div>
-                        <div class="info-value">$${bot.stats?.avgProfit || 0}</div>
+                        <div class="info-value">$${this.escapeHtml(bot.stats?.avgProfit || 0)}</div>
                     </div>
                 </div>
             </div>
@@ -949,7 +962,7 @@ class PokaiDashboard {
 														([perm, enabled]) => `
                             <div style="padding: 0.5rem 1rem; background: ${enabled ? '#dcfce7' : '#fee2e2'}; 
                                         border-radius: 0.375rem; font-size: 0.875rem; color: ${enabled ? '#166534' : '#991b1b'};">
-                                ${perm}: ${enabled ? 'Allowed' : 'Denied'}
+                                ${this.escapeHtml(perm)}: ${enabled ? 'Allowed' : 'Denied'}
                             </div>
                         `,
 													)
