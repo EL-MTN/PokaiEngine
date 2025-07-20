@@ -255,32 +255,28 @@ describe('SocketHandler Coverage Tests', () => {
 	});
 
 	describe('Error Handling Coverage', () => {
-		it('should handle action with wrong player ID', async () => {
+		it('should handle action when not in a game', async () => {
 			const socket = server.connect('test-bot');
 
-			// Authenticate and join game
+			// Authenticate but don't join a game
 			socket.trigger('auth.login', { botId: 'test-bot', apiKey: 'test-key' });
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
-			socket.trigger('game.join', {
-				botName: 'TestBot',
-				gameId,
-				chipStack: 1000,
-			});
-
-			// Try action with wrong player ID
-			const action: Action = {
+			// Try to submit an action without being in a game
+			const action: Omit<Action, 'playerId'> = {
 				type: ActionType.Check,
-				playerId: 'wrong-player',
 				timestamp: Date.now(),
 			};
 
 			socket.trigger('action.submit', { action });
 
+			await new Promise((resolve) => setTimeout(resolve, 10));
+
 			const errorMsg = socket.outgoing.find(
 				(e) => e.event === 'action.submit.error',
 			);
 			expect(errorMsg).toBeDefined();
+			expect(errorMsg?.data.error).toBe('Not in a game');
 		});
 
 		it('should handle possible actions request for bot not in game', async () => {
@@ -448,6 +444,19 @@ describe('SocketHandler Coverage Tests', () => {
 
 	describe('Force Action and Timeout Handling', () => {
 		it('should handle force action errors gracefully', async () => {
+			// Mock the game state to make the player the current actor
+			const mockGame = {
+				getGameState: jest.fn().mockReturnValue({
+					currentPlayerToAct: 'test-bot',
+					currentPhase: 'preflop',
+				}),
+				isGameRunning: jest.fn().mockReturnValue(true),
+				getConfig: jest.fn().mockReturnValue({ turnTimeLimit: 30 }),
+			};
+			
+			// Mock getGame to return our mock game
+			jest.spyOn(gameController, 'getGame').mockReturnValue(mockGame as any);
+			
 			// Mock forcePlayerAction to throw error
 			jest.spyOn(gameController, 'forcePlayerAction').mockImplementation(() => {
 				throw new Error('Force action failed');
@@ -463,17 +472,22 @@ describe('SocketHandler Coverage Tests', () => {
 				gameId,
 				chipStack: 1000,
 			});
+			
+			await new Promise((resolve) => setTimeout(resolve, 10));
 
 			// Simulate timeout by calling handleTurnTimeout directly
 			const connection = (socketHandler as any).connections.get(socket.id);
 			if (connection) {
-				(socketHandler as any).handleTurnTimeout(connection);
+				// Ensure connection has gameId set
+				connection.gameId = gameId;
+				await (socketHandler as any).handleTurnTimeout(connection);
 			}
 
 			const errorEvents = socket.outgoing.filter(
 				(e) => e.event === 'turn.force.error',
 			);
 			expect(errorEvents.length).toBeGreaterThan(0);
+			expect(errorEvents[0].data.error).toBe('Force action failed');
 		});
 	});
 
