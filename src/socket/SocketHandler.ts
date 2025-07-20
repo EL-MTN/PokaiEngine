@@ -1,7 +1,7 @@
 import { GameController } from '@/engine/game/GameController';
 import { BotAuthService } from '@/services/auth/BotAuthService';
 import { authLogger, communicationLogger } from '@/services/logging/Logger';
-import { Action, GameEvent, GameId, PlayerId } from '@/types';
+import { Action, GameEvent, GameId, GamePhase, PlayerId } from '@/types';
 
 import { BotInterface } from './BotInterface';
 
@@ -61,6 +61,10 @@ export class SocketHandler {
 	private turnTimers: Map<PlayerId, NodeJS.Timeout> = new Map();
 	/** Map of playerId -> warning timer */
 	private warningTimers: Map<PlayerId, NodeJS.Timeout> = new Map();
+	/** Map of playerId -> timer version to prevent race conditions */
+	private timerVersions: Map<PlayerId, number> = new Map();
+	/** Lock to prevent concurrent timer operations */
+	private timerOperationInProgress: Set<PlayerId> = new Set();
 
 	constructor(io: SocketIOServer, gameController: GameController) {
 		this.io = io;
@@ -127,9 +131,9 @@ export class SocketHandler {
 		});
 
 		// Bot actions (requires authentication)
-		socket.on('action.submit', (data: { action: Omit<Action, 'playerId'> }) => {
+		socket.on('action.submit', async (data: { action: Omit<Action, 'playerId'> }) => {
 			if (!this.requireAuth(connection)) return;
-			this.handleBotAction(connection, data.action);
+			await this.handleBotAction(connection, data.action);
 		});
 
 		// Game state requests (requires authentication)
@@ -281,7 +285,12 @@ export class SocketHandler {
 				joinedGame &&
 				joinedGame.getGameState().currentPlayerToAct === connection.playerId
 			) {
-				this.startTurnTimer(connection);
+				this.startTurnTimer(connection).catch((error) => {
+					communicationLogger.error(
+						`Failed to start turn timer for player ${connection.playerId}:`,
+						error,
+					);
+				});
 			}
 		} catch (error) {
 			connection.socket.emit('game.join.error', {
@@ -294,10 +303,10 @@ export class SocketHandler {
 	/**
 	 * Handles bot actions
 	 */
-	private handleBotAction(
+	private async handleBotAction(
 		connection: BotConnection,
 		actionData: Omit<Action, 'playerId'>,
-	): void {
+	): Promise<void> {
 		if (!connection.gameId) {
 			connection.socket.emit('action.submit.error', {
 				error: 'Not in a game',
@@ -308,7 +317,7 @@ export class SocketHandler {
 
 		try {
 			// Clear turn timer for this player
-			this.clearTurnTimer(connection.playerId);
+			await this.clearTurnTimer(connection.playerId);
 
 			// Create action with the connection's playerId
 			const action: Action = {
@@ -525,22 +534,42 @@ export class SocketHandler {
 			timestamp: Date.now(),
 		});
 
+		// Debug logging for timer-related events
+		if (event.gameState?.currentPlayerToAct === connection.playerId) {
+			communicationLogger.debug(
+				`Event ${event.type} has currentPlayerToAct=${connection.playerId}, phase=${event.gameState?.currentPhase}`,
+			);
+		}
+
 		// Handle specific events
 		switch (event.type) {
 			case 'hand_started':
 				this.sendGameState(connection);
 				// Immediately start timer if it's this player's turn after blinds
-				if (event.gameState?.currentPlayerToAct === connection.playerId) {
-					this.startTurnTimer(connection);
+				// Verify we're in preflop phase to avoid stale state issues
+				if (event.gameState?.currentPlayerToAct === connection.playerId &&
+				    event.gameState?.currentPhase === GamePhase.PreFlop) {
+					this.startTurnTimer(connection).catch((error) => {
+						communicationLogger.error(
+							`Failed to start turn timer for player ${connection.playerId}:`,
+							error,
+						);
+					});
 				}
 				break;
 
 			case 'action_taken':
 				this.sendGameState(connection);
 
-				// Check if it's this bot's turn
-				if (event.gameState?.currentPlayerToAct === connection.playerId) {
-					this.startTurnTimer(connection);
+				// Check if it's this bot's turn and we're not in hand_complete phase
+				if (event.gameState?.currentPlayerToAct === connection.playerId &&
+				    event.gameState?.currentPhase !== GamePhase.HandComplete) {
+					this.startTurnTimer(connection).catch((error) => {
+						communicationLogger.error(
+							`Failed to start turn timer for player ${connection.playerId}:`,
+							error,
+						);
+					});
 				}
 				break;
 
@@ -548,15 +577,29 @@ export class SocketHandler {
 			case 'turn_dealt':
 			case 'river_dealt':
 				this.sendGameState(connection);
-				if (event.gameState?.currentPlayerToAct === connection.playerId) {
-					this.startTurnTimer(connection);
+				// Only start timer if game is running and we're not in hand_complete phase
+				if (event.gameState?.currentPlayerToAct === connection.playerId &&
+				    event.gameState?.currentPhase !== GamePhase.HandComplete) {
+					this.startTurnTimer(connection).catch((error) => {
+						communicationLogger.error(
+							`Failed to start turn timer for player ${connection.playerId}:`,
+							error,
+						);
+					});
 				}
 				break;
 
 			case 'showdown_complete':
 			case 'hand_complete':
 				this.sendGameState(connection);
-				this.clearTurnTimer(connection.playerId);
+				this.clearTurnTimer(connection.playerId).catch((error) => {
+					communicationLogger.error(
+						`Failed to clear turn timer for player ${connection.playerId}:`,
+						error,
+					);
+				});
+				// IMPORTANT: Do not start timers for hand_complete events
+				// The currentPlayerToAct might still be set from the last action
 				break;
 		}
 	}
@@ -564,59 +607,112 @@ export class SocketHandler {
 	/**
 	 * Starts a turn timer for a bot
 	 */
-	private startTurnTimer(connection: BotConnection): void {
+	private async startTurnTimer(connection: BotConnection): Promise<void> {
 		if (!connection.gameId) {
 			return;
 		}
 
-		// Clear existing timers first
-		this.clearTurnTimer(connection.playerId);
-
-		// Get configuration
-		const game = this.gameController.getGame(connection.gameId);
-		if (!game) {
+		// Prevent concurrent timer operations
+		if (this.timerOperationInProgress.has(connection.playerId)) {
+			communicationLogger.warn(
+				`Timer operation already in progress for player ${connection.playerId}`,
+			);
 			return;
 		}
 
-		const timeLimitMs = game.getConfig().turnTimeLimit * 1000;
-		const warningDelayMs = timeLimitMs * 0.7; // send warning when 70% of time has elapsed
+		this.timerOperationInProgress.add(connection.playerId);
 
-		// Turn start notification
-		connection.socket.emit('turn.start', {
-			timeLimit: timeLimitMs / 1000,
-			timestamp: Date.now(),
-		});
+		try {
+			// Increment timer version to invalidate any pending timer callbacks
+			const currentVersion = (this.timerVersions.get(connection.playerId) || 0) + 1;
+			this.timerVersions.set(connection.playerId, currentVersion);
 
-		// Warning timer - only set if there's enough time for a meaningful warning
-		let warningTimer: NodeJS.Timeout | undefined;
-		if (timeLimitMs > 1000) {
-			// Only warn if timeout is longer than 1 second
-			warningTimer = setTimeout(() => {
-				connection.socket.emit('turn.warning', {
-					timeRemaining: (timeLimitMs - warningDelayMs) / 1000,
-					timestamp: Date.now(),
+			// Clear existing timers first
+			await this.clearTurnTimer(connection.playerId);
+
+			// Get configuration
+			const game = this.gameController.getGame(connection.gameId);
+			if (!game) {
+				return;
+			}
+
+			const gameState = game.getGameState();
+			
+			// Double-check the player is still the current actor after async operations
+			if (gameState.currentPlayerToAct !== connection.playerId) {
+				communicationLogger.info(
+					`Player ${connection.playerId} is no longer the current actor, skipping timer`,
+				);
+				return;
+			}
+
+			// Prevent starting timers during hand_complete phase or when game is not running
+			if (gameState.currentPhase === GamePhase.HandComplete || !game.isGameRunning()) {
+				communicationLogger.info(
+					`Skipping timer for player ${connection.playerId} - game phase: ${gameState.currentPhase}, running: ${game.isGameRunning()}`,
+				);
+				return;
+			}
+
+			const timeLimitMs = game.getConfig().turnTimeLimit * 1000;
+			const warningDelayMs = timeLimitMs * 0.7; // send warning when 70% of time has elapsed
+
+			// Turn start notification
+			connection.socket.emit('turn.start', {
+				timeLimit: timeLimitMs / 1000,
+				timestamp: Date.now(),
+			});
+
+			// Warning timer - only set if there's enough time for a meaningful warning
+			let warningTimer: NodeJS.Timeout | undefined;
+			if (timeLimitMs > 1000) {
+				// Only warn if timeout is longer than 1 second
+				warningTimer = setTimeout(() => {
+					// Check if this timer is still valid
+					if (this.timerVersions.get(connection.playerId) !== currentVersion) {
+						return;
+					}
+					connection.socket.emit('turn.warning', {
+						timeRemaining: (timeLimitMs - warningDelayMs) / 1000,
+						timestamp: Date.now(),
+					});
+				}, warningDelayMs);
+			}
+
+			// Timeout timer
+			const timeoutTimer = setTimeout(() => {
+				// Check if this timer is still valid
+				if (this.timerVersions.get(connection.playerId) !== currentVersion) {
+					return;
+				}
+				this.handleTurnTimeout(connection).catch((error) => {
+					communicationLogger.error(
+						`Error in turn timeout handler for player ${connection.playerId}:`,
+						error,
+					);
 				});
-			}, warningDelayMs);
-		}
+			}, timeLimitMs);
 
-		// Timeout timer
-		const timeoutTimer = setTimeout(() => {
-			this.handleTurnTimeout(connection);
-		}, timeLimitMs);
-
-		// Store timers
-		if (warningTimer) {
-			this.warningTimers.set(connection.playerId, warningTimer);
-			connection.warningTimer = warningTimer;
+			// Store timers
+			if (warningTimer) {
+				this.warningTimers.set(connection.playerId, warningTimer);
+				connection.warningTimer = warningTimer;
+			}
+			this.turnTimers.set(connection.playerId, timeoutTimer);
+			connection.turnTimer = timeoutTimer;
+		} finally {
+			this.timerOperationInProgress.delete(connection.playerId);
 		}
-		this.turnTimers.set(connection.playerId, timeoutTimer);
-		connection.turnTimer = timeoutTimer;
 	}
 
 	/**
 	 * Clears turn timer for a player
 	 */
-	private clearTurnTimer(playerId: PlayerId): void {
+	private async clearTurnTimer(playerId: PlayerId): Promise<void> {
+		// Increment version to invalidate any pending timer callbacks
+		const currentVersion = (this.timerVersions.get(playerId) || 0) + 1;
+		this.timerVersions.set(playerId, currentVersion);
+
 		const warning = this.warningTimers.get(playerId);
 		if (warning) {
 			clearTimeout(warning);
@@ -628,42 +724,68 @@ export class SocketHandler {
 			clearTimeout(timeout);
 			this.turnTimers.delete(playerId);
 		}
+
+		// Small delay to ensure timer callbacks have been processed
+		await new Promise(resolve => setTimeout(resolve, 10));
 	}
 
 	/**
 	 * Handles turn timeout
 	 */
-	private handleTurnTimeout(connection: BotConnection): void {
+	private async handleTurnTimeout(connection: BotConnection): Promise<void> {
 		if (!connection.gameId) {
 			return;
 		}
 
-		// Clear timers first to avoid duplicate actions
-		this.clearTurnTimer(connection.playerId);
+		// Prevent concurrent timeout handling
+		if (this.timerOperationInProgress.has(connection.playerId)) {
+			communicationLogger.warn(
+				`Timeout handling already in progress for player ${connection.playerId}`,
+			);
+			return;
+		}
 
-		// Send timeout notification
-		connection.socket.emit('turn.timeout', {
-			timestamp: Date.now(),
-		});
+		this.timerOperationInProgress.add(connection.playerId);
 
-		// Force action through game controller
 		try {
-			this.gameController.forcePlayerAction(
-				connection.gameId,
-				connection.playerId,
-			);
-		} catch (error) {
-			// Log error but don't crash - game should continue functioning
-			communicationLogger.error(
-				`Force action failed for player ${connection.playerId}:`,
-				error,
-			);
+			// Clear timers first to avoid duplicate actions
+			await this.clearTurnTimer(connection.playerId);
 
-			// Notify the player that force action failed
-			connection.socket.emit('turn.force.error', {
-				error: error instanceof Error ? error.message : 'Unknown error',
+			// Verify the game state hasn't changed
+			const game = this.gameController.getGame(connection.gameId);
+			if (!game || game.getGameState().currentPlayerToAct !== connection.playerId) {
+				communicationLogger.info(
+					`Player ${connection.playerId} is no longer the current actor, skipping timeout`,
+				);
+				return;
+			}
+
+			// Send timeout notification
+			connection.socket.emit('turn.timeout', {
 				timestamp: Date.now(),
 			});
+
+			// Force action through game controller
+			try {
+				this.gameController.forcePlayerAction(
+					connection.gameId,
+					connection.playerId,
+				);
+			} catch (error) {
+				// Log error but don't crash - game should continue functioning
+				communicationLogger.error(
+					`Force action failed for player ${connection.playerId}:`,
+					error,
+				);
+
+				// Notify the player that force action failed
+				connection.socket.emit('turn.force.error', {
+					error: error instanceof Error ? error.message : 'Unknown error',
+					timestamp: Date.now(),
+				});
+			}
+		} finally {
+			this.timerOperationInProgress.delete(connection.playerId);
 		}
 	}
 
@@ -702,7 +824,12 @@ export class SocketHandler {
 
 		// Handle bot disconnection
 		// Clear timers
-		this.clearTurnTimer(connection.playerId);
+		this.clearTurnTimer(connection.playerId).catch((error) => {
+			communicationLogger.error(
+				`Failed to clear turn timer during disconnection for player ${connection.playerId}:`,
+				error,
+			);
+		});
 
 		// Unsubscribe from game events
 		this.unsubscribeFromGameEvents(connection);

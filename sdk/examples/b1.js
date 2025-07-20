@@ -15,9 +15,9 @@ async function runBasicBot() {
 	// Create bot instance
 	const bot = new PokaiBot({
 		credentials: {
-			botId: 'b1-md6sk025-e3e666aa',
+			botId: 'b1-md6k53js-921c99d6',
 			apiKey:
-				'49b2be6bd2d8daa2085882116deb43994eaa5303cfdf7c19bf178f859bc57ee7',
+				'0a1a50d33cdd435b6c876d8fd3963b3a546abfa9ca60fa9a3b4c000bb5598dc7',
 		},
 		serverUrl: 'http://localhost:3001',
 		debug: true,

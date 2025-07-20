@@ -109,6 +109,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			bot1.trigger('game.join', { gameId, chipStack: 1000 });
 			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
+			// Wait for async operations to complete
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
 			// Both should receive identification success
 			const bot1Success = bot1.outgoing.find(
 				(e) => e.event === 'game.join.success',
@@ -134,6 +137,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			bot1.trigger('game.join', { gameId, chipStack: 1000 });
 			bot2.trigger('game.join', { gameId, chipStack: 1000 });
 
+			// Wait for async operations to complete
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
 			// Find which bot has turn
 			const bot1Turn = bot1.outgoing.find((e) => e.event === 'turn.start');
 			const actingBot = bot1Turn ? bot1 : bot2;
@@ -156,6 +162,9 @@ describe('SocketHandler Comprehensive Tests', () => {
 			};
 
 			actingBot.trigger('action.submit', { action });
+
+			// Wait for async action processing
+			await new Promise((resolve) => setTimeout(resolve, 50));
 
 			// Should receive action success
 			const actionAck = actingBot.outgoing.find(
