@@ -23,10 +23,7 @@
 		"dev": "tsc --watch",
 		"clean": "rm -rf dist",
 		"prepublishOnly": "npm run clean && npm run build",
-		"example:basic": "node examples/basic-bot.js",
-		"example:aggressive": "node examples/aggressive-bot.js",
-		"example:conservative": "node examples/conservative-bot.js",
-		"example:advanced": "node examples/advanced-bot.js"
+		"example:b1": "ts-node examples/b1.ts"
 	},
 	"keywords": [
 		"poker",

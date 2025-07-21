@@ -6,7 +6,7 @@
  * Demonstrates the simplest possible bot implementation
  */
 
-import { PokaiBot, ActionType, formatCards } from '../dist/index.js';
+import { ActionType, formatCards, GameEvent, PokaiBot } from '../src/index';
 
 async function runBasicBot() {
 	console.log('🤖 Starting Basic Bot Example');
@@ -15,9 +15,9 @@ async function runBasicBot() {
 	// Create bot instance
 	const bot = new PokaiBot({
 		credentials: {
-			botId: 'b1-md6k53js-921c99d6',
+			botId: 'b2-md6sktcw-3e8610c6',
 			apiKey:
-				'0a1a50d33cdd435b6c876d8fd3963b3a546abfa9ca60fa9a3b4c000bb5598dc7',
+				'ac7fae3bd5fe4517d06fcb1fed06b88b437cb704ed07938678f5595b15157b04',
 		},
 		serverUrl: 'http://localhost:3000',
 		debug: true,
@@ -38,17 +38,17 @@ async function runBasicBot() {
 
 	// Set up event handlers
 	bot.setEventHandlers({
-		onGameJoined: (data) => {
+		onGameJoined: (data: { gameId: string; chipStack: number; }) => {
 			console.log(`✅ Joined game ${data.gameId} with ${data.chipStack} chips`);
 		},
 
-		onTurnStart: async (data) => {
+		onTurnStart: async (data: { timeLimit: number; }) => {
 			if (isActing) {
-				console.log('[B1] Already acting, skipping turn start');
+				console.log('[B2] Already acting, skipping turn start');
 				return;
 			}
 			isActing = true;
-			console.log(`[B1] 🎯 My turn! (${data.timeLimit}s time limit)`);
+			console.log(`[B2] 🎯 My turn! (${data.timeLimit}s time limit)`);
 
 			try {
 				// Add a 5-second delay for debugging
@@ -57,35 +57,35 @@ async function runBasicBot() {
 				// Get current game state
 				const gameState = await bot.getGameState();
 				console.log(
-					`[B1] 📊 Hand: ${formatCards(gameState.playerCards)} | Pot: ${gameState.potSize} | Phase: ${gameState.currentPhase}`,
+					`[B2] 📊 Hand: ${formatCards(gameState.playerCards)} | Pot: ${gameState.potSize} | Phase: ${gameState.currentPhase}`,
 				);
 
 				// Get possible actions
 				const actions = await bot.getPossibleActions();
 				console.log(
-					`[B1] 🎲 Available: ${actions.map((a) => a.type).join(', ')}`,
+					`[B2] 🎲 Available: ${actions.map((a) => a.type).join(', ')}`,
 				);
 
 				// Simple strategy: prefer check/call over folding
 				if (actions.find((a) => a.type === ActionType.Check)) {
-					console.log('[B1] Choosing action: Check');
+					console.log('[B2] Choosing action: Check');
 					await bot.submitAction(ActionType.Check);
 				} else if (actions.find((a) => a.type === ActionType.Call)) {
-					console.log('[B1] Choosing action: Call');
+					console.log('[B2] Choosing action: Call');
 					await bot.submitAction(ActionType.Call);
 				} else {
-					console.log('[B1] Choosing action: Fold');
+					console.log('[B2] Choosing action: Fold');
 					await bot.submitAction(ActionType.Fold);
 				}
-				console.log('[B1] ✅ Action submitted successfully');
+				console.log('[B2] ✅ Action submitted successfully');
 			} catch (error) {
-				console.error('❌ [B1] Error during turn:', error.message);
+				console.error('❌ [B2] Error during turn:', (error as Error).message);
 			} finally {
 				isActing = false;
 			}
 		},
 
-		onGameEvent: (event) => {
+		onGameEvent: (event: GameEvent) => {
 			if (event.type === 'hand_complete') {
 				console.log('🏁 Hand completed');
 				handsPlayed++;
@@ -95,11 +95,11 @@ async function runBasicBot() {
 			}
 		},
 
-		onError: (error, code) => {
+		onError: (error: string, code?: string) => {
 			console.error(`❌ Bot error [${code}]:`, error);
 		},
 
-		onDisconnected: (reason) => {
+		onDisconnected: (reason: string) => {
 			console.log(`🔌 Disconnected: ${reason}`);
 		},
 	});
@@ -133,7 +133,7 @@ async function runBasicBot() {
 		console.log('🚀 Bot is now active and playing...');
 		console.log('Press Ctrl+C to stop');
 	} catch (error) {
-		console.error('❌ Bot failed:', error.message);
+		console.error('❌ Bot failed:', (error as Error).message);
 	}
 }
 

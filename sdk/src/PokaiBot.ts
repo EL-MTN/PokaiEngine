@@ -452,7 +452,8 @@ export class PokaiBot extends EventEmitter {
 	setEventHandlers(handlers: BotEventHandlers): void {
 		Object.entries(handlers).forEach(([event, handler]) => {
 			if (handler) {
-				this.on(event.replace('on', '').toLowerCase(), handler);
+				const eventName = event.replace('on', '').toLowerCase();
+				this.on(eventName, handler);
 			}
 		});
 	}
@@ -517,6 +518,11 @@ export class PokaiBot extends EventEmitter {
 				this.reconnectAttempts = 0;
 				this.emit('reconnected');
 			}
+		});
+
+		// Add a generic event listener for debugging
+		this.socket.onAny((event, ...args) => {
+			this.emit('any', event, ...args);
 		});
 	}
 

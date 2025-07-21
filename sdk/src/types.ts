@@ -68,6 +68,7 @@ export interface GameEvent {
 }
 
 export interface GameInfo {
+	id: string;
 	gameId: string;
 	currentPlayers: number;
 	maxPlayers: number;
@@ -100,6 +101,7 @@ export interface JoinGameOptions {
 // === Event Handlers ===
 
 export interface BotEventHandlers {
+	onAny?: (event: string, ...args: any[]) => void;
 	onGameJoined?: (data: {
 		playerId: string;
 		gameId: string;
