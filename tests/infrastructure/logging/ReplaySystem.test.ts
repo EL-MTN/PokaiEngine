@@ -4,7 +4,7 @@ import { GameReplayRecorder } from '@/engine/replay/GameReplayRecorder';
 import { ReplayAnalyzer } from '@/engine/replay/ReplayAnalyzer';
 import { ReplaySystem } from '@/services/logging/ReplaySystem';
 import { ReplayStorage } from '@/services/replay/ReplayStorage';
-import { GamePhase, GameState, ReplayData } from '@/types';
+import { GamePhase, GameState, ReplayData, ReplayMetadata } from '@/types';
 
 // Mock dependencies
 jest.mock('@/services/replay/ReplayStorage');
@@ -175,39 +175,56 @@ describe('ReplaySystem', () => {
 
 		test('should load replay from MongoDB successfully', async () => {
 			const mongoReplay = {
+				_id: 'test-id',
 				gameId: 'test-game-123',
 				metadata: {
-					gameStartTime: '2024-01-01T10:00:00Z',
-					gameEndTime: '2024-01-01T11:00:00Z',
+					gameConfig: {
+						maxPlayers: 6,
+						smallBlindAmount: 10,
+						bigBlindAmount: 20,
+						turnTimeLimit: 30000,
+						isTournament: false,
+					},
+					playerNames: { player1: 'Player 1', player2: 'Player 2' },
+					handCount: 1,
+					totalEvents: 2,
+					totalActions: 2,
+					gameDuration: 3600000,
+					createdAt: new Date('2024-01-01T10:00:00Z'),
+					version: '1.0.0',
+					gameStartTime: Date.now(),
+					gameEndTime: Date.now() + 3600000,
 					maxPlayers: 6,
 					smallBlindAmount: 10,
 					bigBlindAmount: 20,
 					turnTimeLimit: 30000,
 					gameType: 'cash',
-					playerNames: { player1: 'Player 1', player2: 'Player 2' },
 					totalHands: 1,
-					totalActions: 2,
-					gameDuration: 3600000,
-					winners: ['player1'],
-				},
+					winners: [{ playerId: 'player1', handsWon: 1 }],
+				} as ReplayMetadata,
 				analytics: {
 					totalEvents: 3,
 					avgHandDuration: 180000,
 				},
 				events: [
 					{
+						sequenceId: 1,
 						type: 'game_started',
 						timestamp: Date.now(),
 						handNumber: 0,
 						phase: GamePhase.PreFlop,
 						playerId: 'player1',
 						data: {
+							sequenceId: 1,
+							type: 'game_started',
+							timestamp: Date.now(),
+							handNumber: 0,
 							gameStateBefore: createMockGameState(),
 							gameStateAfter: createMockGameState(),
-						},
+						} as any,
 					},
 				],
-				createdAt: '2024-01-01T10:00:00Z',
+				createdAt: new Date('2024-01-01T10:00:00Z'),
 				version: '1.0.0',
 			};
 			mockReplayStorage.loadReplayFromMongo.mockResolvedValue(mongoReplay);
@@ -578,7 +595,10 @@ describe('ReplaySystem', () => {
 		});
 
 		test('should list MongoDB replays', async () => {
-			const mockReplays = [{ gameId: 'game1' }, { gameId: 'game2' }];
+			const mockReplays = [
+				{ _id: 'id1', gameId: 'game1', events: [], metadata: {} as any, createdAt: new Date() },
+				{ _id: 'id2', gameId: 'game2', events: [], metadata: {} as any, createdAt: new Date() }
+			];
 			mockReplayStorage.listRecentReplays.mockResolvedValue(mockReplays);
 
 			const result = await replaySystem.listMongoReplays(10);

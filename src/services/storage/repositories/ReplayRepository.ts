@@ -6,6 +6,7 @@ import {
 	IReplayAnalytics,
 	Replay,
 } from '@/services/storage/models/Replay';
+import { DatabaseQuery } from '@/types/database-types';
 
 export interface ReplaySearchFilters {
 	gameType?: 'cash' | 'tournament';
@@ -67,7 +68,7 @@ export class ReplayRepository {
 
 	async findAll(filters: ReplaySearchFilters = {}): Promise<ReplayListItem[]> {
 		try {
-			const query: any = {};
+			const query: DatabaseQuery = {};
 
 			// Apply filters
 			if (filters.gameType) {
@@ -87,13 +88,14 @@ export class ReplayRepository {
 			}
 
 			if (filters.dateFrom || filters.dateTo) {
-				query.createdAt = {};
+				const dateQuery: { $gte?: Date; $lte?: Date } = {};
 				if (filters.dateFrom) {
-					query.createdAt.$gte = filters.dateFrom;
+					dateQuery.$gte = filters.dateFrom;
 				}
 				if (filters.dateTo) {
-					query.createdAt.$lte = filters.dateTo;
+					dateQuery.$lte = filters.dateTo;
 				}
+				query.createdAt = dateQuery;
 			}
 
 			const results = await Replay.find(query)
@@ -270,7 +272,7 @@ export class ReplayRepository {
 
 	async count(filters: ReplaySearchFilters = {}): Promise<number> {
 		try {
-			const query: any = {};
+			const query: DatabaseQuery = {};
 
 			// Apply same filters as findAll
 			if (filters.gameType) {
@@ -286,13 +288,14 @@ export class ReplayRepository {
 				query['metadata.playerNames'] = { $exists: true };
 			}
 			if (filters.dateFrom || filters.dateTo) {
-				query.createdAt = {};
+				const dateQuery: { $gte?: Date; $lte?: Date } = {};
 				if (filters.dateFrom) {
-					query.createdAt.$gte = filters.dateFrom;
+					dateQuery.$gte = filters.dateFrom;
 				}
 				if (filters.dateTo) {
-					query.createdAt.$lte = filters.dateTo;
+					dateQuery.$lte = filters.dateTo;
 				}
+				query.createdAt = dateQuery;
 			}
 
 			return await Replay.countDocuments(query);

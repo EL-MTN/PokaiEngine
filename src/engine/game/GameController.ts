@@ -11,6 +11,7 @@ import {
 	PlayerId,
 	PossibleAction,
 } from '@/types';
+import { MongoReplayEvent } from '@/types/database-types';
 
 import { GameEngine } from './GameEngine';
 
@@ -775,16 +776,17 @@ export class GameController {
 				// Convert MongoDB format to ReplayData format
 				// MongoDB events have their properties wrapped in a 'data' field, so we need to unwrap them
 				const convertedEvents = (mongoReplay.events || []).map(
-					(mongoEvent: any) => {
+					(mongoEvent: MongoReplayEvent) => {
 						if (mongoEvent.data) {
 							// Unwrap the data field and merge with top-level properties
 							return {
-								type: mongoEvent.type,
-								timestamp: mongoEvent.timestamp,
-								phase: mongoEvent.phase,
-								handNumber: mongoEvent.handNumber,
-								playerId: mongoEvent.playerId,
 								...mongoEvent.data,
+								// Override with top-level properties if they exist
+								type: mongoEvent.type || mongoEvent.data.type,
+								timestamp: mongoEvent.timestamp || mongoEvent.data.timestamp,
+								phase: mongoEvent.phase || mongoEvent.data.phase,
+								handNumber: mongoEvent.handNumber || mongoEvent.data.handNumber,
+								playerId: mongoEvent.playerId || mongoEvent.data.playerId,
 							};
 						}
 						// If no data field, return as-is (shouldn't happen but safety first)
@@ -794,7 +796,7 @@ export class GameController {
 
 				return {
 					gameId: mongoReplay.gameId,
-					startTime: new Date(mongoReplay.metadata.gameStartTime),
+					startTime: mongoReplay.metadata.gameStartTime ? new Date(mongoReplay.metadata.gameStartTime) : new Date(),
 					endTime: mongoReplay.metadata.gameEndTime
 						? new Date(mongoReplay.metadata.gameEndTime)
 						: undefined,

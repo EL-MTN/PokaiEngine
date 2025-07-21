@@ -15,6 +15,7 @@ import {
 	HandEvaluation,
 	PossibleAction,
 } from '@/types';
+import { isGameStateWithVisibility, WinnerInfo } from '@/types/game-types';
 
 export interface GameResult {
 	winners: Array<{
@@ -503,13 +504,14 @@ export class GameEngine {
 		const baseAmount = Math.floor(totalWinnings / players.length);
 		const remainder = totalWinnings % players.length;
 
-		const winners: any[] = [];
+		const winners: WinnerInfo[] = [];
 		players.forEach((player, index) => {
 			const amount = baseAmount + (index < remainder ? 1 : 0);
 			player.addChips(amount);
 			winners.push({
 				playerId: player.id,
 				winAmount: amount,
+				amount: amount,
 				handDescription: 'Split Pot (Tie)',
 			});
 		});
@@ -522,7 +524,11 @@ export class GameEngine {
 			gameState: this.getVisibilityAwareState('showdown'),
 		});
 
-		this.completeHand(winners);
+		this.completeHand(winners.map(w => ({
+			playerId: w.playerId,
+			winAmount: w.winAmount || w.amount || 0,
+			handDescription: w.handDescription || w.description || ''
+		})));
 	}
 
 	/**
@@ -544,7 +550,7 @@ export class GameEngine {
 			handNumber: this.gameState.handNumber,
 			winners,
 			gameState: this.gameState.getPublicState(),
-		} as any);
+		} as GameEvent);
 
 		// Eliminate players who have no chips left. This keeps the table free of
 		// bust-out seats and prevents zero-stack players from being dealt into
@@ -593,14 +599,13 @@ export class GameEngine {
 	/**
 	 * Gets state with visibility rules applied based on event context
 	 */
-	private getVisibilityAwareState(eventType: string): any {
+	private getVisibilityAwareState(eventType: string): ReturnType<GameState['getPublicState']> {
 		// For showdown events, use visibility rules (spectator view)
 		if (eventType === 'showdown') {
 			// Use the GameState's visibility method if available
-			if (
-				typeof (this.gameState as any).getStateWithVisibility === 'function'
-			) {
-				return (this.gameState as any).getStateWithVisibility(
+			const gameState = this.gameState;
+			if (isGameStateWithVisibility(gameState)) {
+				return gameState.getStateWithVisibility(
 					'spectator',
 					undefined,
 				);

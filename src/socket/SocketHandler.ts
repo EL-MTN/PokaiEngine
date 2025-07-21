@@ -2,6 +2,7 @@ import { GameController } from '@/engine/game/GameController';
 import { BotAuthService } from '@/services/auth/BotAuthService';
 import { authLogger, communicationLogger } from '@/services/logging/Logger';
 import { Action, GameEvent, GameId, GamePhase, PlayerId } from '@/types';
+import { ExtendedGameEvent } from '@/types/game-types';
 
 import { BotInterface } from './BotInterface';
 
@@ -1315,10 +1316,10 @@ export class SocketHandler {
 			gameId,
 			event: {
 				...event,
-				// Include additional state if available (cast to any to handle extended properties)
+				// Include additional state if available
 				gameState: event.gameState,
-				gameStateBefore: (event as any).gameStateBefore,
-				gameStateAfter: (event as any).gameStateAfter,
+				gameStateBefore: (event as ExtendedGameEvent).gameStateBefore,
+				gameStateAfter: (event as ExtendedGameEvent).gameStateAfter,
 			},
 			timestamp: Date.now(),
 		});

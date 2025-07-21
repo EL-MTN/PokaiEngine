@@ -3,6 +3,7 @@ import { ReplayStorage } from '@/services/replay/ReplayStorage';
 import {
 	Action,
 	GameConfig,
+	GameEvent,
 	GameId,
 	GameState,
 	PlayerDecisionContext,
@@ -10,6 +11,7 @@ import {
 	PossibleAction,
 	ReplayData,
 } from '@/types';
+import { MongoReplay } from '@/types/database-types';
 
 import { GameReplayRecorder } from './GameReplayRecorder';
 import { ReplayAnalysis, ReplayAnalyzer } from './ReplayAnalyzer';
@@ -46,7 +48,7 @@ export class ReplayManager {
 
 	recordEvent(
 		gameId: GameId,
-		event: any,
+		event: GameEvent,
 		gameStateBefore?: GameState,
 		gameStateAfter?: GameState,
 		playerDecisionContext?: PlayerDecisionContext,
@@ -122,7 +124,7 @@ export class ReplayManager {
 		return this.storage.loadReplayFromFile(filepath);
 	}
 
-	async loadReplayFromMongo(gameId: GameId): Promise<any | null> {
+	async loadReplayFromMongo(gameId: GameId): Promise<MongoReplay | null> {
 		return await this.storage.loadReplayFromMongo(gameId);
 	}
 
@@ -130,7 +132,7 @@ export class ReplayManager {
 		return this.storage.listAvailableReplays();
 	}
 
-	async listRecentReplays(limit: number = 50): Promise<any[]> {
+	async listRecentReplays(limit: number = 50): Promise<MongoReplay[]> {
 		return await this.storage.listRecentReplays(limit);
 	}
 

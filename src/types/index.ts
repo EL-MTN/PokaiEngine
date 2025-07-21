@@ -251,6 +251,15 @@ export interface ReplayMetadata {
 	finalChipCounts?: Record<PlayerId, number>;
 	createdAt: Date;
 	version: string; // Replay format version
+	// Additional properties that may exist in MongoDB
+	gameStartTime?: number;
+	gameEndTime?: number;
+	maxPlayers?: number;
+	smallBlindAmount?: number;
+	bigBlindAmount?: number;
+	turnTimeLimit?: number;
+	gameType?: 'cash' | 'tournament';
+	totalHands?: number;
 }
 
 export interface ReplayData {

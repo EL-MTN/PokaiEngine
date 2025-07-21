@@ -11,6 +11,7 @@ import { serverLogger } from '@/services/logging/Logger';
 import { BotInterface } from '@/socket/BotInterface';
 import { SocketHandler } from '@/socket/SocketHandler';
 import { GameConfig } from '@/types';
+import { DatabaseQuery } from '@/types/database-types';
 
 /**
  * Enhanced Pokai Server with Express REST API support
@@ -417,10 +418,10 @@ export class PokaiExpressServer {
 					success: true,
 					data: credentials,
 				});
-			} catch (error: any) {
+			} catch (error) {
 				res.status(400).json({
 					success: false,
-					message: error.message || 'Failed to register bot',
+					message: error instanceof Error ? error.message : 'Failed to register bot',
 				});
 			}
 		});
@@ -430,7 +431,7 @@ export class PokaiExpressServer {
 				const { status, developer } = req.query;
 				const botAuthService = BotAuthService.getInstance();
 
-				const filter: any = {};
+				const filter: DatabaseQuery = {};
 				if (status) filter.status = status as string;
 				if (developer) filter.developer = developer as string;
 
@@ -440,10 +441,10 @@ export class PokaiExpressServer {
 					success: true,
 					data: bots,
 				});
-			} catch (error: any) {
+			} catch (error) {
 				res.status(500).json({
 					success: false,
-					message: error.message || 'Failed to list bots',
+					message: error instanceof Error ? error.message : 'Failed to list bots',
 				});
 			}
 		});
@@ -465,10 +466,10 @@ export class PokaiExpressServer {
 					success: true,
 					data: bot,
 				});
-			} catch (error: any) {
+			} catch (error) {
 				res.status(500).json({
 					success: false,
-					message: error.message || 'Failed to get bot',
+					message: error instanceof Error ? error.message : 'Failed to get bot',
 				});
 			}
 		});
@@ -492,10 +493,10 @@ export class PokaiExpressServer {
 						success: true,
 						data: stats,
 					});
-				} catch (error: any) {
+				} catch (error) {
 					res.status(500).json({
 						success: false,
-						message: error.message || 'Failed to get bot stats',
+						message: error instanceof Error ? error.message : 'Failed to get bot stats',
 					});
 				}
 			},
@@ -514,10 +515,10 @@ export class PokaiExpressServer {
 						success: true,
 						data: { apiKey: newApiKey },
 					});
-				} catch (error: any) {
+				} catch (error) {
 					res.status(400).json({
 						success: false,
-						message: error.message || 'Failed to regenerate API key',
+						message: error instanceof Error ? error.message : 'Failed to regenerate API key',
 					});
 				}
 			},
@@ -536,10 +537,10 @@ export class PokaiExpressServer {
 						success: true,
 						message: 'Bot suspended successfully',
 					});
-				} catch (error: any) {
+				} catch (error) {
 					res.status(400).json({
 						success: false,
-						message: error.message || 'Failed to suspend bot',
+						message: error instanceof Error ? error.message : 'Failed to suspend bot',
 					});
 				}
 			},
@@ -558,10 +559,10 @@ export class PokaiExpressServer {
 						success: true,
 						message: 'Bot reactivated successfully',
 					});
-				} catch (error: any) {
+				} catch (error) {
 					res.status(400).json({
 						success: false,
-						message: error.message || 'Failed to reactivate bot',
+						message: error instanceof Error ? error.message : 'Failed to reactivate bot',
 					});
 				}
 			},
@@ -580,10 +581,10 @@ export class PokaiExpressServer {
 						success: true,
 						message: 'Bot revoked successfully',
 					});
-				} catch (error: any) {
+				} catch (error) {
 					res.status(400).json({
 						success: false,
-						message: error.message || 'Failed to revoke bot',
+						message: error instanceof Error ? error.message : 'Failed to revoke bot',
 					});
 				}
 			},

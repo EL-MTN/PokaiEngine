@@ -2,6 +2,7 @@ import crypto from 'crypto';
 
 import { authLogger } from '@/services/logging/Logger';
 import { Bot, IBot } from '@/services/storage/models/Bot';
+import { DatabaseQuery } from '@/types/database-types';
 
 export interface BotCredentials {
 	botId: string;
@@ -287,7 +288,7 @@ export class BotAuthService {
 		developer?: string;
 	}): Promise<IBot[]> {
 		try {
-			const query: any = {};
+			const query: DatabaseQuery = {};
 
 			if (filter?.status) {
 				query.status = filter.status;

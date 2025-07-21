@@ -16,7 +16,10 @@ import {
 	PlayerId,
 	ReplayData,
 	ReplayEvent,
+	ReplayMetadata,
 } from '@/types';
+import { MongoReplay, MongoReplayEvent } from '@/types/database-types';
+import { WinnerInfo } from '@/types/game-types';
 
 export interface ReplayStorageConfig {
 	directory: string;
@@ -160,13 +163,63 @@ export class ReplayStorage {
 	/**
 	 * Loads replay data from MongoDB
 	 */
-	async loadReplayFromMongo(gameId: GameId): Promise<any | null> {
+	async loadReplayFromMongo(gameId: GameId): Promise<MongoReplay | null> {
 		if (!this.replayService) {
 			return null;
 		}
 
 		try {
-			return await this.replayService.getReplay(gameId);
+			const replay = await this.replayService.getReplay(gameId);
+			if (!replay) return null;
+			
+			// Convert IReplay to MongoReplay format
+			// Map IGameEvent to MongoReplayEvent
+			const mongoEvents: MongoReplayEvent[] = replay.events.map((event, index) => ({
+				sequenceId: index + 1,
+				type: event.type,
+				timestamp: event.timestamp,
+				phase: event.phase,
+				handNumber: event.handNumber,
+				playerId: event.playerId,
+				data: event.data as ReplayEvent,
+			}));
+			
+			// Convert IGameMetadata to ReplayMetadata
+			const replayMetadata: ReplayMetadata = {
+				gameConfig: {
+					isTournament: replay.metadata.gameType === 'tournament',
+					maxPlayers: replay.metadata.maxPlayers,
+					smallBlindAmount: replay.metadata.smallBlindAmount,
+					bigBlindAmount: replay.metadata.bigBlindAmount,
+					turnTimeLimit: replay.metadata.turnTimeLimit,
+				},
+				playerNames: replay.metadata.playerNames,
+				handCount: replay.metadata.totalHands,
+				totalEvents: mongoEvents.length,
+				totalActions: replay.metadata.totalActions,
+				gameDuration: replay.metadata.gameDuration,
+				createdAt: replay.createdAt,
+				version: replay.version || '1.0.0',
+				gameStartTime: replay.metadata.gameStartTime,
+				gameEndTime: replay.metadata.gameEndTime,
+				maxPlayers: replay.metadata.maxPlayers,
+				smallBlindAmount: replay.metadata.smallBlindAmount,
+				bigBlindAmount: replay.metadata.bigBlindAmount,
+				turnTimeLimit: replay.metadata.turnTimeLimit,
+				gameType: replay.metadata.gameType,
+				totalHands: replay.metadata.totalHands,
+			};
+
+			return {
+				_id: replay._id?.toString() || '',
+				gameId: replay.gameId,
+				events: mongoEvents,
+				metadata: replayMetadata,
+				createdAt: replay.createdAt,
+				updatedAt: replay.updatedAt,
+				analytics: replay.analytics,
+				version: replay.version,
+			};
 		} catch (error) {
 			replayLogger.error(
 				`Failed to load replay from MongoDB for game ${gameId}:`,
@@ -198,13 +251,29 @@ export class ReplayStorage {
 	/**
 	 * Lists recent replays from MongoDB
 	 */
-	async listRecentReplays(limit: number = 50): Promise<any[]> {
+	async listRecentReplays(limit: number = 50): Promise<MongoReplay[]> {
 		if (!this.replayService) {
 			return [];
 		}
 
 		try {
-			return await this.replayService.getRecentReplays(limit);
+			// getRecentReplays returns ReplayListItem[], we need to fetch full replays
+			const replayList = await this.replayService.getRecentReplays(limit);
+			const fullReplays: MongoReplay[] = [];
+			
+			for (const item of replayList) {
+				try {
+					const fullReplay = await this.loadReplayFromMongo(item.gameId);
+					if (fullReplay) {
+						fullReplays.push(fullReplay);
+					}
+				} catch {
+					// Skip replays that fail to load
+					replayLogger.warn(`Failed to load replay ${item.gameId}`);
+				}
+			}
+			
+			return fullReplays;
 		} catch (error) {
 			replayLogger.error('Failed to list MongoDB replays:', error);
 			return [];
@@ -278,16 +347,33 @@ export class ReplayStorage {
 	 */
 	async getStorageStatistics(): Promise<{
 		fileCount: number;
-		mongoStats?: any;
+		mongoStats?: {
+			total: number;
+			averageDuration: number;
+			averageEvents: number;
+		};
 	}> {
-		const stats = {
+		const stats: {
+			fileCount: number;
+			mongoStats?: {
+				total: number;
+				averageDuration: number;
+				averageEvents: number;
+			};
+		} = {
 			fileCount: this.listAvailableReplays().length,
-			mongoStats: undefined as any,
+			mongoStats: undefined,
 		};
 
 		if (this.replayService) {
 			try {
-				stats.mongoStats = await this.replayService.getStorageStatistics();
+				const mongoStorageStats = await this.replayService.getStorageStatistics();
+				// Map the ReplayService stats to our format
+				stats.mongoStats = {
+					total: mongoStorageStats.totalReplays,
+					averageDuration: 0, // These values are not directly available
+					averageEvents: 0,
+				};
 			} catch (error) {
 				replayLogger.error('Failed to get MongoDB storage statistics:', error);
 			}
@@ -571,7 +657,12 @@ export class ReplayStorage {
 		const handCompleteEvent = events.find((e) => e.type === 'hand_complete');
 		if (handCompleteEvent && 'winners' in handCompleteEvent) {
 			// The hand_complete event contains a winners array
-			return (handCompleteEvent as any).winners || [];
+			const event = handCompleteEvent as { winners?: WinnerInfo[] };
+			return (event.winners || []).map(w => ({
+				playerId: w.playerId,
+				handDescription: w.handDescription || w.description,
+				winAmount: w.winAmount || w.amount || 0
+			}));
 		}
 
 		// Fallback: look for showdown_complete event
@@ -597,7 +688,7 @@ export class ReplayStorage {
 				// Compare chip stacks to find winners
 				showdownEvent.gameStateAfter.players.forEach((player) => {
 					const priorPlayer = preShowdownState!.players.find(
-						(p: any) => p.id === player.id,
+						(p) => p.id === player.id,
 					);
 					if (priorPlayer && player.chipStack > priorPlayer.chipStack) {
 						winners.push({
@@ -642,12 +733,12 @@ export class ReplayStorage {
 		// Extract hand evaluations from the game state
 		// The showdown_complete event should have player information with their hands revealed
 		const playersInShowdown = showdownEvent.gameStateAfter.players.filter(
-			(p: any) => !p.isFolded && p.holeCards && p.holeCards.length === 2,
+			(p) => !p.isFolded && p.holeCards && p.holeCards.length === 2,
 		);
 
 		// If we can't get hand evaluations from the event, we need to calculate them
 		if (playersInShowdown.length > 0) {
-			playersInShowdown.forEach((player: any) => {
+			playersInShowdown.forEach((player) => {
 				if (player.holeCards) {
 					// Convert Card interfaces to Card class instances
 					const holeCards = player.holeCards.map(

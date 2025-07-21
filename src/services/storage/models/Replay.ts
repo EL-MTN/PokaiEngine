@@ -1,9 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+import { Card } from '@/types';
+
 export interface IGameEvent {
 	type: string;
 	timestamp: number;
-	data: any;
+	data: unknown;
 	phase?: string;
 	handNumber?: number;
 	playerId?: string;
@@ -26,7 +28,7 @@ export interface IHandSummary {
 	duration: number;
 	winner: string;
 	potSize: number;
-	communityCards: any[];
+	communityCards: Card[];
 	actions: number;
 }
 

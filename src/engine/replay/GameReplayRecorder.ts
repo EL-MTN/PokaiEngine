@@ -7,6 +7,7 @@ import {
 	GameState,
 	PlayerDecisionContext,
 	PlayerId,
+	PlayerInfo,
 	Position,
 	PossibleAction,
 	ReplayCheckpoint,
@@ -14,6 +15,7 @@ import {
 	ReplayEvent,
 	ReplayMetadata,
 } from '@/types';
+import { isGameStateWithVisibility } from '@/types/game-types';
 import { shouldShowHoleCards } from '@/types/visibility';
 
 export interface ReplayRecordingConfig {
@@ -390,11 +392,8 @@ export class GameReplayRecorder {
 		}
 
 		// If we have a GameStateClass instance with visibility methods, use them
-		if (
-			gameState &&
-			typeof (gameState as any).getStateWithVisibility === 'function'
-		) {
-			return (gameState as any).getStateWithVisibility('replay', undefined);
+		if (gameState && isGameStateWithVisibility(gameState)) {
+			return gameState.getStateWithVisibility('replay', undefined);
 		}
 
 		// Otherwise, manually filter the game state
@@ -405,7 +404,7 @@ export class GameReplayRecorder {
 
 		// Apply visibility rules to players
 		if (clonedState.players && Array.isArray(clonedState.players)) {
-			clonedState.players = clonedState.players.map((player: any) => {
+			clonedState.players = clonedState.players.map((player: PlayerInfo) => {
 				const shouldShow = shouldShowHoleCards(
 					'replay',
 					undefined,

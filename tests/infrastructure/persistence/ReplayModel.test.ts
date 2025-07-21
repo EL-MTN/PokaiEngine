@@ -246,7 +246,8 @@ describe('Replay Model', () => {
 
 			const savedReplay = await replay.save();
 			expect(savedReplay.events[0].type).toBe('action');
-			expect(savedReplay.events[0].data.action.type).toBe('fold');
+			const eventData = savedReplay.events[0].data as any;
+			expect(eventData.action.type).toBe('fold');
 		});
 
 		it('should require event data field', async () => {
@@ -305,7 +306,8 @@ describe('Replay Model', () => {
 
 			// Should save successfully as there's no enum validation on action type
 			const savedReplay = await replay.save();
-			expect(savedReplay.events[0].data.action.type).toBe('invalid_action');
+			const eventData = savedReplay.events[0].data as any;
+			expect(eventData.action.type).toBe('invalid_action');
 		});
 
 		it('should allow valid action types', async () => {

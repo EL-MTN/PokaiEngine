@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 import { dbLogger } from '@/services/logging/Logger';
+import { TypedError } from '@/types/database-types';
 
 export interface DatabaseConfig {
 	uri: string;
@@ -33,7 +34,7 @@ export class DatabaseConnection {
 		dbLogger.info(message);
 	}
 
-	private logError(message: string, error?: any): void {
+	private logError(message: string, error?: TypedError | Error): void {
 		dbLogger.error(message, error);
 	}
 
@@ -75,7 +76,7 @@ export class DatabaseConnection {
 				return;
 			} catch (error) {
 				attempts++;
-				this.logError(`Connection attempt ${attempts} failed:`, error);
+				this.logError(`Connection attempt ${attempts} failed:`, error as Error);
 
 				if (attempts < maxAttempts) {
 					this.log(`Retrying in ${this.config.retryDelay}ms...`);
@@ -100,7 +101,7 @@ export class DatabaseConnection {
 			this.isConnected = false;
 			this.log('Disconnected from MongoDB');
 		} catch (error) {
-			this.logError('Error disconnecting from MongoDB:', error);
+			this.logError('Error disconnecting from MongoDB:', error as Error);
 			throw error;
 		}
 	}
@@ -127,7 +128,7 @@ export class DatabaseConnection {
 			}
 			return false;
 		} catch (error) {
-			this.logError('Health check failed:', error);
+			this.logError('Health check failed:', error as Error);
 			return false;
 		}
 	}
@@ -154,7 +155,7 @@ export class DatabaseConnection {
 					await this.disconnect();
 					process.exit(0);
 				} catch (error) {
-					this.logError('Error during graceful shutdown:', error);
+					this.logError('Error during graceful shutdown:', error as Error);
 					process.exit(1);
 				}
 			});

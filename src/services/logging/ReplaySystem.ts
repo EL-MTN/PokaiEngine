@@ -9,6 +9,7 @@ import {
 	ReplayData,
 	ReplayEvent,
 } from '@/types';
+import { MongoReplay, TypedError } from '@/types/database-types';
 
 import { replayLogger } from './Logger';
 
@@ -55,7 +56,7 @@ export class ReplaySystem {
 		replayLogger.info(message);
 	}
 
-	private logError(message: string, error?: any): void {
+	private logError(message: string, error?: TypedError | Error): void {
 		replayLogger.error(message, error);
 	}
 
@@ -75,7 +76,7 @@ export class ReplaySystem {
 			);
 			return true;
 		} catch (error) {
-			this.logError(`Failed to load replay:`, error);
+			this.logError(`Failed to load replay:`, error as Error);
 			return false;
 		}
 	}
@@ -109,7 +110,7 @@ export class ReplaySystem {
 		} catch (error) {
 			this.logError(
 				`Failed to load replay from MongoDB for game ${gameId}:`,
-				error,
+				error as Error,
 			);
 			return false;
 		}
@@ -124,7 +125,7 @@ export class ReplaySystem {
 		} catch (error) {
 			this.logError(
 				`Failed to get replay analysis from MongoDB for game ${gameId}:`,
-				error,
+				error as Error,
 			);
 			return null;
 		}
@@ -142,7 +143,7 @@ export class ReplaySystem {
 		} catch (error) {
 			this.logError(
 				`Failed to get hand replay from MongoDB for game ${gameId}, hand ${handNumber}:`,
-				error,
+				error as Error,
 			);
 			return null;
 		}
@@ -151,11 +152,11 @@ export class ReplaySystem {
 	/**
 	 * Lists available replays from MongoDB
 	 */
-	async listMongoReplays(limit: number = 50): Promise<any[]> {
+	async listMongoReplays(limit: number = 50): Promise<MongoReplay[]> {
 		try {
 			return await this.replayStorage.listRecentReplays(limit);
 		} catch (error) {
-			this.logError('Failed to list MongoDB replays:', error);
+			this.logError('Failed to list MongoDB replays:', error as Error);
 			return [];
 		}
 	}
@@ -383,7 +384,7 @@ export class ReplaySystem {
 				try {
 					callback(currentEvent, gameState);
 				} catch (error) {
-					this.logError('Error in event callback:', error);
+					this.logError('Error in event callback:', error as Error);
 				}
 			});
 		}
@@ -395,7 +396,7 @@ export class ReplaySystem {
 			try {
 				callback(position);
 			} catch (error) {
-				this.logError('Error in position callback:', error);
+				this.logError('Error in position callback:', error as Error);
 			}
 		});
 	}
@@ -438,20 +439,20 @@ export class ReplaySystem {
 	/**
 	 * Helper method to convert MongoDB replay to ReplayData format
 	 */
-	private convertMongoReplayToReplayData(mongoReplay: any): ReplayData {
+	private convertMongoReplayToReplayData(mongoReplay: MongoReplay): ReplayData {
 		// Convert MongoDB replay format to local ReplayData format
 		const replayData: ReplayData = {
 			gameId: mongoReplay.gameId,
-			startTime: new Date(mongoReplay.metadata.gameStartTime),
+			startTime: mongoReplay.metadata.gameStartTime ? new Date(mongoReplay.metadata.gameStartTime) : new Date(mongoReplay.createdAt),
 			endTime: mongoReplay.metadata.gameEndTime
 				? new Date(mongoReplay.metadata.gameEndTime)
 				: undefined,
-			events: mongoReplay.events.map((event: any, index: number) => ({
+			events: mongoReplay.events.map((event, index) => ({
 				...event.data,
 				type: event.type,
 				timestamp: event.timestamp,
 				handNumber: event.handNumber || 0,
-				phase: event.phase,
+				phase: event.phase as GamePhase | undefined,
 				playerId: event.playerId,
 				sequenceId: index + 1,
 				gameStateBefore: event.data.gameStateBefore,
@@ -460,24 +461,26 @@ export class ReplaySystem {
 				eventDuration: event.data.eventDuration,
 			})),
 			initialGameState:
-				mongoReplay.events[0]?.data?.initialGameState ||
-				mongoReplay.events[0]?.data?.gameState,
+				mongoReplay.events[0]?.data?.gameStateBefore ||
+				mongoReplay.events[0]?.data?.gameStateAfter ||
+				mongoReplay.events[0]?.data?.gameState ||
+				{} as GameState,
 			finalGameState:
 				mongoReplay.events[mongoReplay.events.length - 1]?.data?.gameState,
 			metadata: {
 				gameConfig: {
-					maxPlayers: mongoReplay.metadata.maxPlayers,
-					smallBlindAmount: mongoReplay.metadata.smallBlindAmount,
-					bigBlindAmount: mongoReplay.metadata.bigBlindAmount,
-					turnTimeLimit: mongoReplay.metadata.turnTimeLimit,
+					maxPlayers: mongoReplay.metadata.maxPlayers || 9,
+					smallBlindAmount: mongoReplay.metadata.smallBlindAmount || 5,
+					bigBlindAmount: mongoReplay.metadata.bigBlindAmount || 10,
+					turnTimeLimit: mongoReplay.metadata.turnTimeLimit || 30,
 					isTournament: mongoReplay.metadata.gameType === 'tournament',
 				},
 				playerNames: mongoReplay.metadata.playerNames,
-				handCount: mongoReplay.metadata.totalHands,
-				totalEvents: mongoReplay.analytics.totalEvents,
+				handCount: mongoReplay.metadata.totalHands || 0,
+				totalEvents: mongoReplay.analytics?.totalEvents || mongoReplay.events.length,
 				totalActions: mongoReplay.metadata.totalActions,
 				gameDuration: mongoReplay.metadata.gameDuration,
-				avgHandDuration: mongoReplay.analytics.avgHandDuration,
+				avgHandDuration: mongoReplay.analytics?.avgHandDuration,
 				winners: mongoReplay.metadata.winners,
 				finalChipCounts: {},
 				createdAt: new Date(mongoReplay.createdAt),

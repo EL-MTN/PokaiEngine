@@ -453,10 +453,10 @@ describe('SocketHandler Coverage Tests', () => {
 				isGameRunning: jest.fn().mockReturnValue(true),
 				getConfig: jest.fn().mockReturnValue({ turnTimeLimit: 30 }),
 			};
-			
+
 			// Mock getGame to return our mock game
 			jest.spyOn(gameController, 'getGame').mockReturnValue(mockGame as any);
-			
+
 			// Mock forcePlayerAction to throw error
 			jest.spyOn(gameController, 'forcePlayerAction').mockImplementation(() => {
 				throw new Error('Force action failed');
@@ -472,7 +472,7 @@ describe('SocketHandler Coverage Tests', () => {
 				gameId,
 				chipStack: 1000,
 			});
-			
+
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
 			// Simulate timeout by calling handleTurnTimeout directly

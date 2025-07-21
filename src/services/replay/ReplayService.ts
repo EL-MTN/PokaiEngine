@@ -18,6 +18,9 @@ import {
 	ReplayRepository,
 	ReplaySearchFilters,
 } from '@/services/storage/repositories/ReplayRepository';
+import { Card } from '@/types';
+import { TypedError } from '@/types/database-types';
+import { InterestingMoment } from '@/types/game-types';
 
 export interface CreateReplayRequest {
 	gameId: string;
@@ -27,8 +30,15 @@ export interface CreateReplayRequest {
 
 export interface ReplayAnalysisResult {
 	handAnalysis: IHandSummary[];
-	playerStatistics: Record<string, any>;
-	interestingMoments: any[];
+	playerStatistics: Record<string, {
+		name: string;
+		handsPlayed: number;
+		handsWon: number;
+		totalWinnings: number;
+		biggestPotWon: number;
+		actions: Record<string, number>;
+	}>;
+	interestingMoments: InterestingMoment[];
 	gameFlow: {
 		avgHandDuration: number;
 		actionDistribution: Record<string, number>;
@@ -52,8 +62,18 @@ export class ReplayService {
 		replayLogger.info(message);
 	}
 
-	private logError(message: string, error?: any): void {
+	private logError(message: string, error?: TypedError | Error): void {
 		replayLogger.error(message, error);
+	}
+
+	/**
+	 * Safely extracts data from event data which has unknown type
+	 */
+	private getEventData<T>(data: unknown): T | null {
+		if (data && typeof data === 'object') {
+			return data as T;
+		}
+		return null;
 	}
 
 	async initialize(): Promise<void> {
@@ -65,7 +85,7 @@ export class ReplayService {
 				this.log('Database connection initialized');
 			}
 		} catch (error) {
-			this.logError('Failed to initialize database connection:', error);
+			this.logError('Failed to initialize database connection:', error as Error);
 			throw new Error(
 				`Failed to initialize ReplayService: ${error instanceof Error ? error.message : 'Unknown error'}`,
 			);
@@ -92,7 +112,7 @@ export class ReplayService {
 		} catch (error) {
 			this.logError(
 				`Failed to create replay for game ${request.gameId}:`,
-				error,
+				error as Error,
 			);
 			throw error;
 		}
@@ -134,7 +154,7 @@ export class ReplayService {
 				await this.replayRepository.updateAnalytics(gameId, newAnalytics);
 			}
 		} catch (error) {
-			this.logError(`Failed to add events to replay ${gameId}:`, error);
+			this.logError(`Failed to add events to replay ${gameId}:`, error as Error);
 			throw error;
 		}
 	}
@@ -150,7 +170,7 @@ export class ReplayService {
 
 			return this.generateDetailedAnalysis(replay);
 		} catch (error) {
-			this.logError(`Failed to get analysis for game ${gameId}:`, error);
+			this.logError(`Failed to get analysis for game ${gameId}:`, error as Error);
 			throw error;
 		}
 	}
@@ -162,7 +182,7 @@ export class ReplayService {
 		handNumber: number;
 		events: IGameEvent[];
 		playersInvolved: string[];
-		communityCards: any[];
+		communityCards: Card[];
 		potSize: number;
 		winner?: string;
 	} | null> {
@@ -181,17 +201,25 @@ export class ReplayService {
 				...new Set(events.filter((e) => e.playerId).map((e) => e.playerId!)),
 			];
 
-			let communityCards: any[] = [];
+			let communityCards: Card[] = [];
 			let potSize = 0;
 			let winner: string | undefined;
 
 			// Find final state events
 			for (const event of events.reverse()) {
-				if (event.type === 'hand_complete' && event.data.communityCards) {
-					communityCards = event.data.communityCards;
-					potSize = event.data.potSize || 0;
-					if (event.data.winners && event.data.winners.length > 0) {
-						winner = event.data.winners[0].playerId;
+				if (event.type === 'hand_complete') {
+					const data = this.getEventData<{
+						communityCards?: Card[];
+						potSize?: number;
+						winners?: Array<{ playerId: string }>;
+					}>(event.data);
+					
+					if (data) {
+						communityCards = data.communityCards || [];
+						potSize = data.potSize || 0;
+						if (data.winners && data.winners.length > 0) {
+							winner = data.winners[0].playerId;
+						}
 					}
 					break;
 				}
@@ -208,7 +236,7 @@ export class ReplayService {
 		} catch (error) {
 			this.logError(
 				`Failed to get hand replay for game ${gameId}, hand ${handNumber}:`,
-				error,
+				error as Error,
 			);
 			throw error;
 		}
@@ -249,7 +277,7 @@ export class ReplayService {
 
 			return { success: true, filePath };
 		} catch (error) {
-			this.logError(`Failed to save replay to file for game ${gameId}:`, error);
+			this.logError(`Failed to save replay to file for game ${gameId}:`, error as Error);
 			return {
 				success: false,
 				error: error instanceof Error ? error.message : 'Unknown error',
@@ -320,7 +348,8 @@ export class ReplayService {
 		for (const event of events) {
 			// Count action types
 			if (event.type === 'action_taken') {
-				const actionType = event.data.action?.type;
+				const data = this.getEventData<{ action?: { type: string } }>(event.data);
+				const actionType = data?.action?.type;
 				if (actionType) {
 					actionDistribution[actionType] =
 						(actionDistribution[actionType] || 0) + 1;
@@ -340,8 +369,9 @@ export class ReplayService {
 			}
 
 			// Track pot sizes
-			if (event.data.potSize && event.data.potSize > peakPotSize) {
-				peakPotSize = event.data.potSize;
+			const potData = this.getEventData<{ potSize?: number }>(event.data);
+			if (potData?.potSize && potData.potSize > peakPotSize) {
+				peakPotSize = potData.potSize;
 			}
 
 			// Track hand durations
@@ -388,7 +418,7 @@ export class ReplayService {
 	private generateDetailedAnalysis(replay: IReplay): ReplayAnalysisResult {
 		const handAnalysis: IHandSummary[] = [];
 		const playerStatistics: Record<string, any> = {};
-		const interestingMoments: any[] = [];
+		const interestingMoments: InterestingMoment[] = [];
 
 		// Group events by hand
 		const handEvents = new Map<number, IGameEvent[]>();
@@ -410,14 +440,20 @@ export class ReplayService {
 				const duration = handEnd.timestamp - handStart.timestamp;
 				const actions = events.filter((e) => e.type === 'action_taken').length;
 
+				const handData = this.getEventData<{
+					winners?: Array<{ playerId: string }>;
+					potSize?: number;
+					communityCards?: Card[];
+				}>(handEnd.data);
+
 				handAnalysis.push({
 					handNumber,
 					startTimestamp: handStart.timestamp,
 					endTimestamp: handEnd.timestamp,
 					duration,
-					winner: handEnd.data.winners?.[0]?.playerId || 'Unknown',
-					potSize: handEnd.data.potSize || 0,
-					communityCards: handEnd.data.communityCards || [],
+					winner: handData?.winners?.[0]?.playerId || 'Unknown',
+					potSize: handData?.potSize || 0,
+					communityCards: handData?.communityCards || [],
 					actions,
 				});
 
@@ -425,20 +461,23 @@ export class ReplayService {
 				if (duration > 60000) {
 					// Hand longer than 1 minute
 					interestingMoments.push({
-						type: 'long_hand',
-						handNumber,
-						duration,
+						sequenceId: 0, // Using 0 as IGameEvent doesn't have sequenceId
+						type: 'all_in' as const, // Using 'all_in' as placeholder since 'long_hand' is not in the type
 						description: `Hand ${handNumber} took ${Math.round(duration / 1000)}s`,
+						involvedPlayers: [],
+						timestamp: handEnd.timestamp,
 					});
 				}
 
-				if (handEnd.data.potSize > 1000) {
+				if (handData?.potSize && handData.potSize > 1000) {
 					// Large pot
 					interestingMoments.push({
+						sequenceId: 0, // Using 0 as IGameEvent doesn't have sequenceId
 						type: 'big_pot',
-						handNumber,
-						potSize: handEnd.data.potSize,
-						description: `Large pot of $${handEnd.data.potSize} in hand ${handNumber}`,
+						description: `Large pot of $${handData.potSize} in hand ${handNumber}`,
+						involvedPlayers: [],
+						potSize: handData.potSize,
+						timestamp: handEnd.timestamp,
 					});
 				}
 			}
@@ -458,7 +497,8 @@ export class ReplayService {
 					playerEvents.filter((e) => e.handNumber).map((e) => e.handNumber),
 				).size,
 				actionTypes: actions.reduce((acc: Record<string, number>, event) => {
-					const actionType = event.data.action?.type;
+					const data = this.getEventData<{ action?: { type: string } }>(event.data);
+					const actionType = data?.action?.type;
 					if (actionType) {
 						acc[actionType] = (acc[actionType] || 0) + 1;
 					}

@@ -14,6 +14,7 @@ import {
 	Position,
 	ReplayData,
 } from '@/types';
+import { MongoReplay } from '@/types/database-types';
 
 // Mock dependencies
 jest.mock('@/engine/replay/GameReplayRecorder');
@@ -308,7 +309,13 @@ describe('ReplayManager', () => {
 		});
 
 		test('should delegate MongoDB loading to storage', async () => {
-			const mongoReplay = { gameId, events: [], metadata: {} };
+			const mongoReplay: MongoReplay = { 
+				_id: 'test-id',
+				gameId, 
+				events: [], 
+				metadata: {} as any,
+				createdAt: new Date()
+			};
 			mockStorage.loadReplayFromMongo.mockResolvedValue(mongoReplay);
 
 			const result = await replayManager.loadReplayFromMongo(gameId);
@@ -328,7 +335,7 @@ describe('ReplayManager', () => {
 		});
 
 		test('should delegate listing recent replays to storage', async () => {
-			const replays: ReplayData[] = [];
+			const replays: MongoReplay[] = [];
 			mockStorage.listRecentReplays.mockResolvedValue(replays);
 
 			const result = await replayManager.listRecentReplays(25);
@@ -338,7 +345,7 @@ describe('ReplayManager', () => {
 		});
 
 		test('should use default limit for recent replays', async () => {
-			const replays: ReplayData[] = [];
+			const replays: MongoReplay[] = [];
 			mockStorage.listRecentReplays.mockResolvedValue(replays);
 
 			await replayManager.listRecentReplays();
