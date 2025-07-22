@@ -117,6 +117,22 @@ export interface BotEventHandlers {
 	onError?: (error: string, code?: string) => void;
 	onDisconnected?: (reason: string) => void;
 	onReconnected?: () => void;
+	onSpectatorState?: (data: { gameId: string; gameState: GameState }) => void;
+	onSpectatorEvent?: (data: { gameId: string; event: GameEvent }) => void;
+}
+
+// === Spectator Types ===
+export interface SpectatorAuthOptions {
+	adminKey: string;
+}
+
+export interface SpectateGameOptions {
+	gameId: string;
+}
+
+export interface SpectatorGameInfo extends GameInfo {
+	canSpectate: boolean;
+	playerNames: Record<string, string>;
 }
 
 // === Response Types ===

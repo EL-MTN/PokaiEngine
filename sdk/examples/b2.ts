@@ -108,6 +108,7 @@ async function runBasicBot() {
 		// Connect to server
 		console.log('🔗 Connecting to server...');
 		await bot.connect();
+		await bot.authenticate();
 		console.log('✅ Connected and authenticated');
 
 		// List available games

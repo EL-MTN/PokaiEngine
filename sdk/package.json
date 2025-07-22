@@ -22,8 +22,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"clean": "rm -rf dist",
-		"prepublishOnly": "npm run clean && npm run build",
-		"example:b1": "ts-node examples/b1.ts"
+		"prepublishOnly": "npm run clean && npm run build"
 	},
 	"keywords": [
 		"poker",

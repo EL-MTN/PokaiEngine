@@ -21,7 +21,7 @@
  */
 
 // Core exports
-export { PokaiBot } from './PokaiBot.js';
+export { PokaiBot } from './PokaiBot';
 
 // Type exports
 export type {
@@ -40,6 +40,11 @@ export type {
 	JoinGameOptions,
 	BotEventHandlers,
 
+	// Spectator Types
+	SpectatorAuthOptions,
+	SpectateGameOptions,
+	SpectatorGameInfo,
+
 	// Response types
 	SocketResponse,
 	AuthResponse,
@@ -53,10 +58,10 @@ export type {
 	// Utility types
 	Logger,
 	LogLevel,
-} from './types.js';
+} from './types';
 
 // Enum exports
-export { ActionType } from './types.js';
+export { ActionType } from './types';
 
 // Error exports
 export {
@@ -64,7 +69,7 @@ export {
 	AuthenticationError,
 	GameError,
 	ConnectionError,
-} from './types.js';
+} from './types';
 
 // Utility exports
 export {
@@ -107,7 +112,7 @@ export {
 	// Timing
 	addRandomDelay,
 	createActionTimeout,
-} from './utils.js';
+} from './utils';
 
 // SDK version
 export const VERSION = '1.0.0';

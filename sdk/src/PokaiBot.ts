@@ -24,6 +24,8 @@ import {
 	Logger,
 	LogLevel,
 	PossibleAction,
+	SpectateGameOptions,
+	SpectatorGameInfo,
 } from './types.js';
 
 /**
@@ -75,6 +77,7 @@ export class PokaiBot extends EventEmitter {
 	private reconnectAttempts = 0;
 	private isReconnecting = false;
 	private actionTimeout: NodeJS.Timeout | null = null;
+	private isSpectator = false;
 
 	constructor(config: BotConfig, logger?: Logger) {
 		super();
@@ -128,9 +131,8 @@ export class PokaiBot extends EventEmitter {
 			this.socket.once('connect', () => {
 				clearTimeout(timeout);
 				this.logger.info('Connected to server');
-				this.authenticate()
-					.then(() => resolve())
-					.catch(reject);
+				// Wait for authentication before resolving
+				resolve();
 			});
 
 			this.socket.once('connect_error', (error) => {
@@ -150,6 +152,7 @@ export class PokaiBot extends EventEmitter {
 		this.currentGameId = null;
 		this.currentPlayerId = null;
 		this.currentGameState = null;
+		this.isSpectator = false;
 		this.clearActionTimeout();
 
 		if (this.socket) {
@@ -170,7 +173,7 @@ export class PokaiBot extends EventEmitter {
 	/**
 	 * Authenticate with the server
 	 */
-	private async authenticate(): Promise<void> {
+	async authenticate(): Promise<void> {
 		if (!this.socket) {
 			throw new ConnectionError('Not connected to server');
 		}
@@ -208,6 +211,42 @@ export class PokaiBot extends EventEmitter {
 		});
 	}
 
+	/**
+	 * Authenticate as a spectator
+	 */
+	async authenticateAsSpectator(adminKey: string): Promise<void> {
+		if (!this.socket) {
+			throw new ConnectionError('Not connected to server');
+		}
+
+		this.logger.info('Authenticating as spectator...');
+
+		return new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject(new AuthenticationError('Spectator authentication timeout'));
+			}, 5000);
+
+			const onSuccess = () => {
+				clearTimeout(timeout);
+				this.isAuthenticated = true;
+				this.isSpectator = true;
+				this.logger.info('Authenticated successfully as spectator');
+				resolve();
+			};
+
+			const onError = (data: { error: string }) => {
+				clearTimeout(timeout);
+				this.logger.error('Spectator authentication failed', data.error);
+				reject(new AuthenticationError(data.error));
+			};
+
+			this.socket!.once('spectator.auth.success', onSuccess);
+			this.socket!.once('spectator.auth.error', onError);
+
+			this.socket!.emit('spectator.auth', { adminKey });
+		});
+	}
+
 	// === Game Management ===
 
 	/**
@@ -239,6 +278,10 @@ export class PokaiBot extends EventEmitter {
 	async joinGame(options: JoinGameOptions): Promise<void> {
 		if (!this.isReady()) {
 			throw new ConnectionError('Bot is not connected and authenticated');
+		}
+
+		if (this.isSpectator) {
+			throw new GameError('Spectators cannot join games');
 		}
 
 		if (this.currentGameId) {
@@ -315,6 +358,105 @@ export class PokaiBot extends EventEmitter {
 		});
 	}
 
+	// === Spectator Methods ===
+
+	/**
+	 * Get list of available games for spectating
+	 */
+	async getSpectatorGames(): Promise<SpectatorGameInfo[]> {
+		if (!this.isReady() || !this.isSpectator) {
+			throw new ConnectionError(
+				'Bot is not connected and authenticated as a spectator',
+			);
+		}
+
+		return new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject(new GameError('Get spectator games request timeout'));
+			}, 5000);
+
+			const onSuccess = (data: { games: SpectatorGameInfo[] }) => {
+				clearTimeout(timeout);
+				resolve(data.games);
+			};
+
+			this.socket!.once('spectator.games.success', onSuccess);
+			this.socket!.emit('spectator.games', {});
+		});
+	}
+
+	/**
+	 * Start spectating a game
+	 */
+	async spectateGame(options: SpectateGameOptions): Promise<void> {
+		if (!this.isReady() || !this.isSpectator) {
+			throw new ConnectionError(
+				'Bot is not connected and authenticated as a spectator',
+			);
+		}
+
+		this.logger.info(`Requesting to spectate game ${options.gameId}`);
+
+		return new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject(new GameError('Spectate game request timeout'));
+			}, 10000);
+
+			const onSuccess = () => {
+				clearTimeout(timeout);
+				this.logger.info(`Successfully spectating game ${options.gameId}`);
+				resolve();
+			};
+
+			const onError = (data: { error: string }) => {
+				clearTimeout(timeout);
+				this.logger.error('Failed to spectate game', data.error);
+				reject(new GameError(data.error));
+			};
+
+			this.socket!.once('spectator.watch.success', onSuccess);
+			this.socket!.once('spectator.watch.error', onError);
+
+			this.socket!.emit('spectator.watch', { gameId: options.gameId });
+		});
+	}
+
+	/**
+	 * Stop spectating a game
+	 */
+	async unwatchGame(options: SpectateGameOptions): Promise<void> {
+		if (!this.isReady() || !this.isSpectator) {
+			throw new ConnectionError(
+				'Bot is not connected and authenticated as a spectator',
+			);
+		}
+
+		this.logger.info(`Requesting to unwatch game ${options.gameId}`);
+
+		return new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject(new GameError('Unwatch game request timeout'));
+			}, 5000);
+
+			const onSuccess = () => {
+				clearTimeout(timeout);
+				this.logger.info(`Successfully unwatched game ${options.gameId}`);
+				resolve();
+			};
+
+			const onError = (data: { error: string }) => {
+				clearTimeout(timeout);
+				this.logger.error('Failed to unwatch game', data.error);
+				reject(new GameError(data.error));
+			};
+
+			this.socket!.once('spectator.unwatch.success', onSuccess);
+			this.socket!.once('spectator.unwatch.error', onError);
+
+			this.socket!.emit('spectator.unwatch', { gameId: options.gameId });
+		});
+	}
+
 	// === Game Actions ===
 
 	/**
@@ -323,6 +465,10 @@ export class PokaiBot extends EventEmitter {
 	async submitAction(actionType: ActionType, amount?: number): Promise<void> {
 		if (!this.currentGameId) {
 			throw new GameError('Not currently in a game');
+		}
+
+		if (this.isSpectator) {
+			throw new GameError('Spectators cannot submit actions');
 		}
 
 		const action: Action = {
@@ -518,6 +664,15 @@ export class PokaiBot extends EventEmitter {
 				this.reconnectAttempts = 0;
 				this.emit('reconnected');
 			}
+		});
+
+		// Spectator events
+		this.socket.on('spectator.state', (data) => {
+			this.emit('spectatorstate', data);
+		});
+
+		this.socket.on('spectator.event', (data) => {
+			this.emit('spectatorevent', data);
 		});
 
 		// Add a generic event listener for debugging
