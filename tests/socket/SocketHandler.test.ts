@@ -3,7 +3,7 @@ import { BotAuthService } from '@/services/auth/BotAuthService';
 import { SocketHandler } from '@/socket/SocketHandler';
 import { ActionType, GameConfig } from '@/types';
 
-import { MockSocket, MockSocketServer } from '../../utils/mocks';
+import { MockSocket, MockSocketServer } from '../utils/mocks';
 
 // Mock BotAuthService to avoid MongoDB dependency
 const mockBotAuthService = {
