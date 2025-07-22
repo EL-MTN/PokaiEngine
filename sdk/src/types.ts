@@ -69,12 +69,14 @@ export interface GameEvent {
 
 export interface GameInfo {
 	id: string;
-	gameId: string;
-	currentPlayers: number;
+	playerCount: number;
 	maxPlayers: number;
+	isRunning: boolean;
+	currentHand: number;
 	smallBlind: number;
 	bigBlind: number;
-	isStarted: boolean;
+	turnTimeLimit: number;
+	isTournament: boolean;
 }
 
 // === Bot Configuration ===
